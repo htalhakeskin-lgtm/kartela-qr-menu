@@ -56,7 +56,7 @@
 | 4 | Erişilebilirlik | Klavye turu: menü, formlar, diyaloglar, panel | Tümü | Elle |
 | 4 | Erişilebilirlik | Kontrast: tüm token çiftleri AA | S2+ | Birim testi |
 | 5 | Performans | Lighthouse mobil: Perf ≥ 90, A11y ≥ 95, BP ≥ 95, SEO = 100 (indekslenen sayfa; demo'da SEO kategorisi yerine tek tek SEO denetimleri) | Tümü | `pnpm lighthouse` (Lighthouse CI) |
-| 5 | Performans | Menü sayfaları (her mekân): Perf ≥ 95 (K-17; tutmazsa K-27 yolu), ilk ürün adı + fiyatı FCP'de, FCP ≤ 1,5 sn | Projeye özgü | Lighthouse CI mekân matrisi + `site.spec.ts` |
+| 5 | Performans | Menü sayfaları (her mekân, ortanca koşu): Perf ≥ 0,90 hata / ≥ 0,95 hedef-uyarı (ADR-0006, K-40); ilk ürün adı + fiyatı sunucu HTML'inde; FCP ≤ 1,5 sn hata | Projeye özgü | Lighthouse CI mekân matrisi + `site.spec.ts` |
 | 5 | Performans | Mekân başına paket: başka temanın modülü ve yazı tipi pakete / ön yüklemeye girmiyor (ADR-0003, K-35) | Projeye özgü | `bundle-isolation.spec.ts` + `next-font-manifest` denetimi |
 | 5 | Performans | Son açılan menü çevrimdışı açılıyor (mekân kapsamlı servis çalışanı) | Projeye özgü | e2e `setOffline` |
 | 5 | Performans | Veritabanı uykudayken (soğuk başlangıç) herkese açık sayfa kabuğu beklemeden açılıyor | S2+ | Elle: uzun boşluktan sonra ilk ziyaret |

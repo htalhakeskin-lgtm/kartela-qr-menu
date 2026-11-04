@@ -37,7 +37,9 @@
 | CI (GitHub runner) | Menü sayfası 0,95 hata eşiği geçti |
 | Canlı (Vercel CDN, 3 ölçüm) | Rakım **0,93 / 0,95 / 0,95** (FCP 0,9–1,0 sn, LCP 2,9–3,2 sn) · platform 0,98 |
 | Sert hedef | İlk ürün adı ve fiyatı sunucu HTML'inde (e2e) ve FCP ≤ 1,5 sn: **tutuyor** (0,8–1,1 sn) |
-| Karar | K-17 (0,95 hata) korunur; pay yok. CI ya da canlı ölçüm 0,95 altına düşerse K-27 yolu (ADR + 0,90 hata / 0,95 uyarı). Pay kaynağı: D-14'te Schibsted Grotesk `latin-ext` (47 KB) yerine yalnızca Türkçe harfler; D-15'te istemci adacıkları ilk etkileşimde |
+| D-01 (mekân alan adı, ortanca koşu) | CI 0,93 · 0,95 · 0,99 (Lighthouse CI varsayılanı en iyi koşuyu aldı; 0,93 saklandı) · yerel ortanca ile 0,94 · 0,94 · 0,94 |
+| Karar (D-01) | **K-27 uygulandı → K-40, ADR-0006:** performans < 0,90 hata, < 0,95 uyarı; FCP > 1,5 sn hata; kapılar ortanca koşuyla |
+| Karar (Faz 3) | K-17 (0,95 hata) korunur; pay yok. CI ya da canlı ölçüm 0,95 altına düşerse K-27 yolu (ADR + 0,90 hata / 0,95 uyarı). Pay kaynağı: D-14'te Schibsted Grotesk `latin-ext` (47 KB) yerine yalnızca Türkçe harfler; D-15'te istemci adacıkları ilk etkileşimde |
 
 ## Dilimler
 
@@ -49,7 +51,7 @@ Faz 1'in son dilimi (D-22) bitip Rakım yayına çıkınca durulur; teslim: yay�
 
 | No | Dilim | Kapsam (özellik / REQ) | Efor | Öncelik | Durum | 360 px | Test |
 |---|---|---|---|---|---|---|---|
-| D-01 | Kiracı yönlendirme ve tema rota iskeleti: alan adı koşullu yeniden yazma kuralları (K-39, ADR-0002 v2), derleme anı mekân kaydı, `*.localhost`, `?mekan=`, `/m/{slug}`, bilinmeyen alan adı, `/tema-*` koruması, mekân başına `robots` / `sitemap` / manifest, Sade ağacı iskeleti + fikstür mekân | QR-01 · REQ-001 · SCR-051 | M | P0 | ✅ | ✅ | 19 birim (kayıt, kurallar) + 10 e2e (`tenant.spec.ts`) |
+| D-01 | Kiracı yönlendirme ve tema rota iskeleti: alan adı koşullu yeniden yazma kuralları (K-39, ADR-0002 v2), derleme anı mekân kaydı, `*.localhost`, `?mekan=`, `/m/{slug}`, bilinmeyen alan adı, `/tema-*` koruması, mekân başına `robots` / `sitemap` / manifest, Sade ağacı iskeleti + fikstür mekân | QR-01 · REQ-001 · SCR-051 | M | P0 | ✅ | ✅ | 20 birim (kayıt, kurallar) + 11 e2e (`tenant.spec.ts`) |
 | D-02 | Veri çekirdeği ve kiracı yalıtımı: `venues`, `venue_domains`, `venue_members`, `venue_settings`; `withVenue`, bileşik FK, RLS, `app_rw` rolü; `audit_logs` / `demo_outbox` FK'leri; kiracı test takımı; `venueAction` | QR-02 · REQ-002 | M | P0 | ⏳ | — | — |
 | D-03 | Menü motoru I: menüler ve pencereler, bölümler, ürünler, fiyat türleri, ürün bilgisi (14 alerjen, bileşen, enerji), çeviri alanları ve düşme | QR-03…06 · REQ-003…006 | M | P0 | ⏳ | — | — |
 | D-04 | İçerik klasöründen tohum hattı: `content/mekanlar/{ad}/` (mekan.ts, menu.ts, hikayeler, gorseller.ts), Zod şemaları, `db:seed` / `db:reset`, görsel kaydı ve CDN loader, test fikstür mekânı | QR-03 · REQ-003 | M | P0 | ⏳ | — | — |
@@ -198,3 +200,4 @@ Faz 1'in son dilimi (D-22) bitip Rakım yayına çıkınca durulur; teslim: yay�
 - 2026-11-04 · Faz 3 · Statik sayfa CSP'sine betik özeti eklemek `'unsafe-inline'`'ı geçersiz kılar ve Next.js'in nonce'suz satır içi betiklerini kırar (ADR-0005 ilk taslağındaki hata, K-33). **Sisteme taşı:** 11 §8 notu.
 - 2026-11-04 · Faz 3 · Next.js 16.4.3 + React 19.3.1 çerçeve tabanı 177 KB gzip (Levha'da 16.4.2 ile 165 KB). Mobil Lighthouse ≥ 0,95 hedefinde payı yazı tipi baytları belirliyor: veri yazı tipinin ön yüklemesini kapatmak LCP görseline bant genişliği bıraktı (0,94 → 0,95). **Sisteme taşı:** 12 §3 taban değeri, 06 yazı tipi ön yükleme kuralı.
 - 2026-11-04 · D-01 · Next.js 16 `proxy.ts` yalnız Node.js çalışma ortamında çalışıyor; alan adına göre kiracı yönlendirmesini proxy'ye koymak Vercel'de her statik menü isteğine fonksiyon çağrısı ekleyecekti. `next.config` `beforeFiles` kuralları (`has: host`) aynı derleme anı haritasını yönlendirme katmanında uyguluyor. Tuzaklar: (1) `beforeFiles` zincirlenir, sonraki kurallar yeniden yazılmış yolu görür → iç yol öneki (`tema-`) dışlanmalı; (2) `unstable_getResponseFromNextConfig` ilk eşleşen kuralı döndürür, zinciri taklit etmez → gerçek zincir e2e ile sınanmalı; (3) yeniden yazılmış istekte rota işleyicisi özgün adresi görür; (4) sorgu koşulunda boş değer "parametre yok" sayılır. **Sisteme taşı:** 02-mimari (çok kiracılı yönlendirme kalıbı), 05 (yeniden yazma + rota işleyicisi), katalog `qr-menu-platformu`.
+- 2026-11-04 · D-01 · İki kör nokta Lighthouse'ın en iyi uygulamalar puanıyla yakalandı: (1) `/tema-*` iç yol koruması, Next.js'in meta görsellerini sunduğu adresi de (`/tema-rakim/-/-/icon.svg`) kapattı, simge 404 verdi; çözüm meta görsel adlarını kuraldan muaf tutmak + e2e'de "sayfanın simgesi yükleniyor" testi. (2) Lighthouse CI kategori kapılarını varsayılan olarak üç koşunun **en iyisine** göre değerlendiriyor; 0,93'lük koşu 0,99'un arkasında saklandı. Çözüm `aggregationMethod: "median-run"`. **Sisteme taşı:** iskelet `lighthouserc.js` (ortanca koşu), 12 §8.

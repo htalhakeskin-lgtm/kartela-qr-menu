@@ -37,6 +37,9 @@ export type TenantRewrite = {
 
 export type TenantHeader = { source: string; headers: { key: string; value: string }[] };
 
+/** Next.js metadata image routes a theme tree may hold; their URLs stay public. */
+const METADATA_IMAGES = ["icon", "apple-icon", "opengraph-image", "twitter-image"] as const;
+
 /** Files every venue serves from its own tree instead of the platform's root files. */
 const VENUE_FILES = ["robots.txt", "sitemap.xml", "manifest.webmanifest"] as const;
 
@@ -84,7 +87,15 @@ export function buildTenantRewrites(
   venues: readonly VenueRecord[],
   options: { platformHosts: readonly string[] },
 ): TenantRewrite[] {
-  const rules: TenantRewrite[] = [{ source: "/:internal(tema-.*)", destination: NOT_FOUND_PATH }];
+  // 1. Internal tree paths requested directly answer 404 — except the tree's metadata images
+  //    (icon.svg, apple-icon, opengraph-image, twitter-image): Next.js serves them at
+  //    /tema-{theme}/-/-/icon.svg?… and the page links that address itself.
+  const rules: TenantRewrite[] = [
+    {
+      source: `/:internal(tema-(?!.*/(?:${METADATA_IMAGES.join("|")})[^/]*$).*)`,
+      destination: NOT_FOUND_PATH,
+    },
+  ];
 
   // 2. Venue hosts (production domains + {slug}.localhost).
   for (const venue of venues) {

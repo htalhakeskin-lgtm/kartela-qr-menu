@@ -427,6 +427,7 @@ erDiagram
 | [ADR-0003](adr/0003-tema-sozlesmesi-ve-rota-alt-agaci.md) | Tema = rota alt ağacı + kök düzen; `ThemeModule` sözleşmesi; görünümsüz çekirdek |
 | [ADR-0004](adr/0004-kiraci-yalitimi.md) | Kapsamlı erişim + bileşik FK + RLS; kiracı test takımı |
 | [ADR-0005](adr/0005-statik-menu-istemcide-zaman-ve-baglam.md) | Statik menü; zaman, bağlam, kişisel durum istemcide; el yazımı servis çalışanı |
+| [ADR-0006](adr/0006-menu-sayfalari-lighthouse-esigi.md) | Menü sayfaları: performans < 0,90 hata, < 0,95 uyarı; FCP ≤ 1,5 sn hata; ortanca koşu (K-40) |
 
 | Konu | Karar | Gerekçe |
 |---|---|---|
@@ -651,7 +652,7 @@ Uygulanmaz: ziyaretçi talep bırakmaz, satış süreci yok (araştırma §4). G
 |---|---|---|---|
 | NFR-01 | Mobil uyumluluk | 360–1536 px'te yatay kaydırma yok; dokunma hedefi ≥ 44 px | Playwright taşma testi (mekân matrisi) |
 | NFR-02 | İlk ürün görünürlüğü | İlk ürün adı + fiyatı sunucu HTML'inde ve 390 × 844 ilk ekranda; FCP ≤ 1,5 sn (yavaş 4G benzetimi) | Lighthouse CI + e2e HTML denetimi |
-| NFR-03 | Lighthouse mobil (menü sayfaları, her mekân) | Performans ≥ 95 (**hata eşiği**, K-17; Faz 3 ölçümü tutmazsa K-27'deki yol), Erişilebilirlik ≥ 95, En iyi uygulamalar ≥ 95 | `lhci` mekân matrisi |
+| NFR-03 | Lighthouse mobil (menü sayfaları, her mekân; ortanca koşu) | Performans < 0,90 **hata**, < 0,95 uyarı (hedef 0,95; ADR-0006, K-40); FCP ≤ 1,5 sn **hata**; Erişilebilirlik ≥ 95, En iyi uygulamalar ≥ 95 | `lhci` mekân matrisi |
 | NFR-04 | Core Web Vitals | LCP ≤ 2,0 sn · CLS ≤ 0,05 · INP ≤ 200 ms | Lighthouse, e2e CLS |
 | NFR-05 | JS bütçesi | Çerçeve tabanı **177 KB gzip** (Next.js 16.4.3 + React 19.3.1, Faz 3'te istemci bileşensiz Rakım rotasında ölçüldü) + mekân rotası uygulama payı ≤ 50 KB → mekân rotası ≤ 227 KB; panel ≤ 177 + 130 KB; başka temanın modülü ve yazı tipi 0 bayt | `pnpm olcum:js --mekan`, `bundle-isolation.spec.ts`, `next-font-manifest` denetimi |
 | NFR-06 | Çevrimdışı | İkinci açılış uçak kipinde başarılı | Playwright `context.setOffline(true)` |
@@ -843,6 +844,7 @@ Kapılar: [kalite-kapilari.md](kalite-kapilari.md) (Faz 3'te S4'e göre işaretl
 | K-35 | 2026-11-04 | `global-not-found.tsx` ve `global-error.tsx` kendi kendine yeter: paylaşılan CSS ya da `next/font` içe aktarmaz; platform paylaşım görseli `/og/platform` rota işleyicisinde, simge `public/kartela-icon.svg` | Faz 3 ölçümü: global 404'ün içe aktardığı platform CSS'i / Inter, Rakım menüsünde `Link` başlığıyla ön yüklendi (+132 KB, LCP 3,6 sn). Rota grubundaki meta görsel dosyaları karmalı adres alıyor (`/opengraph-image-1tixr7`) |
 | K-36 | 2026-11-04 | Rakım'ın veri yazı tipi (IBM Plex Mono) ön yüklenmez (`preload: false`); fiyat ve veri satırları yedek monospace'ten `swap` ile geçer | Yavaş 4G benzetiminde öne çıkan fotoğraf (LCP) yazı tipleriyle bant genişliği paylaşıyordu; LCP 3,0 → 2,9 sn, performans 0,94 → 0,95 |
 | K-38 | 2026-11-04 | Platform alan adı `kartela-platform.vercel.app`: `kartela.vercel.app` başka bir Vercel hesabına ait (403). K-26 kalıbı (`{ad}-kartela`) platformun kendisi için `kartela-kartela` olacağından açıklayıcı sonek seçildi. Vercel'in kendiliğinden verdiği `kartela-jade.vercel.app` da projede durur | Alan adı alınmış |
+| K-40 | 2026-11-04 | **K-27 uygulandı (ADR-0006):** menü sayfalarında Lighthouse performans < 0,90 hata, < 0,95 uyarı; FCP > 1,5 sn hata (sert hedef); bütün kategori kapıları üç koşunun ortancasıyla (`median-run`). K-17'nin 0,95 hata eşiği yerine geçti | Dürüst ortanca ölçümle Rakım 0,94–0,95 arasında salınıyor; Lighthouse CI varsayılanı en iyi koşuyu alıyordu (D-01 CI'da 0,93 saklandı). Sert kapı ve 0,95 hedefi korunuyor; ortanca üç ardışık arayüz diliminde ≥ 0,95 kalırsa hata eşiği 0,95'e döner |
 | K-39 | 2026-11-04 | **Kiracı çözümleme `proxy.ts` yerine `next.config.ts` `rewrites.beforeFiles` alan adı koşullu kurallarıyla** (ADR-0002 sürüm 2). Kurallar derleme anında `content/mekanlar/*/mekan.ts` kaydından üretilir; `proxy.ts` yalnız `/panel`. Önizlemeden çıkış `?mekan=platform`; ayrılmış mekân adları: platform, panel, api, tema, kartela, www | Next.js 16.4.3 belgesi: proxy yalnız Node.js çalışma ortamında; bütün yollara bağlansa Vercel'de her menü isteği CDN'den önce fonksiyon çağırır. Brifteki öneri (proxy) aynı amaçla, daha hızlı yolla karşılandı |
 | K-37 | 2026-11-04 | **RSK-01 Faz 3 ölçümü:** çerçeve tabanı 177 KB gzip; Rakım ölçüm sayfası Lighthouse mobil 0,95 / 0,95 / 0,95 (FCP 1,1 sn, LCP 2,9 sn, TBT 50–100 ms, CLS 0) — K-35 ve K-36'dan sonra. K-17 eşiği (0,95 hata) korunur; pay sıfır olduğu için CI ve Vercel ölçümü 0,95'in altında kalırsa K-27 yolu (ADR + 0,90 hata / 0,95 uyarı) uygulanır. Sonraki pay kaynağı: D-14'te Schibsted Grotesk'in `latin-ext` dosyası (47 KB) yerine yalnızca Türkçe harfleri taşıyan alt küme | Kullanıcı kararı K-27; ölçüm |
 
@@ -854,3 +856,4 @@ Kapılar: [kalite-kapilari.md](kalite-kapilari.md) (Faz 3'te S4'e göre işaretl
 | 2026-11-04 | v0.2 | Onay: K-19…K-31; Q-01…Q-05 kapandı; akşam takımı ayrı tasarlandı (§11.2); imza hareketleri (§11.7); fotoğrafsız ürün görünümü (§11.8); RSK-01 yolu |
 | 2026-11-04 | v0.3 | Faz 3: K-32…K-37; çerçeve tabanı NFR-05'e yazıldı; zengin metin kararı (§10) |
 | 2026-11-04 | v0.4 | D-01: K-39 (kiracı çözümleme yeniden yazma kurallarıyla, ADR-0002 v2); REQ-001 ve BR-KRC-004 güncellendi |
+| 2026-11-04 | v0.5 | K-40 / ADR-0006: menü sayfası Lighthouse kapısı (K-27 yolu); NFR-03 güncellendi |
