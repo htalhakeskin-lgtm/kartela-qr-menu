@@ -9,7 +9,7 @@
 | Hesap modeli | A — hesapsız ziyaretçi; çok rollü panel ([§8](#8-hesap-ve-yetki-modeli)) |
 | Teknoloji varyantı | V1 + çok kiracılı sapmalar (ADR-0001…0005) ([§10](#10-teknoloji-ve-mimari-kararlar)) |
 | Ortam | Demo (kurgusal içerik) |
-| Yayın | `kartela.vercel.app` (platform + panel), `rakim-kahve.vercel.app`, `kepce-lokanta.vercel.app`; ad alınmışsa `{ad}-kartela.vercel.app` (K-26) |
+| Yayın | `kartela-platform.vercel.app` (platform + panel; `kartela.vercel.app` başkasına ait, K-38), `rakim-kahve.vercel.app`, `kepce-lokanta.vercel.app` (ikisi de projeye bağlı, 2026-11-04) |
 | Kaynak kod | GitHub, açık depo (portfolyo) |
 | Sistem sürümü | web-proje 1.2.0 |
 
@@ -740,7 +740,7 @@ Kapılar: [kalite-kapilari.md](kalite-kapilari.md) (Faz 3'te S4'e göre işaretl
 |---|---|
 | Ortamlar | Yerel (Docker, `*.localhost`) · Önizleme (Vercel + Neon dalı; `?mekan=` ve `/m/{slug}`) · Üretim (Hobby, demo) |
 | Barındırma planı | Vercel Hobby (demo, ticari değil); gerçek mekân → Pro |
-| Alan adı | Platform `kartela.vercel.app`; mekânlar `rakim-kahve.vercel.app`, `kepce-lokanta.vercel.app`; ad alınmışsa `{ad}-kartela.vercel.app` ve gerçekleşen ad bu satıra yazılır (K-26). Özel alan adı sonradan panelden (D-19). Hobby'de proje başına 50 alan adı |
+| Alan adı | Platform `kartela-platform.vercel.app` (K-38); mekânlar `rakim-kahve.vercel.app`, `kepce-lokanta.vercel.app` (bağlı ve doğrulandı, 2026-11-04); sonraki mekânda ad alınmışsa `{ad}-kartela.vercel.app` ve gerçekleşen ad bu satıra yazılır (K-26). Özel alan adı sonradan panelden (D-19). Hobby'de proje başına 50 alan adı |
 | Yerel adresler | `localhost:3020` (platform), `rakim.localhost:3020`, `kepce.localhost:3020`; PostgreSQL `localhost:5436` (K-30) |
 | İzleme | Uptime: platform `/api/health` (harita sürümü, veritabanı) + her mekânın ana sayfası |
 | Yedek | Neon zamana göre geri dönüş; içerik `content/` altında git'te |
@@ -842,6 +842,7 @@ Kapılar: [kalite-kapilari.md](kalite-kapilari.md) (Faz 3'te S4'e göre işaretl
 | K-34 | 2026-11-04 | Markdown (yasal metin, Keşfet) `react-markdown` + `remark-gfm` ile yalnızca sunucuda; `marked` + `sanitize-html` kullanılmaz | Ham HTML üretilmez, temizleyiciye gerek kalmaz; istemciye JS inmez |
 | K-35 | 2026-11-04 | `global-not-found.tsx` ve `global-error.tsx` kendi kendine yeter: paylaşılan CSS ya da `next/font` içe aktarmaz; platform paylaşım görseli `/og/platform` rota işleyicisinde, simge `public/kartela-icon.svg` | Faz 3 ölçümü: global 404'ün içe aktardığı platform CSS'i / Inter, Rakım menüsünde `Link` başlığıyla ön yüklendi (+132 KB, LCP 3,6 sn). Rota grubundaki meta görsel dosyaları karmalı adres alıyor (`/opengraph-image-1tixr7`) |
 | K-36 | 2026-11-04 | Rakım'ın veri yazı tipi (IBM Plex Mono) ön yüklenmez (`preload: false`); fiyat ve veri satırları yedek monospace'ten `swap` ile geçer | Yavaş 4G benzetiminde öne çıkan fotoğraf (LCP) yazı tipleriyle bant genişliği paylaşıyordu; LCP 3,0 → 2,9 sn, performans 0,94 → 0,95 |
+| K-38 | 2026-11-04 | Platform alan adı `kartela-platform.vercel.app`: `kartela.vercel.app` başka bir Vercel hesabına ait (403). K-26 kalıbı (`{ad}-kartela`) platformun kendisi için `kartela-kartela` olacağından açıklayıcı sonek seçildi. Vercel'in kendiliğinden verdiği `kartela-jade.vercel.app` da projede durur | Alan adı alınmış |
 | K-37 | 2026-11-04 | **RSK-01 Faz 3 ölçümü:** çerçeve tabanı 177 KB gzip; Rakım ölçüm sayfası Lighthouse mobil 0,95 / 0,95 / 0,95 (FCP 1,1 sn, LCP 2,9 sn, TBT 50–100 ms, CLS 0) — K-35 ve K-36'dan sonra. K-17 eşiği (0,95 hata) korunur; pay sıfır olduğu için CI ve Vercel ölçümü 0,95'in altında kalırsa K-27 yolu (ADR + 0,90 hata / 0,95 uyarı) uygulanır. Sonraki pay kaynağı: D-14'te Schibsted Grotesk'in `latin-ext` dosyası (47 KB) yerine yalnızca Türkçe harfleri taşıyan alt küme | Kullanıcı kararı K-27; ölçüm |
 
 **Değişiklik kaydı:**

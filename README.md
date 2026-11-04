@@ -1,6 +1,6 @@
 # Kartela — çok mekânlı QR menü platformu
 
-Kafe, restoran ve barlar için QR ile açılan, her mekânın kendi alan adında ve kendi temasıyla çalışan dijital menü altyapısı. **Platform:** https://kartela.vercel.app (yayın Faz 1 sonunda: Rakım menüsü)
+Kafe, restoran ve barlar için QR ile açılan, her mekânın kendi alan adında ve kendi temasıyla çalışan dijital menü altyapısı. **Platform:** https://kartela-platform.vercel.app · **Rakım:** https://rakim-kahve.vercel.app (Faz 1 sonunda)
 
 > Gösterim amaçlı demo. Platform, mekânlar, kişiler ve fiyatlar kurgusaldır.
 
