@@ -1,0 +1,92 @@
+@import "tailwindcss";
+
+/*
+ * Rakım — "Demleme Defteri" (plan §11). Loaded only by the tema-rakim root layout (ADR-0003).
+ * Day set by default; the evening set "Gece defteri" (§11.2, K-19) is its own design, not an
+ * inversion, and applies from 19:00 (data-gun-dilimi, set before paint in D-08) and under a dark
+ * colour-scheme preference. Contrast values are in plan §11.2.
+ */
+:root {
+  --background: #f3f1ec;
+  --surface: #fbfaf7;
+  --surface-muted: #e9e5dd;
+  --foreground: #1f1d1a;
+  --muted-foreground: #5e5a54;
+  --border: #dad5cc;
+  --primary: #1f1d1a;
+  --primary-foreground: #f3f1ec;
+  --accent: #b4441b;
+  --accent-foreground: #f3f1ec;
+  --sold-out: #6b665e;
+  --focus: #1f1d1a;
+  color-scheme: light;
+}
+
+:root[data-gun-dilimi="aksam"],
+:root[data-gun-dilimi="gece"] {
+  --background: #161a1d;
+  --surface: #1e2327;
+  --surface-muted: #252b30;
+  --foreground: #ece6da;
+  --muted-foreground: #b3ac9f;
+  --border: #2c3236;
+  --primary: #ece6da;
+  --primary-foreground: #161a1d;
+  --accent: #e8955f;
+  --accent-foreground: #161a1d;
+  --sold-out: #b3ac9f;
+  --focus: #ece6da;
+  color-scheme: dark;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #161a1d;
+    --surface: #1e2327;
+    --surface-muted: #252b30;
+    --foreground: #ece6da;
+    --muted-foreground: #b3ac9f;
+    --border: #2c3236;
+    --primary: #ece6da;
+    --primary-foreground: #161a1d;
+    --accent: #e8955f;
+    --accent-foreground: #161a1d;
+    --sold-out: #b3ac9f;
+    --focus: #ece6da;
+    color-scheme: dark;
+  }
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-surface: var(--surface);
+  --color-surface-muted: var(--surface-muted);
+  --color-foreground: var(--foreground);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-border: var(--border);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-sold-out: var(--sold-out);
+  --font-sans: var(--font-rakim-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-rakim-mono), ui-monospace, Menlo, Consolas, monospace;
+}
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+  body {
+    background: var(--background);
+    color: var(--foreground);
+    font-family: var(--font-sans);
+  }
+  :focus-visible {
+    outline: 2px solid var(--focus);
+    outline-offset: 2px;
+  }
+  .tabular {
+    font-variant-numeric: tabular-nums;
+  }
+}

@@ -1,0 +1,4 @@
+# LF everywhere (CI and hooks run on Linux / Git Bash; core.autocrlf on Windows would add CR).
+* text=auto eol=lf
+*.png binary
+*.ico binary

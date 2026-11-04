@@ -1,0 +1,8 @@
+# gitleaks configuration (15-git-ve-ci §5–7): default rules plus one narrow allowlist.
+[extend]
+useDefault = true
+
+[[allowlists]]
+description = "Standard file names such as 05-sunucu-ve-api.md trip generic-api-key ('api' + high-entropy path)"
+regexTarget = "line"
+regexes = ['''docs/standartlar/\d{2}-[a-z0-9-]+\.md''']

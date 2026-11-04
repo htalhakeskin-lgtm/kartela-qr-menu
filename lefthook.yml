@@ -1,0 +1,28 @@
+# Local git hooks (15-git-ve-ci §5). Convenience only; CI repeats every check.
+# Installed by the "prepare" script (pnpm install). gitleaks must be installed on the machine.
+
+pre-commit:
+  piped: true # ESLint must finish before Prettier rewrites the same files
+  commands:
+    1_eslint:
+      glob: "*.{js,mjs,cjs,ts,tsx}"
+      # --no-warn-ignored: staged generated files (src/server/db/schema/auth.ts) are skipped, not warned
+      run: pnpm exec eslint --fix --max-warnings=0 --no-warn-ignored {staged_files}
+      stage_fixed: true
+    2_prettier:
+      glob: "*.{js,mjs,cjs,ts,tsx,css,json,yml,yaml}"
+      run: pnpm exec prettier --write {staged_files}
+      stage_fixed: true
+    3_gitleaks:
+      run: gitleaks git --pre-commit --staged --redact --no-banner
+
+commit-msg:
+  commands:
+    commitlint:
+      run: pnpm exec commitlint --edit {1}
+
+pre-push:
+  commands:
+    protect-main:
+      run: bash scripts/git/protect-main.sh
+      use_stdin: true
