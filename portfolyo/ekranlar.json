@@ -15,13 +15,13 @@
     },
     {
       "dosya": "03-rakim-menu-mobil",
-      "yol": "/tema-rakim/rakim/tr",
+      "yol": "http://rakim.localhost:3020/",
       "cihaz": "mobil",
       "tamSayfa": true
     },
     {
       "dosya": "04-rakim-menu-masaustu",
-      "yol": "/tema-rakim/rakim/tr",
+      "yol": "http://rakim.localhost:3020/",
       "cihaz": "masaustu",
       "tamSayfa": true
     },

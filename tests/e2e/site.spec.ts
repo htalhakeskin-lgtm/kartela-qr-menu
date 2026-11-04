@@ -1,5 +1,7 @@
 import { expect, test } from "@playwright/test";
 
+import { venueHost } from "./routes";
+
 /**
  * Smoke test that also proves the right server answers (Levha Faz 3 lesson: another project's
  * Next.js server on the same port made 99 tests run against the wrong site).
@@ -37,7 +39,7 @@ test("the footer's last row carries the maker's credit", async ({ page }) => {
 test("Rakım measurement page: first product and price are in the server HTML", async ({
   request,
 }) => {
-  const html = await (await request.get("/tema-rakim/rakim/tr")).text();
+  const html = await (await request.get("/", { headers: { host: venueHost("rakim") } })).text();
   expect(html).toContain("Etiyopya Guji · V60");
   expect(html).toMatch(/240\s₺/);
   expect(html).toContain('lang="tr"');

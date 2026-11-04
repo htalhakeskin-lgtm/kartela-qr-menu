@@ -27,7 +27,7 @@ Kafe, restoran ve bar gibi mekânlar için QR ile açılan dijital menü. Tek Ne
 | Komut | Ne yapar |
 |---|---|
 | `docker compose up -d` | Yerel PostgreSQL 18 (`localhost:5436`, K-30) |
-| `pnpm dev` | Geliştirme sunucusu `localhost:3020` (mekânlar D-01'den sonra `rakim.localhost:3020`) |
+| `pnpm dev` | Geliştirme sunucusu: platform `localhost:3020`, mekânlar `rakim.localhost:3020`, `ornek.localhost:3020` (fikstür) |
 | `pnpm db:generate` / `pnpm db:migrate` | Migration üret / uygula |
 | `pnpm auth:generate` | Better Auth tablolarını yeniden üret (eklenti / alan değişince; ardından `db:generate`) |
 | `pnpm db:seed` / `pnpm db:reset` | Demo verisini yükle / sıfırla ve yeniden yükle (`PLATFORM_DEMO=true` iken) |
@@ -44,7 +44,7 @@ Kafe, restoran ve bar gibi mekânlar için QR ile açılan dijital menü. Tek Ne
 
 ```
 src/app/(platform)/                 platform kök düzeni: tanıtım, yasal, /stil (panel D-18'de kendi kök düzeninde)
-src/app/tema-{tema}/[mekan]/[dil]/  tema rota ağacı = kök düzen (ADR-0003); D-21'den sonra ÜRETİLİR
+src/app/tema-{tema}/[mekan]/        tema rota ağacı: [dil]/ kök düzen + sayfalar, robots/sitemap/manifest (ADR-0003); D-21'den sonra ÜRETİLİR
 src/app/global-not-found.tsx        eşleşmeyen adres; kendi kendine yeter, CSS / next/font içe AKTARMAZ (K-35)
 src/app/og/platform/                platformun paylaşım görseli (sabit adres)
 src/themes/{tema}/                  tema modülü: token CSS'i, yazı tipleri, yuvalar, imza bileşenleri
@@ -57,6 +57,7 @@ tests/e2e/ · tests/integration/     Playwright · Vitest + PostgreSQL (kiracı 
 
 ## Projeye özgü notlar
 
+- **Mekân yönlendirmesi:** `proxy.ts` DEĞİL; `next.config.ts` `rewrites.beforeFiles` alan adı koşullu kuralları (`src/platform/tenant/rewrites.ts`), derleme anında `content/mekanlar/index.ts` kaydından (ADR-0002 v2, K-39). Kurallar zincirlenir: sıra ve `tema-` dışlaması korunur. Yeni mekân kaydı: `content/mekanlar/{ad}/mekan.ts` + `index.ts`. Önizleme: `?mekan={ad}` / `?mekan=platform`, ya da `/m/{ad}/`.
 - **Kiracı:** her mekân sorgusu `withVenue()` kapsamında; kiracı tablolarında RLS ve `(venue_id, id)` bileşik FK (ADR-0004). Önbellek etiketleri mekân önekli: `menu:{mekan}`.
 - **Kip:** `DEMO_MODE` yok. Platform işlemleri `PLATFORM_DEMO` ile; ziyaretçi davranışı (noindex, demo notu) mekânın `venues.mode` alanıyla (K-06).
 - **Temalar birbirine dokunmaz:** bir tema başka temanın klasöründen içe aktaramaz. Her rotanın girişine giren dosyalar (`global-not-found`, `global-error`) hiçbir paylaşılan CSS ya da `next/font` içe aktarmaz; aktarırsa o yazı tipi bütün mekânlarda ön yüklenir (Faz 3 ölçümü, K-35). Rota grubundaki meta görsel dosyaları karmalı adres alır; sabit adres gerekiyorsa rota işleyicisi ya da `public/` kullanılır.

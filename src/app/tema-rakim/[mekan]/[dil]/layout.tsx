@@ -3,15 +3,16 @@ import "@/themes/rakim/rakim.css";
 import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
 
+import { isRtl, themeLocaleParams } from "@/platform/tenant/registry";
 import { rakimFontClassName } from "@/themes/rakim/fonts";
 
 /**
  * Root layout of the Rakım theme tree (ADR-0003). Only this tree loads Rakım's fonts and
- * stylesheet. Faz 3: static params for the measurement page; D-01 / D-11 replace them with the
- * venues that use this theme and the venue's own metadata.
+ * stylesheet. Static params come from the venue registry (D-01); the page 404s for a venue or
+ * locale this theme does not serve. D-11 adds the venue's own metadata (canonical, OG, JSON-LD).
  */
 export function generateStaticParams() {
-  return [{ mekan: "rakim", dil: "tr" }];
+  return themeLocaleParams("rakim");
 }
 
 export const metadata: Metadata = {
@@ -34,7 +35,7 @@ export default async function RakimRootLayout({
 }) {
   const { dil } = await params;
   return (
-    <html lang={dil} dir={dil === "ar" ? "rtl" : "ltr"} className={rakimFontClassName}>
+    <html lang={dil} dir={isRtl(dil) ? "rtl" : "ltr"} className={rakimFontClassName}>
       <body className="antialiased">{children}</body>
     </html>
   );

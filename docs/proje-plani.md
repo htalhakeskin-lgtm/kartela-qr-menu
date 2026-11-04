@@ -145,7 +145,7 @@ Ayrıntı: [arastirma.md](arastirma.md)
 
 | No | Gereksinim | Kabul kriterleri | Kurallar | Ekran |
 |---|---|---|---|---|
-| REQ-001 | Mekân alan adına göre çözülür | `rakim.localhost:3000` Rakım'ı, `kepce.localhost:3000` Kepçe'yi açar; `?mekan=rakim` önizlemede çerez yazar ve parametresiz adrese döner; `/m/rakim/` yol önekiyle açılır ve `noindex`; bilinmeyen alan adı 404; `/tema-rakim/...` dışarıdan 404 | BR-KRC-004 | SCR-001, SCR-051 |
+| REQ-001 | Mekân alan adına göre çözülür | `rakim.localhost:3020` Rakım'ı, `ornek.localhost:3020` fikstür mekânı (Sade) açar; `?mekan=rakim` önizlemede çerez yazar ve parametresiz adrese döner, `?mekan=platform` çerezi siler; `/m/rakim/` yol önekiyle açılır ve `noindex`; bilinmeyen alan adı 404; `/tema-rakim/...` dışarıdan 404; mekân alan adında `/api/*` ve `/_next/*` yeniden yazılmaz (K-39) | BR-KRC-004 | SCR-001, SCR-051 |
 | REQ-002 | Mekânlar arası sızıntı yok | Kiracı test takımı her kiracı tablosunda okuma / yazma / silme sızıntısını sınar; RLS'siz kiracı tablosu testi düşürür; başka mekânın kaydına eylem `notFound` | BR-KRC-001…003 | — |
 | REQ-003 | Menüler zaman penceresine göre öne çıkar | 08:00–12:00 "Sabah" menüsü sabah ilk sırada; pencere dışı menü "12:00'de başlar" notuyla soluk; 22:00–02:00 penceresi gece yarısını doğru aşar; mevsim dışı ürün işaretli | BR-MNU-001, -002, BR-MST-004 | SCR-001 |
 | REQ-004 | Fiyat türleri doğru gösterilir | Boy / varyant listesi, "Yarım · 140 ₺", "100 g · 240 ₺", "Kadeh / Şişe"; her fiyat `1.234,56 ₺` biçiminde; "Fiyatlara KDV dahildir" her dilde | BR-FYT-001, -002 | SCR-001, SCR-003 |
@@ -259,7 +259,7 @@ Ayrıntı: [arastirma.md](arastirma.md)
 
 **UC-04 Keşfet'e geç** · Aktör: Ziyaretçi
 1. Üst çubukta "Keşfet" → köken hikâyeleri ve demleme rehberi akışı; kartlardan ürüne geçiş.
-2. Ertesi gün aynı QR → doğrudan Keşfet açılır (çerez + proxy, ek gidiş-dönüş yok).
+2. Ertesi gün aynı QR → doğrudan Keşfet açılır (çerez koşullu yeniden yazma kuralı, ek gidiş-dönüş yok; ADR-0002 v2).
 
 **UC-05 Personel "tükendi" işaretler** · Aktör: Personel · Kurallar: BR-MST-001
 1. Telefonda panel → Müsaitlik → "Panama Geisha" satırında anahtar.
@@ -368,7 +368,7 @@ erDiagram
 | BR-KRC-001 | Kiracı tablosundaki satır yalnızca kendi mekânı kapsamında görünür (RLS) | Kısıt | `tenant/rls.test.ts` (tablo listesi şemadan) |
 | BR-KRC-002 | İlişki yalnızca aynı mekân içinde kurulabilir (bileşik FK) | Kısıt | `tenant/cross-venue-fk.test.ts` |
 | BR-KRC-003 | Panel kullanıcısı yalnızca üyesi olduğu mekâna erişir; başka mekânın kaydı `notFound` | Yetki | her eylem için `*.authz.test.ts` |
-| BR-KRC-004 | Bilinmeyen alan adı 404; `/tema-*` iç yolları dışarıdan 404 | Kısıt | `proxy.test.ts`, e2e |
+| BR-KRC-004 | Bilinmeyen alan adı 404; `/tema-*` iç yolları dışarıdan 404; bir alan adı yalnızca bir mekâna bağlanır | Kısıt | `tenant/rewrites.test.ts`, `tenant/registry.test.ts`, e2e `tenant.spec.ts` |
 | BR-KRC-005 | Önbellek etiketi mekân önekli; bir mekânın güncellemesi diğerinin sayfasını yenilemez | Kısıt | `tenant/cache-tags.test.ts` |
 | BR-MNU-001 | Menü penceresi `Europe/Istanbul` saatine göre; gece yarısını aşan pencere desteklenir | Hesaplama | `domain/schedule.test.ts` (it.each; 23:59, 00:00, DST yok) |
 | BR-MNU-002 | Pencere dışı menü `dim` ise soluk + "HH:MM'de başlar", `hide` ise gizli | Varsayılan | `schedule.test.ts` |
@@ -423,7 +423,7 @@ erDiagram
 | ADR | Karar |
 |---|---|
 | [ADR-0001](adr/0001-tek-uygulama-alan-adina-gore-kiraci.md) | Tek Next.js uygulaması, tek Vercel projesi, alan adına göre kiracı (B: monorepo + mekân başına proje reddedildi) |
-| [ADR-0002](adr/0002-kiraci-cozumleme-ve-alan-adi-haritasi.md) | `proxy.ts` çözümleme sırası; derleme anı alan adı haritası; görünüm hatırlama proxy'de |
+| [ADR-0002](adr/0002-kiraci-cozumleme-ve-alan-adi-haritasi.md) | Sürüm 2 (K-39): alan adı koşullu `next.config` `beforeFiles` yeniden yazma kuralları, derleme anında mekân kaydından; `proxy.ts` yalnız panelde; görünüm hatırlama çerez koşullu kuralla |
 | [ADR-0003](adr/0003-tema-sozlesmesi-ve-rota-alt-agaci.md) | Tema = rota alt ağacı + kök düzen; `ThemeModule` sözleşmesi; görünümsüz çekirdek |
 | [ADR-0004](adr/0004-kiraci-yalitimi.md) | Kapsamlı erişim + bileşik FK + RLS; kiracı test takımı |
 | [ADR-0005](adr/0005-statik-menu-istemcide-zaman-ve-baglam.md) | Statik menü; zaman, bağlam, kişisel durum istemcide; el yazımı servis çalışanı |
@@ -843,6 +843,7 @@ Kapılar: [kalite-kapilari.md](kalite-kapilari.md) (Faz 3'te S4'e göre işaretl
 | K-35 | 2026-11-04 | `global-not-found.tsx` ve `global-error.tsx` kendi kendine yeter: paylaşılan CSS ya da `next/font` içe aktarmaz; platform paylaşım görseli `/og/platform` rota işleyicisinde, simge `public/kartela-icon.svg` | Faz 3 ölçümü: global 404'ün içe aktardığı platform CSS'i / Inter, Rakım menüsünde `Link` başlığıyla ön yüklendi (+132 KB, LCP 3,6 sn). Rota grubundaki meta görsel dosyaları karmalı adres alıyor (`/opengraph-image-1tixr7`) |
 | K-36 | 2026-11-04 | Rakım'ın veri yazı tipi (IBM Plex Mono) ön yüklenmez (`preload: false`); fiyat ve veri satırları yedek monospace'ten `swap` ile geçer | Yavaş 4G benzetiminde öne çıkan fotoğraf (LCP) yazı tipleriyle bant genişliği paylaşıyordu; LCP 3,0 → 2,9 sn, performans 0,94 → 0,95 |
 | K-38 | 2026-11-04 | Platform alan adı `kartela-platform.vercel.app`: `kartela.vercel.app` başka bir Vercel hesabına ait (403). K-26 kalıbı (`{ad}-kartela`) platformun kendisi için `kartela-kartela` olacağından açıklayıcı sonek seçildi. Vercel'in kendiliğinden verdiği `kartela-jade.vercel.app` da projede durur | Alan adı alınmış |
+| K-39 | 2026-11-04 | **Kiracı çözümleme `proxy.ts` yerine `next.config.ts` `rewrites.beforeFiles` alan adı koşullu kurallarıyla** (ADR-0002 sürüm 2). Kurallar derleme anında `content/mekanlar/*/mekan.ts` kaydından üretilir; `proxy.ts` yalnız `/panel`. Önizlemeden çıkış `?mekan=platform`; ayrılmış mekân adları: platform, panel, api, tema, kartela, www | Next.js 16.4.3 belgesi: proxy yalnız Node.js çalışma ortamında; bütün yollara bağlansa Vercel'de her menü isteği CDN'den önce fonksiyon çağırır. Brifteki öneri (proxy) aynı amaçla, daha hızlı yolla karşılandı |
 | K-37 | 2026-11-04 | **RSK-01 Faz 3 ölçümü:** çerçeve tabanı 177 KB gzip; Rakım ölçüm sayfası Lighthouse mobil 0,95 / 0,95 / 0,95 (FCP 1,1 sn, LCP 2,9 sn, TBT 50–100 ms, CLS 0) — K-35 ve K-36'dan sonra. K-17 eşiği (0,95 hata) korunur; pay sıfır olduğu için CI ve Vercel ölçümü 0,95'in altında kalırsa K-27 yolu (ADR + 0,90 hata / 0,95 uyarı) uygulanır. Sonraki pay kaynağı: D-14'te Schibsted Grotesk'in `latin-ext` dosyası (47 KB) yerine yalnızca Türkçe harfleri taşıyan alt küme | Kullanıcı kararı K-27; ölçüm |
 
 **Değişiklik kaydı:**
@@ -852,3 +853,4 @@ Kapılar: [kalite-kapilari.md](kalite-kapilari.md) (Faz 3'te S4'e göre işaretl
 | 2026-11-04 | v0.1 | İlk plan |
 | 2026-11-04 | v0.2 | Onay: K-19…K-31; Q-01…Q-05 kapandı; akşam takımı ayrı tasarlandı (§11.2); imza hareketleri (§11.7); fotoğrafsız ürün görünümü (§11.8); RSK-01 yolu |
 | 2026-11-04 | v0.3 | Faz 3: K-32…K-37; çerçeve tabanı NFR-05'e yazıldı; zengin metin kararı (§10) |
+| 2026-11-04 | v0.4 | D-01: K-39 (kiracı çözümleme yeniden yazma kurallarıyla, ADR-0002 v2); REQ-001 ve BR-KRC-004 güncellendi |
