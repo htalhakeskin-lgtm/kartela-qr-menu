@@ -8,6 +8,7 @@ import { defineVenue } from "../../../src/platform/tenant/registry-schema";
 export default defineVenue({
   slug: "ornek",
   name: "Örnek Mekân",
+  kind: "lokanta",
   theme: "sade",
   locales: ["tr", "en", "ar"],
   defaultLocale: "tr",

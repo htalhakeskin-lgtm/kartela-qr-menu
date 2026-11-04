@@ -1,4 +1,6 @@
-// Re-export every table so drizzle-kit and the typed client see the whole schema.
-export * from "./auth"; // generated: pnpm dlx @better-auth/cli generate (see iskelet/README.md)
+// Platform-level tables, shared by the app's owner connection (src/server/db/client.ts).
+// Tenant tables are NOT re-exported here: they live in src/server/db/tenant/tables/ and are
+// reached only through withVenue() (ADR-0004). drizzle.config.ts lists both folders.
+export * from "./auth"; // generated: pnpm auth:generate
 export * from "./core";
-// export * from "./appointments";  ← feature tables, one file per feature
+export * from "./venues";

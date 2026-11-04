@@ -1,8 +1,7 @@
 import "server-only";
 
 import { env } from "@/lib/env";
-import { db } from "@/server/db/client";
-import { demoOutbox } from "@/server/db/schema";
+import { saveToDemoOutbox } from "@/server/db/tenant";
 import { logger } from "@/server/logger";
 
 import { renderTemplate, type TemplateData, type TemplateName } from "./templates";
@@ -50,11 +49,11 @@ const providers: Record<Channel, Provider | undefined> = {
 
 export async function send<N extends TemplateName>(message: OutboundMessage<N>): Promise<void> {
   if (env.PLATFORM_DEMO) {
-    await db.insert(demoOutbox).values({
+    await saveToDemoOutbox({
       channel: message.channel,
       to: message.to,
       template: message.template,
-      data: message.data as Record<string, unknown>,
+      data: message.data,
       relatedId: message.relatedId,
       venueId: message.venueId,
     });

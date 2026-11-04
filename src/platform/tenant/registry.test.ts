@@ -14,6 +14,7 @@ import { parseRegistry, THEMES, type VenueRecordInput } from "./registry-schema"
 const base: VenueRecordInput = {
   slug: "deneme",
   name: "Deneme",
+  kind: "lokanta",
   theme: "sade",
   locales: ["tr"],
   defaultLocale: "tr",

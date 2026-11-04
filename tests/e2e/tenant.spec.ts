@@ -109,7 +109,8 @@ test.describe("tenant routing", () => {
   test("a venue host still serves the shared API", async ({ request }) => {
     const response = await request.get("/api/health", { headers: { host: venueHost("rakim") } });
     expect(response.status()).toBe(200);
-    const body = (await response.json()) as { map: { version: string } };
+    const body = (await response.json()) as { map: { version: string }; tenant: string };
     expect(body.map.version).toMatch(/^[0-9a-f]{8}$/);
+    expect(body.tenant).toBe("isolated"); // ADR-0004: app role + RLS in place on this database
   });
 });

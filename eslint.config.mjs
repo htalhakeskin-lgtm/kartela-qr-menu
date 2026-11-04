@@ -25,6 +25,26 @@ const restrictedSyntax = [
   },
 ];
 
+const featureImports = {
+  // forms: client form components, a separate entry so read-only pages never ship them.
+  group: ["@/features/*/*", "!@/features/*/index", "!@/features/*/forms"],
+  message: "Import another feature only through @/features/<name> (or @/features/<name>/forms).",
+};
+
+/** ADR-0004 layer 1: tenant tables are reachable only through withVenue() (src/server/db/tenant). */
+const tenantTableImports = {
+  group: ["@/server/db/tenant/*", "**/tenant/tables", "**/tenant/tables/*"],
+  message:
+    "Tenant tables stay inside src/server/db/tenant/ (ADR-0004). Import withVenue / helpers from @/server/db/tenant.",
+};
+
+const platformScopeImport = {
+  name: "@/server/db/tenant",
+  importNames: ["withPlatform"],
+  message:
+    "The platform scope sees every venue: only src/server/platform/, scripts/ and tests/ may use it (ADR-0004).",
+};
+
 export default defineConfig([
   globalIgnores([
     ".next/**",
@@ -81,20 +101,23 @@ export default defineConfig([
       "no-restricted-syntax": ["error", ...restrictedSyntax],
       "no-restricted-imports": [
         "error",
-        {
-          patterns: [
-            {
-              // forms: client form components, a separate entry so read-only pages never ship them.
-              group: ["@/features/*/*", "!@/features/*/index", "!@/features/*/forms"],
-              message:
-                "Import another feature only through @/features/<name> (or @/features/<name>/forms).",
-            },
-          ],
-        },
+        { paths: [platformScopeImport], patterns: [featureImports, tenantTableImports] },
       ],
       "@eslint-community/eslint-comments/require-description": ["error", { ignore: [] }],
       "@eslint-community/eslint-comments/no-unlimited-disable": "error",
       "@eslint-community/eslint-comments/disable-enable-pair": ["error", { allowWholeFile: false }],
+    },
+  },
+  {
+    // The tenant data layer itself, the seed and the tests reach tenant tables and both scopes.
+    files: ["src/server/db/tenant/**", "scripts/**", "tests/**"],
+    rules: { "no-restricted-imports": ["error", { patterns: [featureImports] }] },
+  },
+  {
+    // Platform admin code (D-19) may use the platform scope, still not the tables directly.
+    files: ["src/server/platform/**"],
+    rules: {
+      "no-restricted-imports": ["error", { patterns: [featureImports, tenantTableImports] }],
     },
   },
   {

@@ -11,7 +11,8 @@ if (!url) throw new Error("DATABASE_URL is not set");
 
 export default defineConfig({
   dialect: "postgresql",
-  schema: "./src/server/db/schema/index.ts",
+  // Platform tables + tenant tables (the latter are kept out of the app's shared schema, ADR-0004).
+  schema: ["./src/server/db/schema/index.ts", "./src/server/db/tenant/tables/index.ts"],
   out: "./drizzle",
   casing: "snake_case",
   dbCredentials: { url },
