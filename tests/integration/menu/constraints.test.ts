@@ -1,0 +1,109 @@
+import { afterAll, beforeAll, describe, expect, it } from "vitest";
+
+import { newId } from "@/server/db/columns";
+import { withVenue } from "@/server/db/tenant";
+import { itemPrices, items, menus } from "@/server/db/tenant/tables";
+
+import {
+  createMenuBase,
+  createVenue,
+  type MenuBase,
+  removeVenues,
+  type TestVenue,
+} from "../tenant/fixtures";
+
+/**
+ * REQ-005, BR-MNU-003: the database itself refuses values outside the engine's fixed sets, so a
+ * broken import or a panel bug cannot store them (04-veri: value sets as text + check).
+ */
+const CHECK_VIOLATION = "23514";
+const UNIQUE_VIOLATION = "23505";
+const errorCode = (work: Promise<unknown>) =>
+  work.then(
+    () => "no error",
+    (error: unknown) => (error as { cause?: { code?: string } }).cause?.code ?? String(error),
+  );
+
+describe("menu engine constraints", () => {
+  let venue: TestVenue;
+  let base: MenuBase;
+
+  beforeAll(async () => {
+    venue = await createVenue("ck");
+    base = await withVenue(venue.id, (tx) => createMenuBase(tx, venue.id));
+  });
+
+  afterAll(async () => {
+    await removeVenues([venue.id]);
+  });
+
+  const insertItem = (overrides: Partial<typeof items.$inferInsert>) =>
+    errorCode(
+      withVenue(venue.id, (tx) =>
+        tx.insert(items).values({
+          venueId: venue.id,
+          slug: `ck-${newId()}`,
+          name: { tr: "Ayran" },
+          ...overrides,
+        }),
+      ),
+    );
+
+  it("REQ-005: only the 14 allergens and the known diets are stored", async () => {
+    expect(await insertItem({ allergens: ["milk", "sesame"], diets: ["vegetarian"] })).toBe(
+      "no error",
+    );
+    expect(await insertItem({ allergens: ["dairy"] })).toBe(CHECK_VIOLATION);
+    expect(await insertItem({ mayContain: ["walnut"] })).toBe(CHECK_VIOLATION);
+    expect(await insertItem({ diets: ["keto"] })).toBe(CHECK_VIOLATION);
+  });
+
+  it("spice level 0–3, no negative energy, a known product kind", async () => {
+    expect(await insertItem({ spiceLevel: 4 })).toBe(CHECK_VIOLATION);
+    expect(await insertItem({ energyKcal: -1 })).toBe(CHECK_VIOLATION);
+    expect(await insertItem({ kind: "pizza" })).toBe(CHECK_VIOLATION);
+  });
+
+  it("BR-MNU-003: Turkish is required in every translated name; other languages are optional", async () => {
+    expect(await insertItem({ name: { tr: "  ", en: "Ayran" } })).toBe(CHECK_VIOLATION);
+    expect(await insertItem({ name: { en: "Ayran" } as never })).toBe(CHECK_VIOLATION);
+    expect(await insertItem({ description: { tr: "" } })).toBe(CHECK_VIOLATION);
+    expect(await insertItem({ name: { tr: "Ayran", ar: "عيران" } })).toBe("no error");
+  });
+
+  it("a password menu needs its hash; a public one has none", async () => {
+    const menu = (access: string, passwordHash: string | null) =>
+      errorCode(
+        withVenue(venue.id, (tx) =>
+          tx.insert(menus).values({
+            venueId: venue.id,
+            slug: `gizli-${newId()}`,
+            name: { tr: "Gizli bölüm" },
+            access,
+            passwordHash,
+          }),
+        ),
+      );
+    expect(await menu("password", null)).toBe(CHECK_VIOLATION);
+    expect(await menu("public", "hash")).toBe(CHECK_VIOLATION);
+    expect(await menu("password", "hash")).toBe("no error");
+  });
+
+  it("price lines: known unit, no negative amount, one default per product", async () => {
+    const price = (overrides: Partial<typeof itemPrices.$inferInsert>) =>
+      errorCode(
+        withVenue(venue.id, (tx) =>
+          tx.insert(itemPrices).values({
+            venueId: venue.id,
+            itemId: base.itemId,
+            amountMinor: 24000,
+            ...overrides,
+          }),
+        ),
+      );
+    expect(await price({ unit: "per_gram" })).toBe(CHECK_VIOLATION);
+    expect(await price({ amountMinor: -1 })).toBe(CHECK_VIOLATION);
+    expect(await price({ isDefault: true })).toBe("no error");
+    expect(await price({ isDefault: true, unit: "half" })).toBe(UNIQUE_VIOLATION);
+  });
+});

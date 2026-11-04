@@ -6,9 +6,11 @@ import { venues } from "@/server/db/schema";
 import { type TenantTx, withPlatform, withVenue } from "@/server/db/tenant";
 
 import {
+  createMenuBase,
   createUser,
   createVenue,
   insertFixture,
+  type MenuBase,
   removeUsers,
   removeVenues,
   tenantFixtures,
@@ -44,6 +46,9 @@ describe("BR-KRC-001: tenant rows are visible only in their venue's scope", () =
   let a: TestVenue;
   let b: TestVenue;
   let userId: string;
+  const bases = new Map<string, MenuBase>();
+  /** Fixture context for a row of `venueId`: its own parent rows. */
+  const ctx = (venueId: string) => ({ userId, base: bases.get(venueId)! });
 
   beforeAll(async () => {
     tables = await tenantTableNames();
@@ -51,7 +56,9 @@ describe("BR-KRC-001: tenant rows are visible only in their venue's scope", () =
     userId = await createUser();
     for (const venue of [a, b]) {
       await withVenue(venue.id, async (tx) => {
-        for (const table of tables) await insertFixture(tx, table, venue.id, { userId });
+        const base = await createMenuBase(tx, venue.id);
+        bases.set(venue.id, base);
+        for (const table of tables) await insertFixture(tx, table, venue.id, { userId, base });
       });
     }
   });
@@ -137,7 +144,7 @@ describe("BR-KRC-001: tenant rows are visible only in their venue's scope", () =
     // whose policy is missing.
     for (const table of tables) {
       const insert = await errorCode(
-        withVenue(a.id, (tx) => insertFixture(tx, table, b.id, { userId })),
+        withVenue(a.id, (tx) => insertFixture(tx, table, b.id, ctx(b.id))),
       );
       const move = await errorCode(
         withVenue(a.id, (tx) =>
