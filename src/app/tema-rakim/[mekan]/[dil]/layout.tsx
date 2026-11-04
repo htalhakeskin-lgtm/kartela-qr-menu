@@ -4,6 +4,7 @@ import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
 
 import { isRtl, themeLocaleParams } from "@/platform/tenant/registry";
+import { PrePaint } from "@/platform/theme/pre-paint";
 import { rakimFontClassName } from "@/themes/rakim/fonts";
 
 /**
@@ -36,6 +37,9 @@ export default async function RakimRootLayout({
   const { dil } = await params;
   return (
     <html lang={dil} dir={isRtl(dil) ? "rtl" : "ltr"} className={rakimFontClassName}>
+      <head>
+        <PrePaint />
+      </head>
       <body className="antialiased">{children}</body>
     </html>
   );

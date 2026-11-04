@@ -22,6 +22,27 @@ test.describe("tenant routing", () => {
     await expect(page.getByText("Örnek Mekân")).toBeVisible();
   });
 
+  test("D-08: the fixture page shows its menu from the database, in the page language", async ({
+    page,
+  }) => {
+    await page.goto(venueUrl("ornek"));
+    await expect(page.getByRole("heading", { level: 2, name: "Günün yemekleri" })).toBeVisible();
+    const soup = page.getByRole("listitem").filter({ hasText: "Mercimek çorbası" });
+    await expect(soup).toContainText(/120\s₺/);
+    await page.goto(venueUrl("ornek", "/ar"));
+    await expect(page.getByRole("heading", { level: 2, name: "أطباق اليوم" })).toBeVisible();
+  });
+
+  test("D-08: the pre-paint script marks the venue's time of day before the first paint", async ({
+    page,
+  }) => {
+    await page.goto(venueUrl("rakim"));
+    await expect(page.locator("html")).toHaveAttribute(
+      "data-gun-dilimi",
+      /^(sabah|ogle|aksam|gece)$/,
+    );
+  });
+
   test("a right-to-left locale turns the layout around", async ({ page }) => {
     await page.goto(venueUrl("ornek", "/ar"));
     await expect(page.locator("html")).toHaveAttribute("dir", "rtl");

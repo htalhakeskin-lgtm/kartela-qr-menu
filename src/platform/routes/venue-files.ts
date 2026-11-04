@@ -8,6 +8,7 @@ import {
   venues,
 } from "@/platform/tenant/registry";
 import type { ThemeId, VenueRecord } from "@/platform/tenant/registry-schema";
+import { themeMeta } from "@/themes/meta";
 
 /**
  * robots.txt, sitemap.xml and manifest.webmanifest of a venue, served from its own theme tree
@@ -17,12 +18,6 @@ import type { ThemeId, VenueRecord } from "@/platform/tenant/registry-schema";
  * Skeleton in D-01: D-11 adds the venue's pages to the sitemap and the canonical metadata,
  * D-13 the offline icons and scope details of the manifest.
  */
-
-/** Theme colours used before the theme module contract exists (D-08 moves them to ThemeModule.meta). */
-const THEME_META: Record<ThemeId, { themeColor: string; backgroundColor: string }> = {
-  rakim: { themeColor: "#f3f1ec", backgroundColor: "#f3f1ec" },
-  sade: { themeColor: "#ffffff", backgroundColor: "#ffffff" },
-};
 
 /** Static params of a theme tree's [mekan] segment (file routes). */
 export function themeVenueParams(theme: ThemeId): { mekan: string }[] {
@@ -68,7 +63,7 @@ export function venueSitemap(theme: ThemeId, slug: string): Response {
 export function venueManifest(theme: ThemeId, slug: string): Response {
   const venue = venueOf(theme, slug);
   if (!venue) return notFound();
-  const meta = THEME_META[theme];
+  const { color } = themeMeta[theme].tokens;
   const manifest = {
     name: venue.name,
     short_name: venue.name,
@@ -76,8 +71,8 @@ export function venueManifest(theme: ThemeId, slug: string): Response {
     start_url: "/",
     scope: "/",
     display: "standalone",
-    background_color: meta.backgroundColor,
-    theme_color: meta.themeColor,
+    background_color: color.background,
+    theme_color: color.background,
     icons: [],
   };
   return Response.json(manifest, {

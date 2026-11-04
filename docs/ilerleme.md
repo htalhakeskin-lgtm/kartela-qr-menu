@@ -4,9 +4,9 @@
 
 ## Şu an
 
-- **Etkin dilim:** D-07 — Keşfet içerik modeli · ✅
-- **Son yapılan:** D-07: Keşfet hikâyeleri (tür, koleksiyon ve durak, çevrilebilir Markdown gövde, kapak, galeri, ürün bağları), içerik yükleyicisi (TS bilgisi + `.md` gövdeleri tek doğrulamada), sunucuda güvenli Markdown bileşeni, hikâye ve görsel kaydı okuma modeli. D-06 canlıda (migration uygulandı, `tenant: isolated`).
-- **Sıradaki adım:** D-08 — tema sözleşmesi ve görünümsüz çekirdek (`ThemeModule`, yuvalar, kancalar, `formatPrice`, `t()`, ön boyama betiği). Menü sayfaları derlemede veritabanını okumaya bu dilimle başlar: **önce Neon önizleme dallanması açılmalı (kullanıcı adımı, K-42).**
+- **Etkin dilim:** D-08 — Tema sözleşmesi ve görünümsüz çekirdek · ✅
+- **Son yapılan:** D-08: `ThemeModule` sözleşmesi (token, hareket, yuvalar; bileşensiz `meta` + modül), tema sınırı ESLint'te, TS token'ları ile CSS'in eşitliği testte; sunucuda dile göre görünüm modeli (`getVenueView`, `menu:{mekan}` etiketi); istemci kancaları (etkin menü, arama, filtre, ürün kurucu, Seçtiklerim, bağlam, görünüm çerezi) `useSyncExternalStore` ile; ön boyama betiği (`data-gun-dilimi`, `data-renk`); görünüm çerezi yeniden yazma kuralı; fikstür sayfası menüyü veritabanından gösteriyor. Neon önizleme dallanması açıldı ve doğrulandı (K-43).
+- **Sıradaki adım:** D-09 — Sade I: kabuk, hızlı menü (liste / kart / ızgara), yapışkan kategori çubuğu, arama, filtre paneli, alttan ürün paneli, alt çubuk.
 
 ## Gözetimsiz çalışma notları
 
@@ -58,7 +58,7 @@ Faz 1'in son dilimi (D-22) bitip Rakım yayına çıkınca durulur; teslim: yay�
 | D-05 | Menü motoru II: seçenek grupları, en az / en çok, fiyat farkı, uyumluluk kuralları, `domain/configurator.ts` | QR-07 · REQ-007 | M | P0 | ✅ | — (arayüz yok) | 13 birim (ürün kurucu 9, içerik şeması 4) + 5 entegrasyon (kısıtlar, içerik → okuma modeli → ürün kurucu; kiracı takımı 15 tablo) |
 | D-06 | Menü motoru III: müsaitlik (tükendi, günlük adet, saatli çıkış, mevsim, günün menüsü) + ilişkiler (eşleşme, öneri, set, tadım) | QR-08, QR-09 · REQ-008, REQ-009 | M | P0 | ✅ | — (arayüz yok) | 25 birim (müsaitlik) + 4 birim (içerik şeması) + 6 entegrasyon (kısıtlar, günün menüsü, müsaitlik, ilişkiler; kiracı takımı 20 tablo) |
 | D-07 | Keşfet içerik modeli: hikâye türleri, koleksiyon ve durak, Markdown (sunucuda `react-markdown`, K-34), galeri, ürün bağları | QR-10 · REQ-010 | M | P0 | ✅ | — (arayüz yok) | 4 birim (güvenli Markdown) + 4 birim (hikâye şeması) + 2 entegrasyon (kısıtlar, içerik → okuma modeli; kiracı takımı 22 tablo) |
-| D-08 | Tema sözleşmesi + görünümsüz çekirdek: `ThemeModule`, yuvalar, `useActiveMenus`, `useMenuSearch`, `useMenuFilters`, `useConfigurator`, `usePicks`, `useView`, `useVenueContext`, `formatPrice`, `t()`; ön boyama betiği | QR-11, QR-13 · REQ-011, REQ-013 | M | P0 | ⏳ | — | — |
+| D-08 | Tema sözleşmesi + görünümsüz çekirdek: `ThemeModule`, yuvalar, `useActiveMenus`, `useMenuSearch`, `useMenuFilters`, `useConfigurator`, `usePicks`, `useView`, `useVenueContext`, `formatPrice`, `t()`; ön boyama betiği | QR-11, QR-13 · REQ-011, REQ-013 | M | P0 | ✅ | — (arayüz iskeleti) | 41 birim (görünüm modeli, filtre, arama, Seçtiklerim, önbellek etiketi, görünüm çerezi, ön boyama, tema uygunluğu) + 3 entegrasyon (`getVenueView`) + 2 e2e |
 | D-09 | Sade I: kabuk, hızlı menü (liste / kart / ızgara), yapışkan kategori çubuğu, arama, filtre paneli, alttan ürün paneli, alt çubuk | QR-12, QR-14 · REQ-012, REQ-014 · SCR-001, SCR-003 | M | P0 | ⏳ | — | — |
 | D-10 | Sade II: Keşfet (akış / dergi), Seçtiklerim + garsona göster, RTL, koyu mod, fotoğrafsız ürün (birinci sınıf, K-23), baskı yuvaları, `/stil`, tema konformans takımı | QR-06, QR-13, QR-14 · REQ-006, REQ-013, REQ-014 · SCR-002, SCR-004, SCR-007 | M | P0 | ⏳ | — | — |
 | D-11 | Mekân kabuğu: alan adı başına `metadataBase`, canonical, `hreflang`, JSON-LD, OG görseli, favicon; kip (demo notu, `noindex`); yasal blok; `/bilgi`; 404 | QR-15 · REQ-015 · SCR-005, SCR-008 | M | P0 | ⏳ | — | — |
@@ -153,14 +153,14 @@ Faz 1'in son dilimi (D-22) bitip Rakım yayına çıkınca durulur; teslim: yay�
 
 ## Etkin dilim planı
 
-**D-07 — Keşfet içerik modeli** (dal `feat/d07-stories`)
-- Kabul kriterleri (REQ-010): bir mekânın hikâyeleri türüyle (ürün hikâyesi, şef notu, tedarikçi, bölüm, rehber), koleksiyonu ve durak sırasıyla, çevrilebilir başlık / özet / Markdown gövdesiyle, kapak ve galerisiyle, bağlı ürünleriyle yazılır ve okunur; bölüm / rehber durağı bir koleksiyona aittir, durak numarası koleksiyonda bir kez kullanılır; gövdenin Türkçesi zorunlu, eksik dil Türkçeye düşer; Markdown yalnızca sunucuda React öğelerine dönüşür, ham HTML ve satır içi görsel atılır, `javascript:` bağlantısı etkisizleşir (K-34); görselsiz hikâye birinci sınıf durum.
-- Tablolar / migration: `stories` (tür, koleksiyon, durak, başlık, özet, `body_md` jsonb, kapak bileşik FK, galeri kimlikleri, durum, sıra, sürüm), `story_items`; kiracı tablosu, bileşik FK.
-- Dosyalar: `src/server/db/tenant/tables/stories.ts`, `src/server/db/tenant/stories.ts` (hikâye ve görsel kaydı okuma modeli), `src/server/content/venue-content.ts` (menü + hikâye bilgisi + Markdown gövdeleri tek doğrulamada), `src/components/markdown/story-markdown.tsx` (+ test), `src/platform/menu/{content,types,vocabulary}.ts`, `content/mekanlar/icerik.ts`, `content/mekanlar/_ornek/hikayeler.ts` + `hikayeler/*.md`, `drizzle/0012…0013`.
-- Kurallar: K-34, BR-MNU-003, BR-KRC-002.
-- Testler: birim — güvenli Markdown (GFM, ham HTML, satır içi görsel, `javascript:`, dış bağlantı `rel`), hikâye şeması hataları; entegrasyon — kiracı takımına 2 tablo, kısıtlar (koleksiyonsuz durak, tekrarlanan durak, `tr`'siz gövde), içerik → veritabanı → okuma modeli (sıra, durak numaraları, ürünler, kapak, AR düşmesi).
-- Yönetim kılavuzu: — (panel hikâye ekranı D-26)
-- Notlar: Keşfet sayfaları temalarda (Sade D-10, Rakım D-15); bu dilim yalnızca model, içerik hattı ve güvenli Markdown bileşeni. Hikâye bilgisi TS'te tipli, gövdesi `.md` dosyasında: yeni bağımlılık (ön madde ayrıştırıcı) gerekmedi.
+**D-08 — Tema sözleşmesi ve görünümsüz çekirdek** (dal `feat/d08-theme-contract`)
+- Kabul kriterleri (REQ-011, REQ-013, BR-KRC-005, BR-SEC-001, BR-BGL-001, BR-TMA-001): her tema `ThemeModule` sözleşmesini karşılar (token'lar, yazı tipleri, hareket ayarı, yuvalar, `meta`); bir tema başka temanın klasöründen içe aktaramaz (ESLint). Sunucu, bir mekânın menüsünü dile göre hazırlanmış görünüm modeline çevirir (çevirisi düşen alan dilini taşır, fiyat birimiyle yazılı, eksik bilgi işaretli, görseller boyut ve alt metinle) ve `menu:{mekan}` etiketiyle önbelleğe alır; etiket mekâna özgüdür. İstemci çekirdeği: etkin menü (saat istemcide), Türkçe duyarlı arama, adres çubuğuyla eşli filtre (diyet, alerjen dışlama, acılık), ürün kurucu durumu, mekân anahtarlı ve 24 saatte temizlenen Seçtiklerim ("artık menüde yok"), görünüm çerezi ve bilinmeyen kodu yok sayan bağlam. Ön boyama betiği renk kipini ve gün dilimini ilk boyamadan önce `<html>`'e yazar (`dangerouslySetInnerHTML` olmadan). `kartela_gorunum=kesfet` çerezi `/`'i Keşfet rotasına yazar.
+- Tablolar / migration: yok.
+- Dosyalar: `src/platform/theme/{contract,pre-paint}.ts(x)`, `src/platform/menu/{view,filters,search,picks}.ts` (+ testler), `src/platform/menu/hooks/*.ts`, `src/platform/tenant/{cache-tags,rewrites}.ts`, `src/server/menu/venue-view.ts`, `src/themes/{rakim,sade}/index.ts`, `src/platform/routes/venue-files.ts` (`THEME_META` → `theme.meta`), `eslint.config.mjs`, `src/app/tema-sade/[mekan]/[dil]/{layout,page}.tsx` (fikstür sayfası görünüm modelinden).
+- Kurallar: BR-KRC-005, BR-SEC-001, BR-BGL-001, BR-TMA-001, BR-MNU-003.
+- Testler: birim — görünüm modeli (düşme, fiyat metni, eksik bilgi, görsel), filtre kodlama ve uygulama, arama (İ / ı, aksan), Seçtiklerim (anahtar, 24 saat, kayıp ürün), önbellek etiketleri, görünüm çerezi kuralı, ön boyama betiği; entegrasyon — `getVenueView` veritabanından; e2e — fikstür sayfası menüyü veritabanından gösterir.
+- Yönetim kılavuzu: —
+- Notlar: Sade'nin gerçek arayüzü D-09 / D-10'da, Rakım'ınki D-15'te; bu dilimde fikstür sayfası yalnızca verinin geldiğini gösteren iskelet. Rakım ölçüm sayfası D-15'e kadar kalır.
 
 ## Görsel inceleme
 
