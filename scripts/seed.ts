@@ -2,8 +2,8 @@
  * Demo data (04-veri §11, 17-icerik-ve-demo-verisi). Deterministic and idempotent: running it
  * twice gives the same result. Run with: pnpm db:seed   (tsx --conditions=react-server)
  *
- * Faz 3 seeds the platform row and the demo platform admin. Venues, menus and stories come from
- * content/mekanlar/{ad}/ through the content pipeline (D-04).
+ * Seeds the platform row, the demo platform admin and the registry's venues (content/mekanlar,
+ * D-02: venue row, settings, domains). Menus and stories come through the content pipeline (D-04).
  */
 import { loadEnvConfig } from "@next/env";
 
@@ -17,6 +17,8 @@ async function main() {
   const { newId } = await import("@/server/db/columns");
   const { platformDefaults } = await import("@/config/platform-defaults");
   const { hashPassword } = await import("better-auth/crypto");
+  const { venues: registry } = await import("@/platform/tenant/registry");
+  const { seedVenues } = await import("@/server/db/tenant/seed-venues");
 
   async function seedPlatform() {
     await db
@@ -51,6 +53,8 @@ async function main() {
 
   await seedPlatform();
   await seedDemoAdmin();
+  const venueIds = await seedVenues(registry);
+  console.log(`✓ Mekânlar: ${[...venueIds.keys()].join(", ")}`);
   console.log("✓ Seed tamamlandı");
 }
 

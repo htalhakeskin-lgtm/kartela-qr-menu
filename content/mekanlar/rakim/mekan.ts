@@ -7,6 +7,7 @@ import { defineVenue } from "../../../src/platform/tenant/registry-schema";
 export default defineVenue({
   slug: "rakim",
   name: "Rakım Kahve Kavurma",
+  kind: "coffee",
   theme: "rakim",
   locales: ["tr"],
   defaultLocale: "tr",

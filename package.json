@@ -6,7 +6,7 @@
     "dev": "next dev -p 3020",
     "build": "next build",
     "start": "next start -p 3020",
-    "vercel-build": "pnpm db:migrate && next build",
+    "vercel-build": "node scripts/vercel-build.mjs",
     "lint": "next typegen && eslint . --max-warnings=0",
     "typecheck": "next typegen && tsc --noEmit",
     "format": "prettier --write .",

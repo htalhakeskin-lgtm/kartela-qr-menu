@@ -3,8 +3,8 @@ import { z } from "zod";
 /**
  * Venue registry record (ADR-0002 v2). One file per venue in content/mekanlar/{ad}/mekan.ts,
  * listed in content/mekanlar/index.ts (pnpm mekan:yeni appends, D-21). Read at build time by
- * next.config.ts (host rewrites) and by the theme trees (static params). D-02 seeds the venues
- * table from these records; D-19 lets the platform admin bind domains in the database.
+ * next.config.ts (host rewrites) and by the theme trees (static params). pnpm db:seed writes the
+ * venues table from these records (D-02); D-19 lets the platform admin bind domains in the database.
  *
  * Plain module on purpose: no "server-only", no env.ts — next.config.ts imports it.
  */
@@ -18,6 +18,27 @@ export const RTL_LOCALES: readonly Locale[] = ["ar"];
 /** One entry per theme tree under src/app/tema-{theme}/ (ADR-0003). */
 export const THEMES = ["rakim", "sade"] as const;
 export type ThemeId = (typeof THEMES)[number];
+
+/** The 16 venue types the menu engine serves (brief); stored in venues.kind. */
+export const VENUE_KINDS = [
+  "coffee",
+  "pasta",
+  "restaurant",
+  "sushi",
+  "concept",
+  "lokanta",
+  "fish",
+  "meyhane",
+  "ocakbasi",
+  "cocktail_bar",
+  "bakery",
+  "breakfast",
+  "burger",
+  "beach_bar",
+  "room_service",
+  "plant_based",
+] as const;
+export type VenueKind = (typeof VENUE_KINDS)[number];
 
 /** Words the routing itself uses (?mekan=platform leaves the preview; /panel, /api, /m/ …). */
 const RESERVED_SLUGS: readonly string[] = ["platform", "panel", "api", "tema", "kartela", "www"];
@@ -37,6 +58,7 @@ export const venueRecordSchema = z
       .regex(/^[a-z][a-z0-9-]{1,30}$/, "küçük harf, rakam ve tire; harfle başlar")
       .refine((slug) => !RESERVED_SLUGS.includes(slug), "ayrılmış ad (platform, panel, api …)"),
     name: z.string().min(2).max(80),
+    kind: z.enum(VENUE_KINDS),
     theme: z.enum(THEMES),
     /** First entry is not special; defaultLocale decides the unprefixed URLs. */
     locales: z.array(z.enum(LOCALES)).min(1),
