@@ -2,6 +2,7 @@ import { eq } from "drizzle-orm";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 import { localize } from "@/platform/i18n/fallback";
+import { evaluate, initialSelection, toggle } from "@/platform/menu/configurator";
 import { type MenuContent, parseMenuContent } from "@/platform/menu/content";
 import type { VenueMenu } from "@/platform/menu/types";
 import { loadVenueMenu, withVenue } from "@/server/db/tenant";
@@ -26,7 +27,8 @@ describe("seedVenueContent: content file → database → read model", () => {
     expect(await seedVenueContent(venue.id, content)).toEqual({
       written: true,
       images: 1,
-      items: 11,
+      optionGroups: 3,
+      items: 12,
       menus: 2,
     });
     menu = await withVenue(venue.id, (tx) => loadVenueMenu(tx, venue.id));
@@ -86,6 +88,41 @@ describe("seedVenueContent: content file → database → read model", () => {
     ]);
   });
 
+  it("D-05: option groups, limits, price lines and rules reach the configurator", () => {
+    const cortado = menu.items.find((item) => item.slug === "cortado")!;
+    expect(cortado.optionGroups.map((g) => [g.key, g.min, g.max])).toEqual([
+      ["sut", 1, 1],
+      ["ekstra", 0, 2],
+    ]);
+    const double = cortado.prices.find((p) => p.label?.tr === "Çift shot")!;
+    expect(cortado.optionGroups[1]!.appliesTo).toEqual([double.id]);
+    expect(cortado.optionRules).toHaveLength(1);
+
+    let selection = initialSelection(cortado);
+    let result = evaluate(cortado, selection);
+    expect([result.totalMinor, result.allergens, result.complete]).toEqual([14000, ["milk"], true]);
+    expect(result.groups.map((g) => g.group.key)).toEqual(["sut"]); // extras only on the double
+
+    const option = (key: string) =>
+      cortado.optionGroups.flatMap((g) => g.options).find((o) => o.key === key)!.id;
+    selection = toggle(cortado, { ...selection, priceId: double.id }, option("yulaf"));
+    result = evaluate(cortado, selection);
+    expect(result.totalMinor).toBe(19000); // 170 + 20
+    expect(result.allergens).toEqual(["gluten"]); // oat milk instead of cow's milk
+    const cream = result.groups[1]!.options.find((s) => s.option.key === "krema")!;
+    expect(cream.blocked).toMatchObject({ reason: "excluded" });
+    const honey = result.groups[1]!.options.find((s) => s.option.key === "bal")!;
+    expect(honey.blocked).toEqual({ reason: "unavailable" });
+  });
+
+  it("BR-SCN-001: Turkish coffee needs a sugar choice before it is complete", () => {
+    const coffee = menu.items.find((item) => item.slug === "turk-kahvesi")!;
+    const start = initialSelection(coffee);
+    expect(evaluate(coffee, start).complete).toBe(false);
+    const chosen = toggle(coffee, start, coffee.optionGroups[0]!.options[2]!.id);
+    expect(evaluate(coffee, chosen)).toMatchObject({ complete: true, totalMinor: 9000 });
+  });
+
   it("BR-MNU-003: the Arabic page shows the missing description in Turkish, marked", () => {
     const ezogelin = menu.items.find((item) => item.slug === "ezogelin-corbasi")!;
     expect(localize(ezogelin.description!, "ar")).toMatchObject({ lang: "tr", fallback: true });
@@ -99,7 +136,7 @@ describe("seedVenueContent: content file → database → read model", () => {
     const before = menu.items.map((item) => item.id);
     expect(await seedVenueContent(venue.id, content, { replace: true })).toMatchObject({
       written: true,
-      items: 11,
+      items: 12,
     });
     const after = await withVenue(venue.id, (tx) => loadVenueMenu(tx, venue.id));
     expect(after.items.map((item) => item.slug)).toEqual(menu.items.map((item) => item.slug));

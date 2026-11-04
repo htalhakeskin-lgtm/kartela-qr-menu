@@ -68,7 +68,14 @@ export async function tenantTableNames(): Promise<string[]> {
 }
 
 /** Parent rows every menu fixture of one venue hangs under (created by createMenuBase). */
-export type MenuBase = { menuId: string; sectionId: string; itemId: string };
+export type MenuBase = {
+  menuId: string;
+  sectionId: string;
+  itemId: string;
+  groupId: string;
+  optionId: string;
+  otherOptionId: string;
+};
 
 type FixtureContext = { userId: string; base: MenuBase };
 
@@ -87,7 +94,31 @@ export async function createMenuBase(tx: TenantTx, venueId: string): Promise<Men
     .insert(tables.items)
     .values({ venueId, slug: `item-${suffix}`, name: { tr: "Temel ürün" } })
     .returning({ id: tables.items.id });
-  return { menuId: menu!.id, sectionId: section!.id, itemId: item!.id };
+  const [group] = await tx
+    .insert(tables.optionGroups)
+    .values({ venueId, key: `grup-${suffix}`, name: { tr: "Süt seçimi" }, minSelect: 1 })
+    .returning({ id: tables.optionGroups.id });
+  const [option, other] = await tx
+    .insert(tables.options)
+    .values([
+      { venueId, groupId: group!.id, key: "inek", name: { tr: "İnek sütü" }, isDefault: true },
+      {
+        venueId,
+        groupId: group!.id,
+        key: "yulaf",
+        name: { tr: "Yulaf sütü" },
+        priceDeltaMinor: 2500,
+      },
+    ])
+    .returning({ id: tables.options.id });
+  return {
+    menuId: menu!.id,
+    sectionId: section!.id,
+    itemId: item!.id,
+    groupId: group!.id,
+    optionId: option!.id,
+    otherOptionId: other!.id,
+  };
 }
 type Fixture<T extends PgTable = PgTable> = {
   table: T;
@@ -145,6 +176,31 @@ export const tenantFixtures: Record<string, Fixture> = {
     itemId: base.itemId,
     unit: "half",
     amountMinor: 14000,
+  })),
+  option_groups: fixture(tables.optionGroups, (venueId) => ({
+    venueId,
+    key: `fixture-${newId()}`,
+    name: { tr: "Şurup" },
+    maxSelect: 2,
+  })),
+  options: fixture(tables.options, (venueId, { base }) => ({
+    venueId,
+    groupId: base.groupId,
+    key: `fixture-${newId()}`,
+    name: { tr: "Laktozsuz süt" },
+    priceDeltaMinor: 1500,
+  })),
+  item_option_groups: fixture(tables.itemOptionGroups, (venueId, { base }) => ({
+    venueId,
+    itemId: base.itemId,
+    groupId: base.groupId,
+  })),
+  option_rules: fixture(tables.optionRules, (venueId, { base }) => ({
+    venueId,
+    whenOptionId: base.otherOptionId,
+    effect: "excludes",
+    targetOptionId: base.optionId,
+    message: { tr: "Fikstür kuralı" },
   })),
   media_assets: fixture(tables.mediaAssets, (venueId) => ({
     venueId,

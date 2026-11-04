@@ -2,5 +2,6 @@
 // ../../schema/index.ts; the app imports it only inside src/server/db/tenant/ (ESLint).
 export * from "./media";
 export * from "./menu";
+export * from "./options";
 export * from "./records";
 export * from "./venue";

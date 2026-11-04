@@ -5,10 +5,21 @@ import { count, eq } from "drizzle-orm";
 import type { MenuContent } from "@/platform/menu/content";
 
 import { withVenue } from "./scope";
-import { itemPrices, items, mediaAssets, menus, menuSections, sectionItems } from "./tables";
+import {
+  itemOptionGroups,
+  itemPrices,
+  items,
+  mediaAssets,
+  menus,
+  menuSections,
+  optionGroups,
+  optionRules,
+  options as optionsTable,
+  sectionItems,
+} from "./tables";
 
 export type SeedContentResult =
-  | { written: true; images: number; items: number; menus: number }
+  | { written: true; images: number; optionGroups: number; items: number; menus: number }
   | { written: false; reason: "venue already has a menu" };
 
 /**
@@ -28,6 +39,7 @@ export async function seedVenueContent(
       // Children cascade: sections → placements, items → prices. Items before images (FK).
       await tx.delete(menus).where(eq(menus.venueId, venueId));
       await tx.delete(items).where(eq(items.venueId, venueId));
+      await tx.delete(optionGroups).where(eq(optionGroups.venueId, venueId)); // options, links, rules
       await tx.delete(mediaAssets).where(eq(mediaAssets.venueId, venueId));
     } else {
       const [existing] = await tx
@@ -96,19 +108,34 @@ export async function seedVenueContent(
       return found;
     };
 
-    await tx.insert(itemPrices).values(
-      content.items.flatMap((item) =>
-        item.prices.map((line, sort) => ({
-          venueId,
-          itemId: itemId(item.slug),
-          unit: line.unit,
-          label: line.label ?? null,
-          amountMinor: line.amount,
-          isDefault: line.default,
-          sort,
-        })),
-      ),
-    );
+    const priceRows = await tx
+      .insert(itemPrices)
+      .values(
+        content.items.flatMap((item) =>
+          item.prices.map((line, sort) => ({
+            venueId,
+            itemId: itemId(item.slug),
+            unit: line.unit,
+            label: line.label ?? null,
+            amountMinor: line.amount,
+            isDefault: line.default,
+            sort,
+          })),
+        ),
+      )
+      .returning({ id: itemPrices.id, itemId: itemPrices.itemId, sort: itemPrices.sort });
+    /** "item slug / price key" → price line id, for groups limited to some lines. */
+    const priceIds = new Map<string, string>();
+    for (const item of content.items) {
+      item.prices.forEach((line, sort) => {
+        const row = priceRows.find(
+          (price) => price.itemId === itemId(item.slug) && price.sort === sort,
+        );
+        if (line.key && row) priceIds.set(`${item.slug}/${line.key}`, row.id);
+      });
+    }
+
+    await writeOptions();
 
     for (const [menuSort, menu] of content.menus.entries()) {
       const [menuRow] = await tx
@@ -135,10 +162,81 @@ export async function seedVenueContent(
 
     return {
       written: true,
+      optionGroups: Object.keys(content.optionGroups).length,
       images: imageEntries.length,
       items: content.items.length,
       menus: content.menus.length,
     };
+
+    /** Option groups and options (venue-wide), product links, compatibility rules (D-05). */
+    async function writeOptions(): Promise<void> {
+      const groupIds = new Map<string, string>();
+      const optionIds = new Map<string, string>(); // "group.option" → id
+      for (const [sort, [key, group]] of Object.entries(content.optionGroups).entries()) {
+        const [groupRow] = await tx
+          .insert(optionGroups)
+          .values({
+            venueId,
+            key,
+            name: group.name,
+            minSelect: group.min,
+            maxSelect: group.max,
+            sort,
+          })
+          .returning({ id: optionGroups.id });
+        if (!groupRow) throw new Error(`Seçenek grubu yazılamadı: ${key}`);
+        groupIds.set(key, groupRow.id);
+        const rows = await tx
+          .insert(optionsTable)
+          .values(
+            group.options.map((option, optionSort) => ({
+              venueId,
+              groupId: groupRow.id,
+              key: option.key,
+              name: option.name,
+              priceDeltaMinor: option.delta,
+              allergens: option.allergens,
+              dietsRemoved: option.dietsRemoved,
+              isDefault: option.default,
+              available: option.available,
+              sort: optionSort,
+            })),
+          )
+          .returning({ id: optionsTable.id, key: optionsTable.key });
+        for (const row of rows) optionIds.set(`${key}.${row.key}`, row.id);
+      }
+
+      const links = content.items.flatMap((item) =>
+        item.options.map((link, sort) => ({
+          venueId,
+          itemId: itemId(item.slug),
+          groupId: lookup(groupIds, link.group),
+          sort,
+          minOverride: link.min ?? null,
+          maxOverride: link.max ?? null,
+          appliesToPriceIds:
+            link.appliesTo?.map((key) => lookup(priceIds, `${item.slug}/${key}`)) ?? null,
+        })),
+      );
+      if (links.length > 0) await tx.insert(itemOptionGroups).values(links);
+
+      if (content.rules.length > 0) {
+        await tx.insert(optionRules).values(
+          content.rules.map((rule) => {
+            const target = (rule.excludes ?? rule.requires) as string;
+            return {
+              venueId,
+              itemId: rule.item ? itemId(rule.item) : null,
+              whenOptionId: lookup(optionIds, rule.when),
+              effect: rule.excludes ? "excludes" : "requires",
+              targetOptionId: target.includes(".") ? lookup(optionIds, target) : null,
+              targetGroupId: target.includes(".") ? null : lookup(groupIds, target),
+              message: rule.message ?? null,
+            };
+          }),
+        );
+      }
+    }
 
     async function insertSection(
       menuId: string,
@@ -173,4 +271,11 @@ export async function seedVenueContent(
       return row.id;
     }
   });
+}
+
+/** The schema guarantees every reference; a miss here is a bug, not bad content. */
+function lookup(map: Map<string, string>, key: string): string {
+  const found = map.get(key);
+  if (!found) throw new Error(`Kimlik bulunamadı: ${key}`);
+  return found;
 }

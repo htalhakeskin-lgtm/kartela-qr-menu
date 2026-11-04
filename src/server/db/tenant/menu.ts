@@ -2,6 +2,7 @@ import "server-only";
 
 import { and, asc, eq, inArray } from "drizzle-orm";
 
+import type { ConfigGroup, ConfigOption, ConfigRule } from "@/platform/menu/configurator";
 import type { PriceUnit } from "@/platform/menu/price";
 import type { OutsideWindow } from "@/platform/menu/schedule";
 import type { Menu, MenuItem, MenuPrice, MenuSection, VenueMenu } from "@/platform/menu/types";
@@ -15,11 +16,21 @@ import type {
 } from "@/platform/menu/vocabulary";
 
 import type { TenantTx } from "./scope";
-import { itemPrices, items, menus, menuSections, sectionItems } from "./tables";
+import {
+  itemOptionGroups,
+  itemPrices,
+  items,
+  menus,
+  menuSections,
+  optionGroups,
+  optionRules,
+  options as optionsTable,
+  sectionItems,
+} from "./tables";
 
 /**
- * A venue's whole menu in one structure (plan §9, D-03): menus → sections → sub-sections →
- * products with their price lines. Five queries, no N+1; the value sets are guaranteed by the
+ * A venue's whole menu in one structure (plan §9, D-03, D-05): menus → sections → sub-sections →
+ * products with their price lines and configurator groups. Nine queries, no N+1; the value sets are guaranteed by the
  * tables' check constraints, so the text columns are narrowed to their unions here.
  *
  * Run inside withVenue(venueId, …): row level security limits every query to the venue; the
@@ -64,6 +75,75 @@ export async function loadVenueMenu(
       .orderBy(asc(itemPrices.sort), asc(itemPrices.id)),
   ]);
 
+  const [groupRows, optionRows, linkRows, ruleRows] = await Promise.all([
+    tx.select().from(optionGroups).where(eq(optionGroups.venueId, venueId)),
+    tx
+      .select()
+      .from(optionsTable)
+      .where(eq(optionsTable.venueId, venueId))
+      .orderBy(asc(optionsTable.sort), asc(optionsTable.id)),
+    tx
+      .select()
+      .from(itemOptionGroups)
+      .where(eq(itemOptionGroups.venueId, venueId))
+      .orderBy(asc(itemOptionGroups.sort), asc(itemOptionGroups.id)),
+    tx.select().from(optionRules).where(eq(optionRules.venueId, venueId)),
+  ]);
+
+  const optionsByGroup = new Map<string, ConfigOption[]>();
+  const groupOfOption = new Map<string, string>();
+  for (const row of optionRows) {
+    groupOfOption.set(row.id, row.groupId);
+    optionsByGroup.set(row.groupId, [
+      ...(optionsByGroup.get(row.groupId) ?? []),
+      {
+        id: row.id,
+        key: row.key,
+        name: row.name,
+        priceDeltaMinor: row.priceDeltaMinor,
+        allergens: row.allergens as Allergen[],
+        dietsRemoved: row.dietsRemoved as Diet[],
+        isDefault: row.isDefault,
+        available: row.available,
+      },
+    ]);
+  }
+  const groupsById = new Map(groupRows.map((row) => [row.id, row]));
+  const groupsByItem = new Map<string, ConfigGroup[]>();
+  for (const link of linkRows) {
+    const group = groupsById.get(link.groupId);
+    if (!group) continue;
+    groupsByItem.set(link.itemId, [
+      ...(groupsByItem.get(link.itemId) ?? []),
+      {
+        id: group.id,
+        key: group.key,
+        name: group.name,
+        min: link.minOverride ?? group.minSelect,
+        max: link.maxOverride ?? group.maxSelect,
+        appliesTo: link.appliesToPriceIds,
+        options: optionsByGroup.get(group.id) ?? [],
+      },
+    ]);
+  }
+  /** A product's rules: its own, plus venue-wide ones about options of its groups. */
+  const rulesFor = (itemId: string, groups: ConfigGroup[]): ConfigRule[] => {
+    const groupIds = new Set(groups.map((group) => group.id));
+    return ruleRows
+      .filter((rule) =>
+        rule.itemId === null
+          ? groupIds.has(groupOfOption.get(rule.whenOptionId) ?? "")
+          : rule.itemId === itemId,
+      )
+      .map((rule) => ({
+        whenOptionId: rule.whenOptionId,
+        effect: rule.effect === "requires" ? "requires" : "excludes",
+        targetOptionId: rule.targetOptionId,
+        targetGroupId: rule.targetGroupId,
+        message: rule.message,
+      }));
+  };
+
   const pricesByItem = new Map<string, MenuPrice[]>();
   for (const row of priceRows) {
     const lines = pricesByItem.get(row.itemId) ?? [];
@@ -99,6 +179,8 @@ export async function loadVenueMenu(
       alcohol: row.alcohol,
       imageId: row.imageId,
       prices: pricesByItem.get(row.id) ?? [],
+      optionGroups: groupsByItem.get(row.id) ?? [],
+      optionRules: rulesFor(row.id, groupsByItem.get(row.id) ?? []),
     });
   }
 

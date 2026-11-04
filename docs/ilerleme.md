@@ -4,9 +4,9 @@
 
 ## Şu an
 
-- **Etkin dilim:** D-04 — İçerik klasöründen tohum hattı · ✅
-- **Son yapılan:** D-04: `content/mekanlar/{ad}/menu.ts` içerik dosyası (Zod şeması; tutarlar `parseMoney` ile kuruşa; bağlantı, tekrar, derinlik ve BR-FYT-002 denetimi), `media_assets` + ürün görseli bileşik FK, `seedVenueContent` (yalnızca menüsü olmayan mekâna; `--icerik-yenile`), fikstür mekânın TR / EN / AR lokanta menüsü; üretim derlemesi tohumu da çalıştırır (K-42). D-03 canlıda (migration uygulandı, `/api/health` → `tenant: isolated`).
-- **Sıradaki adım:** D-05 — menü motoru II: seçenek grupları, en az / en çok, fiyat farkı, uyumluluk kuralları, `domain/configurator.ts`. Neon önizleme dallanması (kullanıcı adımı, K-42) menü sayfaları derlemede veritabanını okumaya başlamadan (D-08 / D-09) açılmalı.
+- **Etkin dilim:** D-05 — Menü motoru II · ✅
+- **Son yapılan:** D-05: seçenek grupları (mekân çapında, ürüne bağlanırken sınır ezme ve fiyat satırına bağlama), seçenekler (negatif fark, alerjen, düşen diyet, tükenme), uyumluluk kuralları (dışlar / gerektirir; seçenek ya da grup hedefi); saf `configurator` (canlı toplam, zorunlu grup, en çok sınırı, iki yönlü uyumsuzluk, boya bağlı grup); içerik dosyası ve tohum seçenekleri yazar, okuma modeli taşır. D-04 canlıda (üretim tohumu Rakım'ı yazdı).
+- **Sıradaki adım:** D-06 — menü motoru III: müsaitlik (tükendi, günlük adet, saatli çıkış, mevsim, günün menüsü) + ilişkiler (eşleşme, öneri, set, tadım). Neon önizleme dallanması (kullanıcı adımı, K-42) menü sayfaları derlemede veritabanını okumaya başlamadan (D-08 / D-09) açılmalı.
 
 ## Gözetimsiz çalışma notları
 
@@ -55,7 +55,7 @@ Faz 1'in son dilimi (D-22) bitip Rakım yayına çıkınca durulur; teslim: yay�
 | D-02 | Veri çekirdeği ve kiracı yalıtımı: `venues`, `venue_domains`, `venue_members`, `venue_settings`; `withVenue`, bileşik FK, RLS, `app_rw` rolü; `audit_logs` / `demo_outbox` FK'leri; kiracı test takımı; `venueAction` | QR-02 · REQ-002 | M | P0 | ✅ | — (arayüz yok) | 22 entegrasyon (RLS, bileşik FK, `venueAction`, tohum) + ESLint içe aktarma kuralı |
 | D-03 | Menü motoru I: menüler ve pencereler, bölümler, ürünler, fiyat türleri, ürün bilgisi (14 alerjen, bileşen, enerji), çeviri alanları ve düşme | QR-03…06 · REQ-003…006 | M | P0 | ✅ | — (arayüz yok) | 42 birim (pencere, fiyat, çeviri, eksik bilgi) + 14 entegrasyon (kısıtlar, bileşik FK davranışı, okuma modeli; kiracı takımı 10 tabloya çıktı) |
 | D-04 | İçerik klasöründen tohum hattı: `content/mekanlar/{ad}/` (mekan.ts, menu.ts, hikayeler, gorseller.ts), Zod şemaları, `db:seed` / `db:reset`, görsel kaydı ve CDN loader, test fikstür mekânı | QR-03 · REQ-003 | M | P0 | ✅ | — (arayüz yok) | 10 birim (şema, gönderilen içerik dosyaları geçerli ve eksiksiz) + 6 entegrasyon (yazma → geri okuma, ikinci çalıştırma, yeniden kurma, görsel FK; kiracı takımı 11 tablo) |
-| D-05 | Menü motoru II: seçenek grupları, en az / en çok, fiyat farkı, uyumluluk kuralları, `domain/configurator.ts` | QR-07 · REQ-007 | M | P0 | ⏳ | — | — |
+| D-05 | Menü motoru II: seçenek grupları, en az / en çok, fiyat farkı, uyumluluk kuralları, `domain/configurator.ts` | QR-07 · REQ-007 | M | P0 | ✅ | — (arayüz yok) | 13 birim (ürün kurucu 9, içerik şeması 4) + 5 entegrasyon (kısıtlar, içerik → okuma modeli → ürün kurucu; kiracı takımı 15 tablo) |
 | D-06 | Menü motoru III: müsaitlik (tükendi, günlük adet, saatli çıkış, mevsim, günün menüsü) + ilişkiler (eşleşme, öneri, set, tadım) | QR-08, QR-09 · REQ-008, REQ-009 | M | P0 | ⏳ | — | — |
 | D-07 | Keşfet içerik modeli: hikâye türleri, koleksiyon ve durak, Markdown (sunucuda `react-markdown`, K-34), galeri, ürün bağları | QR-10 · REQ-010 | M | P0 | ⏳ | — | — |
 | D-08 | Tema sözleşmesi + görünümsüz çekirdek: `ThemeModule`, yuvalar, `useActiveMenus`, `useMenuSearch`, `useMenuFilters`, `useConfigurator`, `usePicks`, `useView`, `useVenueContext`, `formatPrice`, `t()`; ön boyama betiği | QR-11, QR-13 · REQ-011, REQ-013 | M | P0 | ⏳ | — | — |
@@ -153,14 +153,14 @@ Faz 1'in son dilimi (D-22) bitip Rakım yayına çıkınca durulur; teslim: yay�
 
 ## Etkin dilim planı
 
-**D-04 — İçerik klasöründen tohum hattı** (dal `feat/d04-content-pipeline`)
-- Kabul kriterleri (REQ-003): `content/mekanlar/{ad}/menu.ts` tek bir tipli dosyada mekânın görsellerini, ürünlerini ve menülerini tanımlar; Zod şeması fiyatları `parseMoney` ile kuruşa çevirir (kayan nokta yok), bilinmeyen alerjen / birim / tür, `tr`'siz çeviri, kayıtsız görsele ya da ürüne bağlantı, tekrarlanan slug, iki düzeyden derin bölüm, BR-FYT-002 ihlali, aynı bölümde iki kez yer alan ürün hata verir ve hata yolu söylenir. `pnpm db:seed` içeriği yalnızca menüsü olmayan mekâna yazar (panel düzenlemeleri ezilmez); `pnpm db:reset` baştan kurar. Yazılan menü `loadVenueMenu` ile birebir geri okunur. Demo içeriğinde yayındaki her üründe bileşen ve enerji dolu (REQ-005).
-- Tablolar / migration: `media_assets` (kiracı tablosu; kaynak, adres, boyut, fotoğrafçı, kaynak sayfa, lisans, çevrilebilir alt metin, odak noktası); `items.image_id` → `media_assets (venue_id, id)` bileşik FK.
-- Dosyalar: `src/platform/menu/content.ts` (şema + `defineMenuContent`), `src/server/db/tenant/tables/media.ts`, `src/server/db/tenant/seed-content.ts`, `content/mekanlar/icerik.ts` (slug → içerik; `next.config` yükü taşımaz), `content/mekanlar/_ornek/menu.ts` (fikstür: TR / EN / AR, yarım porsiyon, fotoğrafsız ürünler, eksik AR çevirisi), `scripts/seed.ts`, `scripts/vercel-build.mjs` (üretimde tohum), `drizzle/0006…`.
-- Kurallar: BR-FYT-001, BR-FYT-002, BR-MNU-003, BR-YSL-005, BR-KRC-002.
-- Testler: birim — şema hataları ve dönüşümler, kayıttaki her içerik dosyası geçerli ve eksiksiz; entegrasyon — içerik yazma + geri okuma, ikinci çalıştırmada dokunmama, `replace` ile yeniden kurma, görsel FK'si, kiracı takımına `media_assets`.
-- Yönetim kılavuzu: — (içerik dosyası geliştirici aracı; panel içe aktarma D-27)
-- Notlar: Rakım'ın gerçek menüsü ve görsel havuzu D-14'te; hikâye tabloları D-07'de (bu dilimde hikâye içeriği yok). Üretim derlemesinde tohum yalnızca boş mekâna yazar; önizleme derlemesi (paylaşılan veritabanı, K-42) tohum da çalıştırmaz.
+**D-05 — Menü motoru II: seçenekler ve ürün kurucu** (dal `feat/d05-option-engine`)
+- Kabul kriterleri (REQ-007, BR-SCN-001…003): zorunlu grup (en az ≥ 1) seçilmeden ürün "tamam" sayılmaz ve nedeni kod olarak döner; en çok sınırındaki çok seçimli grupta ek seçim engellenir, tek seçimli grupta seçim yer değiştirir; uyumsuz seçenek iki yönde de pasif olur ve kuralın mesajını taşır; "gerektirir" kuralı karşılanmadan ürün tamamlanmaz; toplam = fiyat satırı + seçenek farkları, negatif fark izinli, toplam sıfırın altına inmez; bir grup yalnızca bazı fiyat satırlarına (boylara) bağlanabilir ve boy değişince seçim buna göre güncellenir; seçeneklerin alerjenleri eklenir, düşürdüğü diyetler çıkar; tükenen seçenek seçilemez.
+- Tablolar / migration: `option_groups` (mekân çapında, anahtarlı, en az / en çok), `options` (fark, alerjen, düşen diyet, varsayılan, mevcut), `item_option_groups` (ürün ↔ grup, sınır ezme, geçerli fiyat satırları), `option_rules` (dışlar / gerektirir, seçenek ya da grup hedefi, ürüne özel ya da mekân çapında, mesaj); hepsi kiracı tablosu, bileşik FK.
+- Dosyalar: `src/platform/menu/configurator.ts` (+ test), `src/platform/menu/types.ts`, `src/platform/menu/content.ts` (seçenek grupları, ürün bağları, fiyat satırı anahtarı, kurallar), `src/server/db/tenant/tables/options.ts`, `src/server/db/tenant/{menu,seed-content}.ts`, `content/mekanlar/_ornek/menu.ts`, `drizzle/0008…0009`.
+- Kurallar: BR-SCN-001, BR-SCN-002, BR-SCN-003, BR-KRC-002.
+- Testler: birim — `configurator.test.ts` (başlangıç seçimi, canlı toplam, negatif fark, zorunlu grup, en çok sınırı, iki yönlü uyumsuzluk, gerektirir, boya bağlı grup, tükenen seçenek, alerjen / diyet), içerik şeması seçenek hataları; entegrasyon — kiracı takımına 4 tablo, kısıtlar (en az ≤ en çok, tek hedef), içerik → veritabanı → okuma modeli seçeneklerle birlikte.
+- Yönetim kılavuzu: — (panel ekranı D-23)
+- Notlar: Rakım'ın kahve özelleştiricisi (tarif kartı, fiyat rakamı kayması) D-16'da bu motoru kullanır; tema arayüzü yok.
 
 ## Görsel inceleme
 
