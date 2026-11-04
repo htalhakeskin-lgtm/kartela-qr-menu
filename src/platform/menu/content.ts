@@ -42,7 +42,93 @@ const amount = z.string().transform((value, ctx) => {
   return minor;
 });
 
+/** Option price deltas may be negative ("-10": no milk). */
+const delta = z.string().transform((value, ctx) => {
+  const minor = parseMoney(value, { allowNegative: true });
+  if (minor === null) {
+    ctx.addIssue({ code: "custom", message: `Geçersiz tutar: "${value}"` });
+    return z.NEVER;
+  }
+  return minor;
+});
+
 const percent = z.number().int().min(0).max(100);
+
+const optionSchema = z
+  .object({
+    key: slug,
+    name: translatedSchema,
+    delta: delta.default(0),
+    allergens: z.array(z.enum(ALLERGENS)).default([]),
+    dietsRemoved: z.array(z.enum(DIETS)).default([]),
+    default: z.boolean().default(false),
+    available: z.boolean().default(true),
+  })
+  .strict();
+
+/** A venue-wide option group ("Süt seçimi"); min ≥ 1 makes it required (BR-SCN-001). */
+const optionGroupSchema = z
+  .object({
+    name: translatedSchema,
+    min: z.number().int().min(0).default(0),
+    max: z.number().int().min(1).default(1),
+    options: z.array(optionSchema).min(1),
+  })
+  .strict()
+  .superRefine((group, ctx) => {
+    if (group.min > group.max)
+      ctx.addIssue({ code: "custom", path: ["min"], message: "min, max'tan büyük olamaz" });
+    if (group.min > group.options.length) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["min"],
+        message: "min, seçenek sayısından büyük olamaz",
+      });
+    }
+    const keys = group.options.map((option) => option.key);
+    if (new Set(keys).size !== keys.length) {
+      ctx.addIssue({ code: "custom", path: ["options"], message: "Tekrarlanan seçenek anahtarı" });
+    }
+    if (group.options.filter((option) => option.default).length > group.max) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["options"],
+        message: "Varsayılan seçenek sayısı max'ı aşıyor",
+      });
+    }
+  });
+
+/** A group on a product, with optional limit overrides and price lines it applies to. */
+const itemOptionSchema = z
+  .object({
+    group: slug,
+    min: z.number().int().min(0).optional(),
+    max: z.number().int().min(1).optional(),
+    appliesTo: z.array(slug).min(1).optional(),
+  })
+  .strict();
+
+/** "group.option" or "group" (any option of it). */
+const optionRef = z.string().regex(/^[a-z0-9-]+(\.[a-z0-9-]+)?$/, "grup ya da grup.secenek");
+
+/** BR-SCN-003: when `when` is chosen, `excludes` cannot be / `requires` must be chosen. */
+const ruleSchema = z
+  .object({
+    /** Limit the rule to one product; without it the rule holds wherever the option appears. */
+    item: slug.optional(),
+    when: optionRef,
+    excludes: optionRef.optional(),
+    requires: optionRef.optional(),
+    message: translatedSchema.optional(),
+  })
+  .strict()
+  .refine((rule) => (rule.excludes === undefined) !== (rule.requires === undefined), {
+    message: "Kural ya excludes ya da requires taşır",
+  })
+  .refine((rule) => rule.when.includes("."), {
+    message: "when bir seçenek olmalı (grup.secenek)",
+    path: ["when"],
+  });
 
 const imageSchema = z
   .object({
@@ -69,6 +155,8 @@ const imageSchema = z
 
 const priceSchema = z
   .object({
+    /** Name an option group link can point at (appliesTo: ["buyuk"]). */
+    key: slug.optional(),
     unit: z.enum(PRICE_UNITS).default("portion"),
     amount,
     label: translatedSchema.optional(),
@@ -115,6 +203,8 @@ const itemSchema = z
     status: z.enum(ITEM_STATUSES).default("published"),
     /** At least one line; without an explicit default the first line is the default. */
     prices: z.array(priceSchema).min(1),
+    /** Configurator groups of this product, in order (D-05). */
+    options: z.array(itemOptionSchema).default([]),
   })
   .strict()
   .transform((item) => ({
@@ -193,11 +283,73 @@ const menuSchema = z
 export const menuContentSchema = z
   .object({
     images: z.record(slug, imageSchema).default({}),
+    optionGroups: z.record(slug, optionGroupSchema).default({}),
     items: z.array(itemSchema).min(1),
+    rules: z.array(ruleSchema).default([]),
     menus: z.array(menuSchema).min(1),
   })
   .strict()
   .superRefine((content, ctx) => {
+    const optionExists = (ref: string) => {
+      const [groupKey = "", optionKey] = ref.split(".");
+      const group = content.optionGroups[groupKey];
+      return Boolean(
+        group && (optionKey === undefined || group.options.some((o) => o.key === optionKey)),
+      );
+    };
+    content.items.forEach((item, index) => {
+      const priceKeys = new Set(item.prices.flatMap((line) => (line.key ? [line.key] : [])));
+      item.options.forEach((link, linkIndex) => {
+        const path = ["items", index, "options", linkIndex];
+        const group = content.optionGroups[link.group];
+        if (!group) {
+          ctx.addIssue({
+            code: "custom",
+            path: [...path, "group"],
+            message: `Kayıtsız seçenek grubu: ${link.group}`,
+          });
+          return;
+        }
+        const [min, max] = [link.min ?? group.min, link.max ?? group.max];
+        if (min > max) ctx.addIssue({ code: "custom", path, message: "min, max'tan büyük olamaz" });
+        for (const key of link.appliesTo ?? []) {
+          if (!priceKeys.has(key)) {
+            ctx.addIssue({
+              code: "custom",
+              path: [...path, "appliesTo"],
+              message: `Ürünün fiyat satırında yok: ${key}`,
+            });
+          }
+        }
+      });
+    });
+    content.rules.forEach((rule, index) => {
+      for (const field of ["when", "excludes", "requires"] as const) {
+        const ref = rule[field];
+        if (ref !== undefined && !optionExists(ref)) {
+          ctx.addIssue({
+            code: "custom",
+            path: ["rules", index, field],
+            message: `Kayıtsız seçenek: ${ref}`,
+          });
+        }
+      }
+      if (rule.item !== undefined && !content.items.some((item) => item.slug === rule.item)) {
+        ctx.addIssue({
+          code: "custom",
+          path: ["rules", index, "item"],
+          message: `Kayıtsız ürün: ${rule.item}`,
+        });
+      }
+      if (rule.excludes === rule.when || rule.requires === rule.when) {
+        ctx.addIssue({
+          code: "custom",
+          path: ["rules", index],
+          message: "Bir seçenek kendisini dışlayamaz ya da gerektiremez",
+        });
+      }
+    });
+
     const itemSlugs = new Set<string>();
     content.items.forEach((item, index) => {
       if (itemSlugs.has(item.slug)) {

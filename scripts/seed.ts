@@ -69,7 +69,7 @@ async function main() {
     const result = await seedVenueContent(venueId, parseMenuContent(slug, input), { replace });
     console.log(
       result.written
-        ? `✓ ${slug}: ${String(result.menus)} menü, ${String(result.items)} ürün, ${String(result.images)} görsel`
+        ? `✓ ${slug}: ${String(result.menus)} menü, ${String(result.items)} ürün, ${String(result.optionGroups)} seçenek grubu, ${String(result.images)} görsel`
         : `· ${slug}: menüsü var, içerik yazılmadı (yenilemek için: pnpm db:seed --icerik-yenile)`,
     );
   }

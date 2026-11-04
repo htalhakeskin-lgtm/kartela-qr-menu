@@ -2,7 +2,15 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 import { newId } from "@/server/db/columns";
 import { withVenue } from "@/server/db/tenant";
-import { itemPrices, items, menus } from "@/server/db/tenant/tables";
+import {
+  itemOptionGroups,
+  itemPrices,
+  items,
+  menus,
+  optionGroups,
+  optionRules,
+  options,
+} from "@/server/db/tenant/tables";
 
 import {
   createMenuBase,
@@ -105,5 +113,80 @@ describe("menu engine constraints", () => {
     expect(await price({ amountMinor: -1 })).toBe(CHECK_VIOLATION);
     expect(await price({ isDefault: true })).toBe("no error");
     expect(await price({ isDefault: true, unit: "half" })).toBe(UNIQUE_VIOLATION);
+  });
+
+  it("BR-SCN-001: option group limits are consistent, also when a product overrides them", async () => {
+    const group = (minSelect: number, maxSelect: number) =>
+      errorCode(
+        withVenue(venue.id, (tx) =>
+          tx.insert(optionGroups).values({
+            venueId: venue.id,
+            key: `grup-${newId()}`,
+            name: { tr: "Grup" },
+            minSelect,
+            maxSelect,
+          }),
+        ),
+      );
+    expect(await group(2, 1)).toBe(CHECK_VIOLATION);
+    expect(await group(0, 0)).toBe(CHECK_VIOLATION);
+    expect(await group(1, 3)).toBe("no error");
+
+    const link = (minOverride: number | null, maxOverride: number | null) =>
+      errorCode(
+        withVenue(venue.id, (tx) =>
+          tx.insert(itemOptionGroups).values({
+            venueId: venue.id,
+            itemId: base.itemId,
+            groupId: base.groupId,
+            minOverride,
+            maxOverride,
+          }),
+        ),
+      );
+    expect(await link(3, 2)).toBe(CHECK_VIOLATION);
+    expect(await link(0, 2)).toBe("no error");
+    expect(await link(null, null)).toBe(UNIQUE_VIOLATION); // one link per product and group
+  });
+
+  it("options: known allergens and diets only", async () => {
+    const option = (extra: Partial<typeof options.$inferInsert>) =>
+      errorCode(
+        withVenue(venue.id, (tx) =>
+          tx.insert(options).values({
+            venueId: venue.id,
+            groupId: base.groupId,
+            key: `secenek-${newId()}`,
+            name: { tr: "Seçenek" },
+            ...extra,
+          }),
+        ),
+      );
+    expect(await option({ allergens: ["oat"] })).toBe(CHECK_VIOLATION);
+    expect(await option({ dietsRemoved: ["paleo"] })).toBe(CHECK_VIOLATION);
+    expect(await option({ allergens: ["nuts"], priceDeltaMinor: -1000 })).toBe("no error");
+  });
+
+  it("BR-SCN-003: a rule has exactly one target and never targets itself", async () => {
+    const rule = (extra: Partial<typeof optionRules.$inferInsert>) =>
+      errorCode(
+        withVenue(venue.id, (tx) =>
+          tx.insert(optionRules).values({
+            venueId: venue.id,
+            whenOptionId: base.optionId,
+            effect: "excludes",
+            ...extra,
+          }),
+        ),
+      );
+    expect(await rule({})).toBe(CHECK_VIOLATION); // no target
+    expect(await rule({ targetOptionId: base.otherOptionId, targetGroupId: base.groupId })).toBe(
+      CHECK_VIOLATION,
+    );
+    expect(await rule({ targetOptionId: base.optionId })).toBe(CHECK_VIOLATION);
+    expect(await rule({ targetOptionId: base.otherOptionId, effect: "allows" })).toBe(
+      CHECK_VIOLATION,
+    );
+    expect(await rule({ targetOptionId: base.otherOptionId })).toBe("no error");
   });
 });

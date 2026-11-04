@@ -1,4 +1,5 @@
 import type { Translated } from "../i18n/fallback";
+import type { ConfigGroup, ConfigRule } from "./configurator";
 import type { PriceLine } from "./price";
 import type { MenuSchedule, OutsideWindow } from "./schedule";
 import type { Allergen, Diet, ItemKind, MenuKind, SpiceLevel } from "./vocabulary";
@@ -44,6 +45,10 @@ export type MenuItem = {
   imageId: string | null;
   /** Sorted; exactly one isDefault (BR-FYT-002 is checked when content is written). */
   prices: MenuPrice[];
+  /** Configurator groups with this product's limits (D-05); empty = plain product. */
+  optionGroups: ConfigGroup[];
+  /** Compatibility rules that concern this product's options. */
+  optionRules: ConfigRule[];
 };
 
 export type MenuPlacement = { item: MenuItem; featured: boolean };

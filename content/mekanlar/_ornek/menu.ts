@@ -4,7 +4,9 @@ import { defineMenuContent } from "../../../src/platform/menu/content";
  * Test fixture menu (D-04): a small, fictional esnaf lokantası on the ready-made theme Sade, in
  * Turkish, English and Arabic. Never in the production build (fixture: true). Edge cases on
  * purpose: half portions, a sub-section, one Arabic description missing (falls back to Turkish,
- * BR-MNU-003), products without a photo (K-23), a time-limited breakfast menu, a draft product.
+ * BR-MNU-003), products without a photo (K-23), a time-limited breakfast menu, a draft product,
+ * and the configurator (D-05): a required choice without a default (sugar), a milk choice, extras
+ * offered only on the double shot, a sold-out extra and an incompatible pair (oat milk ↔ cream).
  *
  * Every published product carries ingredients and energy (REQ-005). Figures are estimates for a
  * typical portion, not lab values. The one photo is registered in docs/gorsel-kaynaklari.md.
@@ -26,6 +28,65 @@ export default defineMenuContent({
       focal: [50, 55],
     },
   },
+
+  optionGroups: {
+    seker: {
+      name: { tr: "Şeker", en: "Sugar", ar: "السكر" },
+      min: 1,
+      options: [
+        { key: "sade", name: { tr: "Sade", en: "No sugar", ar: "بدون سكر" } },
+        { key: "az", name: { tr: "Az şekerli", en: "A little sugar", ar: "سكر قليل" } },
+        { key: "orta", name: { tr: "Orta", en: "Medium", ar: "متوسط" } },
+        { key: "sekerli", name: { tr: "Şekerli", en: "Sweet", ar: "سكر كثير" } },
+      ],
+    },
+    sut: {
+      name: { tr: "Süt", en: "Milk", ar: "الحليب" },
+      min: 1,
+      options: [
+        {
+          key: "inek",
+          name: { tr: "İnek sütü", en: "Cow's milk", ar: "حليب البقر" },
+          allergens: ["milk"],
+          default: true,
+        },
+        {
+          key: "yulaf",
+          name: { tr: "Yulaf sütü", en: "Oat milk", ar: "حليب الشوفان" },
+          delta: "20",
+          allergens: ["gluten"],
+        },
+        {
+          key: "laktozsuz",
+          name: { tr: "Laktozsuz süt", en: "Lactose-free milk", ar: "حليب خالٍ من اللاكتوز" },
+          delta: "15",
+          allergens: ["milk"],
+        },
+      ],
+    },
+    ekstra: {
+      name: { tr: "Ekstra", en: "Extras", ar: "إضافات" },
+      max: 2,
+      options: [
+        { key: "tarcin", name: { tr: "Tarçın", en: "Cinnamon", ar: "قرفة" }, delta: "10" },
+        {
+          key: "krema",
+          name: { tr: "Krema", en: "Whipped cream", ar: "كريمة" },
+          delta: "15",
+          allergens: ["milk"],
+        },
+        { key: "bal", name: { tr: "Bal", en: "Honey", ar: "عسل" }, delta: "10", available: false },
+      ],
+    },
+  },
+
+  rules: [
+    {
+      when: "sut.yulaf",
+      excludes: "ekstra.krema",
+      message: { tr: "Yulaf sütüyle krema eklenmez.", en: "No whipped cream with oat milk." },
+    },
+  ],
 
   items: [
     {
@@ -160,15 +221,42 @@ export default defineMenuContent({
       prices: [{ amount: "30" }],
     },
     {
+      slug: "turk-kahvesi",
+      kind: "drink",
+      name: { tr: "Türk kahvesi", en: "Turkish coffee", ar: "قهوة تركية" },
+      ingredients: {
+        tr: "Türk kahvesi, su; şeker seçime göre",
+        en: "Turkish coffee, water; sugar as chosen",
+        ar: "قهوة تركية، ماء؛ السكر حسب الاختيار",
+      },
+      energyKcal: 10,
+      volumeMl: 70,
+      prices: [{ amount: "90" }],
+      options: [{ group: "seker" }],
+    },
+    {
       slug: "cortado",
       kind: "drink",
       name: { tr: "Cortado", en: "Cortado", ar: "كورتادو" },
       ingredients: { tr: "Espresso, süt", en: "Espresso, milk", ar: "إسبريسو، حليب" },
-      allergens: ["milk"],
       energyKcal: 45,
       volumeMl: 120,
       image: "cortado-cam-bardak",
-      prices: [{ amount: "140" }],
+      prices: [
+        {
+          key: "tek",
+          unit: "size",
+          label: { tr: "Tek shot", en: "Single", ar: "جرعة واحدة" },
+          amount: "140",
+        },
+        {
+          key: "cift",
+          unit: "size",
+          label: { tr: "Çift shot", en: "Double", ar: "جرعتان" },
+          amount: "170",
+        },
+      ],
+      options: [{ group: "sut" }, { group: "ekstra", appliesTo: ["cift"] }],
     },
     {
       slug: "gunun-tatlisi-taslak",
@@ -217,7 +305,10 @@ export default defineMenuContent({
           name: { tr: "Kahvaltılık", en: "Breakfast plates", ar: "أطباق الفطور" },
           items: ["menemen"],
         },
-        { name: { tr: "İçecekler", en: "Drinks", ar: "مشروبات" }, items: ["cay", "cortado"] },
+        {
+          name: { tr: "İçecekler", en: "Drinks", ar: "مشروبات" },
+          items: ["cay", "turk-kahvesi", "cortado"],
+        },
       ],
     },
   ],

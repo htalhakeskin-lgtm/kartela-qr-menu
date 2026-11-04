@@ -141,3 +141,73 @@ describe("the shipped content files", () => {
     },
   );
 });
+
+describe("option groups in the content file (D-05)", () => {
+  const withOptions = (): MenuContentInput => ({
+    ...minimal(),
+    optionGroups: {
+      sut: {
+        name: { tr: "Süt" },
+        min: 1,
+        options: [
+          { key: "inek", name: { tr: "İnek sütü" }, default: true },
+          { key: "sutsuz", name: { tr: "Sütsüz" }, delta: "-10" },
+        ],
+      },
+      ekstra: {
+        name: { tr: "Ekstra" },
+        max: 2,
+        options: [{ key: "krema", name: { tr: "Krema" } }],
+      },
+    },
+  });
+
+  it("parses groups, negative deltas and links", () => {
+    const input = withOptions();
+    input.items[0]!.prices = [{ key: "buyuk", unit: "size", label: { tr: "Büyük" }, amount: "40" }];
+    input.items[0]!.options = [{ group: "sut" }, { group: "ekstra", appliesTo: ["buyuk"] }];
+    input.rules = [
+      { when: "sut.sutsuz", excludes: "ekstra", message: { tr: "Sütsüzde ekstra yok." } },
+    ];
+    const content = parseMenuContent("test", input);
+    expect(content.optionGroups.sut!.options[1]).toMatchObject({ key: "sutsuz", delta: -1000 });
+    expect(content.optionGroups.ekstra).toMatchObject({ min: 0, max: 2 });
+    expect(content.items[0]!.options).toEqual([
+      { group: "sut" },
+      { group: "ekstra", appliesTo: ["buyuk"] },
+    ]);
+  });
+
+  it("BR-SCN-001: impossible limits are refused", () => {
+    const input = withOptions();
+    input.optionGroups!.ekstra = {
+      name: { tr: "Ekstra" },
+      min: 2,
+      max: 1,
+      options: [{ key: "krema", name: { tr: "Krema" } }],
+    };
+    const found = problems(input).join("\n");
+    expect(found).toContain("min, max'tan büyük olamaz");
+    expect(found).toContain("min, seçenek sayısından büyük olamaz");
+  });
+
+  it("refuses links to unknown groups, price keys and options", () => {
+    const input = withOptions();
+    input.items[0]!.options = [{ group: "surup" }, { group: "ekstra", appliesTo: ["dev"] }];
+    input.rules = [
+      { when: "sut.yulaf", excludes: "ekstra.krema" },
+      { when: "sut.inek", excludes: "ekstra", requires: "sut" },
+    ];
+    const found = problems(input).join("\n");
+    expect(found).toContain("Kayıtsız seçenek grubu: surup");
+    expect(found).toContain("Ürünün fiyat satırında yok: dev");
+    expect(found).toContain("Kayıtsız seçenek: sut.yulaf");
+    expect(found).toContain("Kural ya excludes ya da requires taşır");
+  });
+
+  it("more defaults than the group's maximum is refused", () => {
+    const input = withOptions();
+    input.optionGroups!.sut!.options[1]!.default = true;
+    expect(problems(input).join()).toContain("Varsayılan seçenek sayısı max'ı aşıyor");
+  });
+});
