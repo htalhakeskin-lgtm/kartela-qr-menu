@@ -67,7 +67,28 @@ export async function tenantTableNames(): Promise<string[]> {
   return result.rows.map((row) => row.table_name);
 }
 
-type FixtureContext = { userId: string };
+/** Parent rows every menu fixture of one venue hangs under (created by createMenuBase). */
+export type MenuBase = { menuId: string; sectionId: string; itemId: string };
+
+type FixtureContext = { userId: string; base: MenuBase };
+
+/** One menu → section → item chain in the venue's own scope, for fixtures and FK tests. */
+export async function createMenuBase(tx: TenantTx, venueId: string): Promise<MenuBase> {
+  const suffix = newId().slice(-12);
+  const [menu] = await tx
+    .insert(tables.menus)
+    .values({ venueId, slug: `menu-${suffix}`, name: { tr: "Temel menü" } })
+    .returning({ id: tables.menus.id });
+  const [section] = await tx
+    .insert(tables.menuSections)
+    .values({ venueId, menuId: menu!.id, name: { tr: "Temel bölüm" } })
+    .returning({ id: tables.menuSections.id });
+  const [item] = await tx
+    .insert(tables.items)
+    .values({ venueId, slug: `item-${suffix}`, name: { tr: "Temel ürün" } })
+    .returning({ id: tables.items.id });
+  return { menuId: menu!.id, sectionId: section!.id, itemId: item!.id };
+}
 type Fixture<T extends PgTable = PgTable> = {
   table: T;
   row: (venueId: string, ctx: FixtureContext) => T["$inferInsert"];
@@ -94,6 +115,37 @@ export const tenantFixtures: Record<string, Fixture> = {
   })),
   venue_settings: fixture(tables.venueSettings, (venueId) => ({ venueId })),
   audit_logs: fixture(tables.auditLogs, (venueId) => ({ venueId, action: "test.fixture" })),
+  menus: fixture(tables.menus, (venueId) => ({
+    venueId,
+    slug: `fixture-${newId()}`,
+    name: { tr: "Kahvaltı" },
+    kind: "breakfast",
+    schedule: { windows: [{ start: "08:00", end: "12:00" }] },
+  })),
+  menu_sections: fixture(tables.menuSections, (venueId, { base }) => ({
+    venueId,
+    menuId: base.menuId,
+    parentId: base.sectionId,
+    name: { tr: "Alt bölüm" },
+  })),
+  items: fixture(tables.items, (venueId) => ({
+    venueId,
+    slug: `fixture-${newId()}`,
+    name: { tr: "Mercimek çorbası" },
+    allergens: ["celery"],
+    energyKcal: 210,
+  })),
+  section_items: fixture(tables.sectionItems, (venueId, { base }) => ({
+    venueId,
+    sectionId: base.sectionId,
+    itemId: base.itemId,
+  })),
+  item_prices: fixture(tables.itemPrices, (venueId, { base }) => ({
+    venueId,
+    itemId: base.itemId,
+    unit: "half",
+    amountMinor: 14000,
+  })),
   demo_outbox: fixture(tables.demoOutbox, (venueId) => ({
     venueId,
     channel: "email",

@@ -29,6 +29,20 @@
       "when": 1793807742912,
       "tag": "0003_app_role",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1793809276214,
+      "tag": "0004_menu_engine",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1793809277700,
+      "tag": "0005_menu_engine_access",
+      "breakpoints": true
     }
   ]
 }
