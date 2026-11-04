@@ -1,3 +1,5 @@
+import { existsSync } from "node:fs";
+
 import {
   getRewrittenUrl,
   unstable_getResponseFromNextConfig,
@@ -5,6 +7,7 @@ import {
 import { describe, expect, it } from "vitest";
 
 import nextConfig from "../../../next.config";
+import { THEMES } from "./registry-schema";
 
 /**
  * REQ-001, BR-KRC-004: the host rewrites of the real next.config.ts, evaluated by Next.js' own
@@ -45,11 +48,28 @@ describe("tenant routing by host (ADR-0002 v2)", () => {
       "/tema-rakim/rakim/robots.txt",
     );
     expect(await route("http://ornek.localhost:3020/sitemap.xml")).toBe(
-      "/tema-sade/ornek/sitemap.xml",
+      "/tema-sade/ornek/site-haritasi",
     );
     expect(await route("http://rakim.localhost:3020/manifest.webmanifest")).toBe(
       "/tema-rakim/rakim/manifest.webmanifest",
     );
+  });
+
+  it("a venue file route is never a Next.js metadata route (its [mekan] param is kept)", async () => {
+    // Regression: a folder named sitemap.xml is Next.js' sitemap convention; the build registered it
+    // as /tema-rakim/-/sitemap.xml, so on Vercel /sitemap.xml fell through to the [dil] page (500).
+    for (const file of ["robots.txt", "sitemap.xml", "manifest.webmanifest"]) {
+      const destination = await route(`https://rakim-kahve.vercel.app/${file}`);
+      expect(destination, file).toMatch(/^\/tema-rakim\/rakim\/[^/]+$/);
+      expect(destination, file).not.toMatch(/\/sitemap(?:\.xml)?$/);
+      const folder = destination?.split("/").at(-1) ?? "";
+      for (const theme of THEMES) {
+        expect(
+          existsSync(`src/app/tema-${theme}/[mekan]/${folder}/route.ts`),
+          `${theme}/${folder}`,
+        ).toBe(true);
+      }
+    }
   });
 
   it("assets and API calls are never rewritten on a venue host", async () => {

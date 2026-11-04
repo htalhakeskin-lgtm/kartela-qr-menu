@@ -17,7 +17,7 @@ Her istekte hangi mekânın açılacağı belirlenmeli: üretimde alan adına g�
 | Sıra | Koşul | Sonuç |
 |---|---|---|
 | 1 | Yol `/tema-*` (iç yol dışarıdan istenmiş; özgün yolda bir kez denetlenir) | 404 (BR-KRC-004) |
-| 2 | Ana bilgisayar mekânın alan adlarından biri ya da `{slug}.localhost` | `/robots.txt`, `/sitemap.xml`, `/manifest.webmanifest` → `/tema-{tema}/{slug}/{dosya}`; `/{dil}/…` → `/tema-{tema}/{slug}/{dil}/…`; diğer yollar → varsayılan dil. `/_next/*` ve `/api/*` yeniden yazılmaz |
+| 2 | Ana bilgisayar mekânın alan adlarından biri ya da `{slug}.localhost` | `/robots.txt`, `/sitemap.xml`, `/manifest.webmanifest` → `/tema-{tema}/{slug}/{robots.txt, site-haritasi, manifest.webmanifest}` (site haritası klasörü `sitemap.xml` adını taşıyamaz: Next bunu kendi site haritası kuralı sayıp `[mekan]` parçasını düşürür); `/{dil}/…` → `/tema-{tema}/{slug}/{dil}/…`; diğer yollar → varsayılan dil. `/_next/*` ve `/api/*` yeniden yazılmaz |
 | 3 | Yol `/m/{slug}/…` (başka bir alan adında) | Aynı ağaca; `X-Robots-Tag: noindex, nofollow` (`headers()`) |
 | 4 | `?mekan={slug}` (başka bir alan adında) | `/api/onizleme`: oturumluk `kartela_onizleme` çerezini yazar ve aynı yola parametresiz döner. `?mekan=platform` çerezi siler (boş değer Next.js'te "parametre yok" sayılır) |
 | 5 | `kartela_onizleme` çerezi | Adım 2 gibi; `/panel` ve `/m/` hariç |

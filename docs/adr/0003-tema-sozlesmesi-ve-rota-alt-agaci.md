@@ -35,7 +35,7 @@ export const generateMetadata = createQuickMenuPage.metadata(theme);
 export default createQuickMenuPage(theme);
 ```
 
-Üretilen rotalar: `layout.tsx` (kök), `page.tsx` (hızlı menü), `kesfet/page.tsx`, `urun/[urun]/page.tsx` (paylaşılabilir ürün adresi; ziyaretçi içinde alttan panel açılır), `bilgi/page.tsx`, `stil/page.tsx`, `yazdir/{kapi,masa,qr}/page.tsx`, `cevrimdisi/page.tsx`, `not-found.tsx`, `error.tsx`, `opengraph-image.tsx`, `manifest.webmanifest/route.ts`, `robots.txt/route.ts`, `sitemap.xml/route.ts`, `sw.js/route.ts`, `icon.tsx`.
+Üretilen rotalar: `layout.tsx` (kök), `page.tsx` (hızlı menü), `kesfet/page.tsx`, `urun/[urun]/page.tsx` (paylaşılabilir ürün adresi; ziyaretçi içinde alttan panel açılır), `bilgi/page.tsx`, `stil/page.tsx`, `yazdir/{kapi,masa,qr}/page.tsx`, `cevrimdisi/page.tsx`, `not-found.tsx`, `error.tsx`, `opengraph-image.tsx`, `manifest.webmanifest/route.ts`, `robots.txt/route.ts`, `site-haritasi/route.ts` (dışarıda `/sitemap.xml`; ADR-0002), `sw.js/route.ts`, `icon.tsx`.
 
 ESLint modül sınırı: `src/themes/{a}/**` başka bir temanın klasöründen içe aktaramaz; temalar yalnızca `@/platform/theme`, `@/platform/menu` ve `@/components/ui` yüzeylerini kullanır.
 

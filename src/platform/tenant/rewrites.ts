@@ -40,8 +40,17 @@ export type TenantHeader = { source: string; headers: { key: string; value: stri
 /** Next.js metadata image routes a theme tree may hold; their URLs stay public. */
 const METADATA_IMAGES = ["icon", "apple-icon", "opengraph-image", "twitter-image"] as const;
 
-/** Files every venue serves from its own tree instead of the platform's root files. */
-const VENUE_FILES = ["robots.txt", "sitemap.xml", "manifest.webmanifest"] as const;
+/**
+ * Files every venue serves from its own tree instead of the platform's root files: public path →
+ * route folder under /tema-{theme}/[mekan]/. The sitemap folder must not be named sitemap.xml:
+ * that is Next.js' sitemap convention, which drops the dynamic segments (/tema-rakim/-/sitemap.xml)
+ * and left the venue's /sitemap.xml without a route on Vercel.
+ */
+const VENUE_FILES = {
+  "robots.txt": "robots.txt",
+  "sitemap.xml": "site-haritasi",
+  "manifest.webmanifest": "manifest.webmanifest",
+} as const;
 
 const escapeRegex = (value: string) => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
@@ -100,10 +109,10 @@ export function buildTenantRewrites(
   // 2. Venue hosts (production domains + {slug}.localhost).
   for (const venue of venues) {
     const has: HasCondition[] = [{ type: "host", value: anyHost(venueHosts(venue)) }];
-    for (const file of VENUE_FILES) {
+    for (const [file, folder] of Object.entries(VENUE_FILES)) {
       rules.push({
         source: `/${file}`,
-        destination: `/tema-${venue.theme}/${venue.slug}/${file}`,
+        destination: `/tema-${venue.theme}/${venue.slug}/${folder}`,
         has,
       });
     }
