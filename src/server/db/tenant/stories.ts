@@ -6,6 +6,7 @@ import type { MediaAsset, Story } from "@/platform/menu/types";
 import type { StoryKind } from "@/platform/menu/vocabulary";
 
 import type { TenantTx } from "./scope";
+import { sequential } from "./sequential";
 import { mediaAssets, stories, storyItems } from "./tables";
 
 /**
@@ -18,7 +19,7 @@ export async function loadVenueStories(
   options: { includeDrafts?: boolean } = {},
 ): Promise<Story[]> {
   const statuses = options.includeDrafts ? ["published", "draft"] : ["published"];
-  const [storyRows, linkRows] = await Promise.all([
+  const [storyRows, linkRows] = await sequential([
     tx
       .select()
       .from(stories)

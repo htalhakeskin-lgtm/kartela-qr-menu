@@ -4,6 +4,7 @@ import { SEARCH_MIN_CHARS } from "../../config/limits";
 import { EXPLORE_SEGMENT, VIEW_COOKIE } from "../tenant/rewrites";
 import {
   choosePrice,
+  type ConfigPrice,
   type Configurable,
   evaluate,
   initialSelection,
@@ -130,7 +131,7 @@ export function useMenuSearch(items: readonly ItemView[]) {
 }
 
 /** REQ-007: the configurator's state for one product; evaluation recomputed on every change. */
-export function useConfigurator(item: Configurable) {
+export function useConfigurator<P extends ConfigPrice>(item: Configurable<P>) {
   const [selection, setSelection] = useState<Selection>(() => initialSelection(item));
   const evaluation = useMemo(() => evaluate(item, selection), [item, selection]);
   return {
@@ -185,7 +186,11 @@ export function usePicks(venueSlug: string) {
     () => readStorage(key),
     () => null,
   );
-  const picks = useMemo(() => prunePicks(parseStoredPicks(raw), new Date()), [raw]);
+  // Only with something stored: on the server (and while hydrating) there is no clock to read.
+  const picks = useMemo(
+    () => (raw === null ? [] : prunePicks(parseStoredPicks(raw), new Date())),
+    [raw],
+  );
   return {
     picks,
     count: picks.reduce((sum, pick) => sum + pick.qty, 0),

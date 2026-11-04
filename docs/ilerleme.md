@@ -4,9 +4,9 @@
 
 ## Şu an
 
-- **Etkin dilim:** D-08 — Tema sözleşmesi ve görünümsüz çekirdek · ✅
-- **Son yapılan:** D-08: `ThemeModule` sözleşmesi (token, hareket, yuvalar; bileşensiz `meta` + modül), tema sınırı ESLint'te, TS token'ları ile CSS'in eşitliği testte; sunucuda dile göre görünüm modeli (`getVenueView`, `menu:{mekan}` etiketi); istemci kancaları (etkin menü, arama, filtre, ürün kurucu, Seçtiklerim, bağlam, görünüm çerezi) `useSyncExternalStore` ile; ön boyama betiği (`data-gun-dilimi`, `data-renk`); görünüm çerezi yeniden yazma kuralı; fikstür sayfası menüyü veritabanından gösteriyor. Neon önizleme dallanması açıldı ve doğrulandı (K-43).
-- **Sıradaki adım:** D-09 — Sade I: kabuk, hızlı menü (liste / kart / ızgara), yapışkan kategori çubuğu, arama, filtre paneli, alttan ürün paneli, alt çubuk.
+- **Etkin dilim:** D-09 — Sade I: hızlı menü · ✅
+- **Son yapılan:** D-09: temel yuvalar (`src/platform/theme/base`: kabuk, bölüm çubuğu / masaüstü dizini, ürün kartı dört biçimde + fotoğrafsız tipografik kart, alttan `<dialog>` ürün paneli, ürün kurucu, ürün bilgisi, arama, filtre, Seçtiklerim listesi, yasal not); Sade hızlı menüsü veritabanından, liste / kart / ızgara, `#urun-` derin bağlantısı, adres çubuğunda filtre, RTL; arayüz sözlüğü TR / EN / AR. D-08 canlıda.
+- **Sıradaki adım:** D-10 — Sade II: Keşfet (akış / dergi), Seçtiklerim + garsona göster, koyu mod, baskı yuvaları, `/stil`, tema uygunluk takımı.
 
 ## Gözetimsiz çalışma notları
 
@@ -59,7 +59,7 @@ Faz 1'in son dilimi (D-22) bitip Rakım yayına çıkınca durulur; teslim: yay�
 | D-06 | Menü motoru III: müsaitlik (tükendi, günlük adet, saatli çıkış, mevsim, günün menüsü) + ilişkiler (eşleşme, öneri, set, tadım) | QR-08, QR-09 · REQ-008, REQ-009 | M | P0 | ✅ | — (arayüz yok) | 25 birim (müsaitlik) + 4 birim (içerik şeması) + 6 entegrasyon (kısıtlar, günün menüsü, müsaitlik, ilişkiler; kiracı takımı 20 tablo) |
 | D-07 | Keşfet içerik modeli: hikâye türleri, koleksiyon ve durak, Markdown (sunucuda `react-markdown`, K-34), galeri, ürün bağları | QR-10 · REQ-010 | M | P0 | ✅ | — (arayüz yok) | 4 birim (güvenli Markdown) + 4 birim (hikâye şeması) + 2 entegrasyon (kısıtlar, içerik → okuma modeli; kiracı takımı 22 tablo) |
 | D-08 | Tema sözleşmesi + görünümsüz çekirdek: `ThemeModule`, yuvalar, `useActiveMenus`, `useMenuSearch`, `useMenuFilters`, `useConfigurator`, `usePicks`, `useView`, `useVenueContext`, `formatPrice`, `t()`; ön boyama betiği | QR-11, QR-13 · REQ-011, REQ-013 | M | P0 | ✅ | — (arayüz iskeleti) | 41 birim (görünüm modeli, filtre, arama, Seçtiklerim, önbellek etiketi, görünüm çerezi, ön boyama, tema uygunluğu) + 3 entegrasyon (`getVenueView`) + 2 e2e |
-| D-09 | Sade I: kabuk, hızlı menü (liste / kart / ızgara), yapışkan kategori çubuğu, arama, filtre paneli, alttan ürün paneli, alt çubuk | QR-12, QR-14 · REQ-012, REQ-014 · SCR-001, SCR-003 | M | P0 | ⏳ | — | — |
+| D-09 | Sade I: kabuk, hızlı menü (liste / kart / ızgara), yapışkan kategori çubuğu, arama, filtre paneli, alttan ürün paneli, alt çubuk | QR-12, QR-14 · REQ-012, REQ-014 · SCR-001, SCR-003 | M | P0 | ✅ | ✅ 360 / 390 / 768 / 1280 (taşma, 44 px, axe) | 8 e2e × 2 proje (`sade.spec.ts`) + Sade sayfaları taşma / a11y / görsel takımında |
 | D-10 | Sade II: Keşfet (akış / dergi), Seçtiklerim + garsona göster, RTL, koyu mod, fotoğrafsız ürün (birinci sınıf, K-23), baskı yuvaları, `/stil`, tema konformans takımı | QR-06, QR-13, QR-14 · REQ-006, REQ-013, REQ-014 · SCR-002, SCR-004, SCR-007 | M | P0 | ⏳ | — | — |
 | D-11 | Mekân kabuğu: alan adı başına `metadataBase`, canonical, `hreflang`, JSON-LD, OG görseli, favicon; kip (demo notu, `noindex`); yasal blok; `/bilgi`; 404 | QR-15 · REQ-015 · SCR-005, SCR-008 | M | P0 | ⏳ | — | — |
 | D-12 | Statik üretim + `updateTag` + günlük cron (04:00) + mekân başına `olcum:js` ve Lighthouse CI matrisi | QR-16 · REQ-016 | M | P0 | ⏳ | — | — |
@@ -153,14 +153,14 @@ Faz 1'in son dilimi (D-22) bitip Rakım yayına çıkınca durulur; teslim: yay�
 
 ## Etkin dilim planı
 
-**D-08 — Tema sözleşmesi ve görünümsüz çekirdek** (dal `feat/d08-theme-contract`)
-- Kabul kriterleri (REQ-011, REQ-013, BR-KRC-005, BR-SEC-001, BR-BGL-001, BR-TMA-001): her tema `ThemeModule` sözleşmesini karşılar (token'lar, yazı tipleri, hareket ayarı, yuvalar, `meta`); bir tema başka temanın klasöründen içe aktaramaz (ESLint). Sunucu, bir mekânın menüsünü dile göre hazırlanmış görünüm modeline çevirir (çevirisi düşen alan dilini taşır, fiyat birimiyle yazılı, eksik bilgi işaretli, görseller boyut ve alt metinle) ve `menu:{mekan}` etiketiyle önbelleğe alır; etiket mekâna özgüdür. İstemci çekirdeği: etkin menü (saat istemcide), Türkçe duyarlı arama, adres çubuğuyla eşli filtre (diyet, alerjen dışlama, acılık), ürün kurucu durumu, mekân anahtarlı ve 24 saatte temizlenen Seçtiklerim ("artık menüde yok"), görünüm çerezi ve bilinmeyen kodu yok sayan bağlam. Ön boyama betiği renk kipini ve gün dilimini ilk boyamadan önce `<html>`'e yazar (`dangerouslySetInnerHTML` olmadan). `kartela_gorunum=kesfet` çerezi `/`'i Keşfet rotasına yazar.
+**D-09 — Sade I: hızlı menü** (dal `feat/d09-sade-quick-menu`)
+- Kabul kriterleri (REQ-003, REQ-007, REQ-008, REQ-012, REQ-014, SCR-001, SCR-003): Sade mekânı açıldığında üst çubuk (mekân adı, etkin menü, dil), yapışkan ve yatay kayan bölüm çubuğu (bulunulan bölüm işaretli, 44 px hedefler), menüler (servisteki önce; saat dışındaki "HH:MM'de başlar" notuyla soluk, `hide` olanlar gizli), bölümler ve ürünler üç yerleşimde (liste / kart / ızgara; `?yerlesim=`), öne çıkan ürün tam genişlik; fotoğrafsız ürün tipografik kart (K-23); tükenen ürün bölüm sonunda ve işaretli, mevsim dışı ürün ay aralığıyla; günün menüsü bugünün kayıtları, yoksa boş durum; alt çubuk (Ara · Filtre · Seçtiklerim (n) · Bilgi, güvenli alan payı); arama ve filtre alttan panelde, filtre adres çubuğunda; ürün paneli alttan açılır (yerel `<dialog>`, Esc ve arka plan kapatır, odak içeride), ürün kurucu radyo / onay kutularıyla, pasif seçenek gerekçesiyle, canlı toplamla "Seçtiklerime ekle"; `#urun-{slug}` paneli doğrudan açar, geri tuşu kapatır; yasal not her dilde sayfa sonunda; sağdan sola dilde mantıksal yönler. 360 px'te yatay kaydırma yok, axe temiz.
 - Tablolar / migration: yok.
-- Dosyalar: `src/platform/theme/{contract,pre-paint}.ts(x)`, `src/platform/menu/{view,filters,search,picks}.ts` (+ testler), `src/platform/menu/hooks/*.ts`, `src/platform/tenant/{cache-tags,rewrites}.ts`, `src/server/menu/venue-view.ts`, `src/themes/{rakim,sade}/index.ts`, `src/platform/routes/venue-files.ts` (`THEME_META` → `theme.meta`), `eslint.config.mjs`, `src/app/tema-sade/[mekan]/[dil]/{layout,page}.tsx` (fikstür sayfası görünüm modelinden).
-- Kurallar: BR-KRC-005, BR-SEC-001, BR-BGL-001, BR-TMA-001, BR-MNU-003.
-- Testler: birim — görünüm modeli (düşme, fiyat metni, eksik bilgi, görsel), filtre kodlama ve uygulama, arama (İ / ı, aksan), Seçtiklerim (anahtar, 24 saat, kayıp ürün), önbellek etiketleri, görünüm çerezi kuralı, ön boyama betiği; entegrasyon — `getVenueView` veritabanından; e2e — fikstür sayfası menüyü veritabanından gösterir.
-- Yönetim kılavuzu: —
-- Notlar: Sade'nin gerçek arayüzü D-09 / D-10'da, Rakım'ınki D-15'te; bu dilimde fikstür sayfası yalnızca verinin geldiğini gösteren iskelet. Rakım ölçüm sayfası D-15'e kadar kalır.
+- Dosyalar: `src/platform/theme/base/*` (temel yuvalar: kabuk, bölüm çubuğu, bölüm başlığı, ürün kartı, ürün paneli, ürün kurucu, ürün bilgisi, fiyat, arama, filtre, menü notu, yasal not, boş durum, alt panel, hızlı menü kompozisyonu), `src/platform/theme/base/base.css`, `src/platform/i18n/ui.ts`, `src/themes/sade/{client.tsx,sade.css,fonts.ts,index.ts}`, `src/app/tema-sade/[mekan]/[dil]/{layout,page}.tsx`.
+- Kurallar: BR-MNU-001…003, BR-MST-001…005, BR-SCN-001…003, BR-YSL-001/002, BR-TMA-001.
+- Testler: e2e — `sade.spec.ts` (bölüm çubuğu, arama "corba", filtre adresi ve sonuç, ürün paneli açılış / Esc / `#urun-`, ürün kurucu zorunlu seçim ve toplam, Seçtiklerim sayacı, tükendi işareti, RTL), a11y ve taşma takımına Sade sayfaları; birim — sözlük bütünlüğü.
+- Görsel inceleme: 390 ve 1440 px ekran görüntüleri (liste / kart / ızgara, ürün paneli, AR) GK maddelerine göre.
+- Notlar: Seçtiklerim paneli ve "garsona göster" D-10'da (bu dilimde sayaç ve ekleme); Keşfet D-10; yazı çifti kataloğu ve mekân başına token D-39.
 
 ## Görsel inceleme
 
@@ -175,6 +175,12 @@ Faz 1'in son dilimi (D-22) bitip Rakım yayına çıkınca durulur; teslim: yay�
 | 2026-11-04 | D-01 / `rakim.localhost` 390 | — | Mekân alan adı üzerinden Faz 3 görünümüyle birebir; yönlendirme görünümü değiştirmiyor | ✅ |
 | 2026-11-04 | D-01 / `ornek.localhost/ar` 390 | RTL | `dir="rtl"`: başlık ve ürün adları sağda, fiyatlar solda; Türkçe demo notu RTL bağlamda noktayı başa kaydırıyordu → `dir="ltr"` | ✅ düzeltildi |
 | 2026-11-04 | D-01 / Sade fikstür sayfası | GK-01 | İskelet sayfa, görsel yok: yalnızca test mekânı, üretimde yok; Sade D-09'da | — kabul (fikstür) |
+| 2026-11-05 | D-09 / Sade hızlı menü 390 | GK-01, GK-11, K-23 | Defter satırı düzeni, yapışkan bölüm çubuğu, simgeli alt çubuk; fotoğrafsız öne çıkan ürün tipografik kartla (tek vurgu çizgisi). Üst çubuğun ortası telefonda kesiliyordu → yalnız ≥ 640 px | ✅ düzeltildi |
+| 2026-11-05 | D-09 / Sade hızlı menü 1440 | GK-12, GK-13 | Bölüm çubuğu sola, içerik ortaya yaslıydı (hizasız) → plan §11.4: solda 240 px yapışkan dizin, sağda 720 px içerik; alt çubuk içerik sütunuyla hizalı | ✅ düzeltildi |
+| 2026-11-05 | D-09 / veri satırı | GK-08 | Sistemin monospace yazısı (Consolas) Sade'nin diline uymuyordu → sans, tablo rakamları | ✅ düzeltildi |
+| 2026-11-05 | D-09 / AR 390 | RTL | "300 g" iki yönlü metinde "g 300" görünüyordu → her veri parçası `<bdi>` | ✅ düzeltildi |
+| 2026-11-05 | D-09 / ürün paneli | REQ-005 | Cortado'da alerjen "—" (süt seçenekten geliyor) → bilgi bölümü seçime göre (yulafta gluten, inek sütünde süt) | ✅ düzeltildi |
+| 2026-11-05 | D-09 / tükendi, saat dışı menü | WCAG 1.4.3 | `opacity-60` soldurma metin kontrastını AA altına indirdi (axe, 13 düğüm) → metin soluk renkte (6,6:1), yalnız görsel saydam | ✅ düzeltildi |
 
 ## Kalite kapısı raporu
 
@@ -207,3 +213,4 @@ Faz 1'in son dilimi (D-22) bitip Rakım yayına çıkınca durulur; teslim: yay�
 - 2026-11-04 · D-02 · Vercel'in Neon entegrasyonu varsayılan olarak önizleme dalı açmıyor ve `DATABASE_URL`'i üç ortama aynı değerle yazıyor; `vercel-build` içindeki `db:migrate` her PR önizlemesinde üretim veritabanına migration uyguluyordu (D-02'ye kadar yeni migration olmadığı için zarar yok). Çözüm (K-42): migration yalnızca üretimde, önizlemede yalnızca `PREVIEW_DB_BRANCH=true` ile. **Sisteme taşı:** 16-ortamlar-ve-yayin §3 (önizleme veritabanı ayrımı Faz 3 çıkış koşulu olsun), iskelet `vercel-build`.
 - 2026-11-04 · D-03 · Çevrilebilir alan kısıtı (`length(trim(name ->> 'tr')) > 0`) `tr` anahtarı hiç olmayan `{ "en": "…" }` değerini kabul etti: PostgreSQL'de NULL sonuç veren `check` ifadesi geçer. Entegrasyon testi yakaladı; çözüm `coalesce(…, 0) > 0`. Migration yalnız yerelde uygulanmıştı, yeniden üretildi. **Sisteme taşı:** 04-veri §6 (check kısıtında NULL üç değerli mantık: her ifade `coalesce` ya da `is not null` ile kapatılır; kısıt testi "alan hiç yok" durumunu da dener).
 - 2026-11-04 · D-06 · D-03'teki NULL tuzağı `item_availability` kısıtında tekrarlandı: `(daily_limit >= 1 and …)` dalı `daily_limit` NULL iken NULL döndü ve "limitsiz ama kalanı 3" satırı geçerdi. Bu kez migration SQL'i okunurken yakalandı (yalnız yerelde uygulanmıştı). Kural: her `check`'te nullable kolonla karşılaştırma `is not null` ya da `coalesce` ile kapatılır; kısıt testi her nullable kolon için "yalnız biri dolu" durumunu dener (`remaining: 3` limitsiz). **Sisteme taşı:** 04-veri §6 (D-03 dersine örnek olarak).
+- 2026-11-05 · D-09 · "Soluk" durumları (tükendi, saat dışı menü) `opacity` ile yapmak metnin kontrastını düşürür; axe bunu "color-contrast" olarak yakaladı (13 düğüm). Çözüm: metin soluk token renginde (≥ 4,5:1), saydamlık yalnız görsellerde. Ayrıca statik sayfada istemci bileşeni ön oluşturma sırasında `new Date()` çağırırsa Next.js 16 derlemeyi durdurur; tarayıcı durumu (saat, depolama, adres) `useSyncExternalStore` ile okunur, sunucu anlık görüntüsü null. **Sisteme taşı:** 08-erisilebilirlik (pasif / soluk durum kuralı), 06-arayuz, 12-performans (Cache Components + istemci saati).
