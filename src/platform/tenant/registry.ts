@@ -30,9 +30,34 @@ export function venuesForTheme(theme: ThemeId): VenueRecord[] {
 
 /** Static params of a theme tree's [mekan]/[dil] segments. */
 export function themeLocaleParams(theme: ThemeId): { mekan: string; dil: Locale }[] {
-  return venuesForTheme(theme).flatMap((venue) =>
-    venue.locales.map((dil) => ({ mekan: venue.slug, dil })),
-  );
+  return localeParamsOf(venues, theme);
+}
+
+/**
+ * Placeholder venue of a theme tree that has no venue in this build (e.g. Sade in production,
+ * where only the fixture uses it). With Cache Components every generateStaticParams must return
+ * at least one entry; this one is not in the registry, so its page and files answer 404.
+ * The host rewrites never route to it.
+ */
+export const EMPTY_THEME_SLUG = "-";
+
+/** Pure form of themeLocaleParams, testable with any venue list (registry.test.ts). */
+export function localeParamsOf(
+  list: readonly VenueRecord[],
+  theme: ThemeId,
+): { mekan: string; dil: Locale }[] {
+  const params = list
+    .filter((venue) => venue.theme === theme)
+    .flatMap((venue) => venue.locales.map((dil) => ({ mekan: venue.slug, dil })));
+  return params.length > 0 ? params : [{ mekan: EMPTY_THEME_SLUG, dil: "tr" }];
+}
+
+/** Static params of a theme tree's [mekan] segment (file routes), never empty. */
+export function venueParamsOf(list: readonly VenueRecord[], theme: ThemeId): { mekan: string }[] {
+  const params = list
+    .filter((venue) => venue.theme === theme)
+    .map((venue) => ({ mekan: venue.slug }));
+  return params.length > 0 ? params : [{ mekan: EMPTY_THEME_SLUG }];
 }
 
 /** True when the slug belongs to this theme and serves this locale (else the page 404s). */

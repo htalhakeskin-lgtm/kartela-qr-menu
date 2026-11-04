@@ -1,6 +1,12 @@
 import "server-only";
 
-import { getVenue, localeHomePath, venueOrigin, venuesForTheme } from "@/platform/tenant/registry";
+import {
+  getVenue,
+  localeHomePath,
+  venueOrigin,
+  venueParamsOf,
+  venues,
+} from "@/platform/tenant/registry";
 import type { ThemeId, VenueRecord } from "@/platform/tenant/registry-schema";
 
 /**
@@ -20,7 +26,7 @@ const THEME_META: Record<ThemeId, { themeColor: string; backgroundColor: string 
 
 /** Static params of a theme tree's [mekan] segment (file routes). */
 export function themeVenueParams(theme: ThemeId): { mekan: string }[] {
-  return venuesForTheme(theme).map((venue) => ({ mekan: venue.slug }));
+  return venueParamsOf(venues, theme);
 }
 
 function venueOf(theme: ThemeId, slug: string): VenueRecord | undefined {

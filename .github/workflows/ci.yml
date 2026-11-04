@@ -42,6 +42,11 @@ jobs:
       - run: pnpm lint
       - run: pnpm typecheck
       - run: pnpm format:check
+      # The production build leaves test fixtures out of the venue map (VERCEL_ENV=production);
+      # a theme used only by fixtures must still build (D-01: Sade broke the first deploy).
+      - name: Production-like build (fixtures excluded)
+        run: pnpm build
+        env: { VERCEL_ENV: production }
 
   test:
     runs-on: ubuntu-latest
