@@ -17,6 +17,7 @@ import type {
 } from "@/platform/menu/vocabulary";
 
 import type { TenantTx } from "./scope";
+import { sequential } from "./sequential";
 import {
   dailyMenuEntries,
   itemAvailability,
@@ -55,7 +56,7 @@ export async function loadVenueMenu(
 ): Promise<VenueMenu> {
   const statuses: ItemStatus[] = options.includeDrafts ? ["published", "draft"] : ["published"];
 
-  const [menuRows, sectionRows, placementRows, itemRows, priceRows] = await Promise.all([
+  const [menuRows, sectionRows, placementRows, itemRows, priceRows] = await sequential([
     tx
       .select()
       .from(menus)
@@ -86,7 +87,7 @@ export async function loadVenueMenu(
       .orderBy(asc(itemPrices.sort), asc(itemPrices.id)),
   ]);
 
-  const [groupRows, optionRows, linkRows, ruleRows] = await Promise.all([
+  const [groupRows, optionRows, linkRows, ruleRows] = await sequential([
     tx.select().from(optionGroups).where(eq(optionGroups.venueId, venueId)),
     tx
       .select()
@@ -101,7 +102,7 @@ export async function loadVenueMenu(
     tx.select().from(optionRules).where(eq(optionRules.venueId, venueId)),
   ]);
 
-  const [availabilityRows, dailyRows, relationRows, componentRows, courseRows] = await Promise.all([
+  const [availabilityRows, dailyRows, relationRows, componentRows, courseRows] = await sequential([
     tx.select().from(itemAvailability).where(eq(itemAvailability.venueId, venueId)),
     tx
       .select({

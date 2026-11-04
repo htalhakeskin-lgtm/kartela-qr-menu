@@ -1,6 +1,8 @@
 import type { ComponentType, ReactNode } from "react";
 
+import type { AvailabilityStatus } from "../menu/availability";
 import type { MenuFilters } from "../menu/filters";
+import type { useConfigurator } from "../menu/hooks";
 import type { MenuStatus } from "../menu/schedule";
 import type {
   ItemView,
@@ -61,20 +63,56 @@ export type QuickLayout = "liste" | "kart" | "izgara";
 export type ExploreLayout = "akis" | "dergi";
 export type ViewMode = "hizli" | "kesfet";
 
-export type ShellProps = { venue: VenueView; view: ViewMode; children: ReactNode };
-export type CategoryBarProps = { sections: Pick<SectionView, "id" | "name">[] };
-export type SectionHeaderProps = { section: SectionView };
-export type SearchFieldProps = { value: string; onChange: (value: string) => void };
-export type FilterPanelProps = { filters: MenuFilters; onChange: (filters: MenuFilters) => void };
-export type ItemCardProps = {
-  item: ItemView;
-  variant: "satir" | "kart" | "one-cikan";
+export type ShellProps = {
+  venue: VenueView;
+  view: ViewMode;
+  /** The top bar's middle: the menu being served now (client state of the page). */
+  headerCenter?: ReactNode;
+  children: ReactNode;
+};
+export type CategoryBarProps = { sections: Pick<SectionView, "id" | "name">[]; venue: VenueView };
+export type SectionHeaderProps = { section: SectionView; venue: VenueView; level: 2 | 3 };
+export type SearchFieldProps = {
+  value: string;
+  onChange: (value: string) => void;
   venue: VenueView;
 };
-export type ItemSheetProps = { item: ItemView; venue: VenueView; onClose: () => void };
+export type FilterPanelProps = {
+  filters: MenuFilters;
+  onChange: (filters: MenuFilters) => void;
+  venue: VenueView;
+};
+export type ItemCardVariant = "satir" | "kart" | "izgara" | "one-cikan";
+export type ItemCardProps = {
+  item: ItemView;
+  variant: ItemCardVariant;
+  venue: VenueView;
+  /** Availability now (null before hydration: shown as available). */
+  status: AvailabilityStatus | null;
+  /** Opens the item sheet (REQ-003: a tap on a row opens the bottom panel). */
+  onOpen: () => void;
+};
+export type ItemSheetProps = {
+  item: ItemView;
+  venue: VenueView;
+  status: AvailabilityStatus | null;
+  onClose: () => void;
+  /** Opens another product (a pairing, a set component, a tasting course). */
+  onOpenItem: (itemId: string) => void;
+};
 export type PriceProps = { price: PriceView };
-export type ItemFactsProps = { item: ItemView; venue: VenueView };
-export type OptionPickerProps = { item: ItemView; venue: VenueView };
+export type ItemFactsProps = {
+  item: ItemView;
+  venue: VenueView;
+  /** The configured product's allergens / diets (options add and remove), when known. */
+  allergens?: ItemView["allergens"];
+  diets?: ItemView["diets"];
+};
+export type OptionPickerProps = {
+  item: ItemView;
+  venue: VenueView;
+  configurator: ReturnType<typeof useConfigurator>;
+};
 export type PicksProps = { venue: VenueView };
 export type StoryProps = { story: StoryView; venue: VenueView };
 export type MenuNoticeProps = { menu: MenuView; status: MenuStatus; venue: VenueView };

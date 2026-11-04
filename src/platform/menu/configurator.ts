@@ -43,8 +43,11 @@ export type ConfigRule = {
   message: Translated | null;
 };
 
-export type Configurable = {
-  prices: MenuPrice[];
+/** What the configurator needs of a price line (the read model's or the view model's). */
+export type ConfigPrice = Pick<MenuPrice, "id" | "amountMinor" | "isDefault">;
+
+export type Configurable<P extends ConfigPrice = ConfigPrice> = {
+  prices: P[];
   optionGroups: ConfigGroup[];
   optionRules: ConfigRule[];
   allergens: Allergen[];
@@ -72,8 +75,8 @@ export type ConfigProblem =
   /** A chosen option ran out after it was chosen (sold out in the panel). */
   | { code: "unavailable"; optionId: string };
 
-export type Evaluation = {
-  price: MenuPrice;
+export type Evaluation<P extends ConfigPrice = ConfigPrice> = {
+  price: P;
   groups: { group: ConfigGroup; options: OptionState[] }[];
   problems: ConfigProblem[];
   /** Price line + option deltas, never below zero (BR-SCN-002). */
@@ -86,7 +89,7 @@ export type Evaluation = {
   complete: boolean;
 };
 
-function priceOf(item: Configurable, priceId: string): MenuPrice {
+function priceOf<P extends ConfigPrice>(item: Configurable<P>, priceId: string): P {
   const price =
     item.prices.find((line) => line.id === priceId) ??
     item.prices.find((line) => line.isDefault) ??
@@ -121,7 +124,10 @@ function exclusions(
   return pairs;
 }
 
-export function evaluate(item: Configurable, selection: Selection): Evaluation {
+export function evaluate<P extends ConfigPrice>(
+  item: Configurable<P>,
+  selection: Selection,
+): Evaluation<P> {
   const price = priceOf(item, selection.priceId);
   const active = item.optionGroups.filter((group) => appliesTo(group, price.id));
   const activeIds = new Set(active.flatMap((group) => group.options.map((option) => option.id)));

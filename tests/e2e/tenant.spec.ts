@@ -18,8 +18,8 @@ test.describe("tenant routing", () => {
     await expect(page.locator("html")).toHaveAttribute("lang", "tr");
 
     await page.goto(venueUrl("ornek"));
-    await expect(page.getByRole("heading", { level: 1 })).toHaveText("Menü");
-    await expect(page.getByText("Örnek Mekân")).toBeVisible();
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText("Örnek Mekân · Menü");
+    await expect(page.getByRole("link", { name: "Örnek Mekân" })).toBeVisible();
   });
 
   test("D-08: the fixture page shows its menu from the database, in the page language", async ({
@@ -27,7 +27,7 @@ test.describe("tenant routing", () => {
   }) => {
     await page.goto(venueUrl("ornek"));
     await expect(page.getByRole("heading", { level: 2, name: "Günün yemekleri" })).toBeVisible();
-    const soup = page.getByRole("listitem").filter({ hasText: "Mercimek çorbası" });
+    const soup = page.getByRole("listitem").filter({ hasText: "Mercimek çorbası" }).first();
     await expect(soup).toContainText(/120\s₺/);
     await page.goto(venueUrl("ornek", "/ar"));
     await expect(page.getByRole("heading", { level: 2, name: "أطباق اليوم" })).toBeVisible();
@@ -47,7 +47,7 @@ test.describe("tenant routing", () => {
     await page.goto(venueUrl("ornek", "/ar"));
     await expect(page.locator("html")).toHaveAttribute("dir", "rtl");
     await expect(page.locator("html")).toHaveAttribute("lang", "ar");
-    await expect(page.getByRole("heading", { level: 1 })).toHaveText("القائمة");
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText("Örnek Mekân · القائمة");
   });
 
   test("a locale the venue does not serve answers 404", async ({ request }) => {
@@ -78,7 +78,7 @@ test.describe("tenant routing", () => {
   test("?mekan= keeps a venue on the preview host until ?mekan=platform", async ({ page }) => {
     await page.goto("/?mekan=ornek");
     await expect(page).toHaveURL(/\/$/); // the parameter is gone after the redirect
-    await expect(page.getByText("Örnek Mekân")).toBeVisible();
+    await expect(page.getByRole("link", { name: "Örnek Mekân" })).toBeVisible();
 
     await page.goto("/ar"); // later requests keep the venue through the cookie
     await expect(page.locator("html")).toHaveAttribute("dir", "rtl");

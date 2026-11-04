@@ -1,0 +1,66 @@
+/*
+ * Base slot styles shared by every theme (ADR-0003): imported by each theme's CSS after its tokens.
+ * Motion only with transform / opacity (KURALLAR D) and none under prefers-reduced-motion.
+ */
+@layer components {
+  .kt-sheet {
+    position: fixed;
+    inset-inline: 0;
+    inset-block: auto 0;
+    margin: 0 auto;
+    width: 100%;
+    max-width: 40rem;
+    max-height: 92dvh;
+    padding: 0;
+    border: 0;
+    border-start-start-radius: 16px;
+    border-start-end-radius: 16px;
+    background: var(--background);
+    color: var(--foreground);
+    box-shadow: 0 -8px 24px rgb(0 0 0 / 0.12);
+    overflow: hidden;
+  }
+  .kt-sheet::backdrop {
+    background: rgb(0 0 0 / 0.4);
+  }
+  .kt-sheet[open] {
+    animation: kt-sheet-rise 220ms cubic-bezier(0.2, 0.7, 0.2, 1);
+  }
+  .kt-sheet[open]::backdrop {
+    animation: kt-fade 220ms ease-out;
+  }
+  .kt-bottom-bar {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  .kt-scroll-x {
+    scrollbar-width: none;
+  }
+  .kt-scroll-x::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+@keyframes kt-sheet-rise {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+@keyframes kt-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .kt-sheet[open],
+  .kt-sheet[open]::backdrop {
+    animation: none;
+  }
+}

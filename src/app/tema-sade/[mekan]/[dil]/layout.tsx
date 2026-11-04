@@ -5,11 +5,12 @@ import type { ReactNode } from "react";
 
 import { isRtl, themeLocaleParams } from "@/platform/tenant/registry";
 import { PrePaint } from "@/platform/theme/pre-paint";
+import { sadeFontClassName } from "@/themes/sade/fonts";
 
 /**
  * Root layout of the Sade theme tree (ADR-0003), shared by every venue on the ready-made theme.
- * D-01 skeleton: registry-driven static params and dir="rtl" for Arabic; D-09 / D-10 build the
- * theme, D-11 the venue metadata. No next/font yet: a venue's font pairing loads only here (D-09).
+ * Registry-driven static params, dir="rtl" for Arabic, Sade's type and the pre-paint script; D-11
+ * adds the venue metadata. A font loaded here reaches only Sade venues (ADR-0003, K-35).
  */
 export function generateStaticParams() {
   return themeLocaleParams("sade");
@@ -30,7 +31,7 @@ export default async function SadeRootLayout({
 }) {
   const { dil } = await params;
   return (
-    <html lang={dil} dir={isRtl(dil) ? "rtl" : "ltr"}>
+    <html lang={dil} dir={isRtl(dil) ? "rtl" : "ltr"} className={sadeFontClassName}>
       <head>
         <PrePaint />
       </head>

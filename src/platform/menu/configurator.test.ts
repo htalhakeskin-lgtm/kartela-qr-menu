@@ -9,6 +9,7 @@ import {
   initialSelection,
   toggle,
 } from "./configurator";
+import type { MenuPrice } from "./types";
 
 const option = (id: string, extra: Partial<ConfigOption> = {}): ConfigOption => ({
   id,
@@ -39,7 +40,7 @@ const group = (
 });
 
 /** A latte: two sizes, milk (required), syrups (max 2), toppings, temperature, a large-only extra. */
-const latte: Configurable = {
+const latte: Configurable<MenuPrice> = {
   prices: [
     { id: "kucuk", unit: "size", amountMinor: 24000, label: { tr: "8 oz" }, isDefault: true },
     { id: "buyuk", unit: "size", amountMinor: 29000, label: { tr: "12 oz" }, isDefault: false },
@@ -110,7 +111,10 @@ describe("REQ-007: the configurator", () => {
     selection = toggle(latte, selection, "sutsuz");
     expect(evaluate(latte, selection).totalMinor).toBe(28000);
 
-    const cheap: Configurable = { ...latte, prices: [{ ...latte.prices[0]!, amountMinor: 500 }] };
+    const cheap: Configurable<MenuPrice> = {
+      ...latte,
+      prices: [{ ...latte.prices[0]!, amountMinor: 500 }],
+    };
     expect(evaluate(cheap, { priceId: "kucuk", optionIds: ["sutsuz", "sicak"] }).totalMinor).toBe(
       0,
     );
