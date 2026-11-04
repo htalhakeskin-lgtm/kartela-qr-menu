@@ -3,13 +3,17 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { newId } from "@/server/db/columns";
 import { withVenue } from "@/server/db/tenant";
 import {
+  itemAvailability,
   itemOptionGroups,
   itemPrices,
+  itemRelations,
   items,
   menus,
   optionGroups,
   optionRules,
   options,
+  setComponents,
+  tastingCourses,
 } from "@/server/db/tenant/tables";
 
 import {
@@ -188,5 +192,52 @@ describe("menu engine constraints", () => {
       CHECK_VIOLATION,
     );
     expect(await rule({ targetOptionId: base.otherOptionId })).toBe("no error");
+  });
+
+  it("BR-MST-001/002: availability rows are consistent", async () => {
+    const row = (extra: Partial<typeof itemAvailability.$inferInsert>) =>
+      errorCode(
+        withVenue(venue.id, (tx) =>
+          tx.insert(itemAvailability).values({ venueId: venue.id, itemId: base.itemId, ...extra }),
+        ),
+      );
+    expect(await row({ remaining: 3 })).toBe(CHECK_VIOLATION); // a count without a limit
+    expect(await row({ dailyLimit: 2, remaining: 3 })).toBe(CHECK_VIOLATION);
+    expect(await row({ dailyLimit: 0 })).toBe(CHECK_VIOLATION);
+    expect(await row({ soldOutIndefinitely: true, soldOutUntil: new Date() })).toBe(
+      CHECK_VIOLATION,
+    );
+    expect(await row({ outsideSeason: "grey" })).toBe(CHECK_VIOLATION);
+    expect(await row({ releaseTimes: ["25:00"] })).not.toBe("no error"); // not a time of day
+    expect(await row({ dailyLimit: 12, remaining: 0, remainingOn: "2026-11-06" })).toBe("no error");
+    expect(await row({ soldOutIndefinitely: true })).toBe(UNIQUE_VIOLATION); // one row per product
+  });
+
+  it("BR-ILS-001: no relation to itself, no duplicate pair; sets and courses stay sensible", async () => {
+    const insert = (work: Parameters<typeof withVenue>[1]) => errorCode(withVenue(venue.id, work));
+    const relation = { venueId: venue.id, fromItemId: base.itemId, kind: "pairing" };
+    const relate = (toItemId: string) =>
+      insert((tx) => tx.insert(itemRelations).values({ ...relation, toItemId }));
+    expect(await relate(base.itemId)).toBe(CHECK_VIOLATION);
+    expect(await relate(base.otherItemId)).toBe("no error");
+    expect(await relate(base.otherItemId)).toBe(UNIQUE_VIOLATION);
+    const component = insert((tx) =>
+      tx.insert(setComponents).values({
+        venueId: venue.id,
+        setItemId: base.itemId,
+        componentItemId: base.otherItemId,
+        qty: 0,
+      }),
+    );
+    expect(await component).toBe(CHECK_VIOLATION);
+    const course = insert((tx) =>
+      tx.insert(tastingCourses).values({
+        venueId: venue.id,
+        tastingItemId: base.itemId,
+        courseNo: 0,
+        title: { tr: "Ara" },
+      }),
+    );
+    expect(await course).toBe(CHECK_VIOLATION);
   });
 });

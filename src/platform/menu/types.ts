@@ -1,4 +1,5 @@
 import type { Translated } from "../i18n/fallback";
+import type { ItemAvailability } from "./availability";
 import type { ConfigGroup, ConfigRule } from "./configurator";
 import type { PriceLine } from "./price";
 import type { MenuSchedule, OutsideWindow } from "./schedule";
@@ -49,6 +50,20 @@ export type MenuItem = {
   optionGroups: ConfigGroup[];
   /** Compatibility rules that concern this product's options. */
   optionRules: ConfigRule[];
+  /** Null = always available (D-06, BR-MST-001…004). */
+  availability: ItemAvailability | null;
+  /** "Yanına" pairings and "you may also like" suggestions, by product id (BR-ILS-001). */
+  pairings: { itemId: string; note: Translated | null }[];
+  suggestions: string[];
+  /** Contents of a set product. */
+  components: { itemId: string; qty: number }[];
+  /** Ordered courses of a tasting menu; a course may point at a product. */
+  courses: {
+    no: number;
+    title: Translated;
+    itemId: string | null;
+    description: Translated | null;
+  }[];
 };
 
 export type MenuPlacement = { item: MenuItem; featured: boolean };
@@ -74,6 +89,8 @@ export type Menu = {
   access: "public" | "password";
   contexts: string[];
   sections: MenuSection[];
+  /** Menu of the day entries by business date (BR-MST-005); empty for other menus. */
+  daily: { onDate: string; itemId: string }[];
 };
 
 export type VenueMenu = {

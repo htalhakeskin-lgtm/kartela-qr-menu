@@ -72,6 +72,8 @@ export type MenuBase = {
   menuId: string;
   sectionId: string;
   itemId: string;
+  /** A second product, for relations (an item cannot relate to itself). */
+  otherItemId: string;
   groupId: string;
   optionId: string;
   otherOptionId: string;
@@ -90,9 +92,12 @@ export async function createMenuBase(tx: TenantTx, venueId: string): Promise<Men
     .insert(tables.menuSections)
     .values({ venueId, menuId: menu!.id, name: { tr: "Temel bölüm" } })
     .returning({ id: tables.menuSections.id });
-  const [item] = await tx
+  const [item, otherItem] = await tx
     .insert(tables.items)
-    .values({ venueId, slug: `item-${suffix}`, name: { tr: "Temel ürün" } })
+    .values([
+      { venueId, slug: `item-${suffix}`, name: { tr: "Temel ürün" } },
+      { venueId, slug: `item2-${suffix}`, name: { tr: "İkinci ürün" } },
+    ])
     .returning({ id: tables.items.id });
   const [group] = await tx
     .insert(tables.optionGroups)
@@ -115,6 +120,7 @@ export async function createMenuBase(tx: TenantTx, venueId: string): Promise<Men
     menuId: menu!.id,
     sectionId: section!.id,
     itemId: item!.id,
+    otherItemId: otherItem!.id,
     groupId: group!.id,
     optionId: option!.id,
     otherOptionId: other!.id,
@@ -201,6 +207,39 @@ export const tenantFixtures: Record<string, Fixture> = {
     effect: "excludes",
     targetOptionId: base.optionId,
     message: { tr: "Fikstür kuralı" },
+  })),
+  item_availability: fixture(tables.itemAvailability, (venueId, { base }) => ({
+    venueId,
+    itemId: base.itemId,
+    dailyLimit: 12,
+    remaining: 4,
+    remainingOn: "2026-11-06",
+    releaseTimes: ["07:00", "11:00"],
+  })),
+  daily_menu_entries: fixture(tables.dailyMenuEntries, (venueId, { base }) => ({
+    venueId,
+    menuId: base.menuId,
+    onDate: "2026-11-09",
+    itemId: base.itemId,
+  })),
+  item_relations: fixture(tables.itemRelations, (venueId, { base }) => ({
+    venueId,
+    fromItemId: base.itemId,
+    toItemId: base.otherItemId,
+    kind: "pairing",
+  })),
+  set_components: fixture(tables.setComponents, (venueId, { base }) => ({
+    venueId,
+    setItemId: base.itemId,
+    componentItemId: base.otherItemId,
+    qty: 2,
+  })),
+  tasting_courses: fixture(tables.tastingCourses, (venueId, { base }) => ({
+    venueId,
+    tastingItemId: base.itemId,
+    courseNo: 1,
+    title: { tr: "Çorba" },
+    itemId: base.otherItemId,
   })),
   media_assets: fixture(tables.mediaAssets, (venueId) => ({
     venueId,

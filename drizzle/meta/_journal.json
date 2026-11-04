@@ -71,6 +71,20 @@
       "when": 1793810948281,
       "tag": "0009_option_engine_access",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1793822820429,
+      "tag": "0010_availability_relations",
+      "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1793822821711,
+      "tag": "0011_availability_relations_access",
+      "breakpoints": true
     }
   ]
 }

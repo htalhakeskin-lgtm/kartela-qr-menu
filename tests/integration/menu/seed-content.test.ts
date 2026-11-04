@@ -2,6 +2,7 @@ import { eq } from "drizzle-orm";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 import { localize } from "@/platform/i18n/fallback";
+import { availabilityStatus, dailyEntries } from "@/platform/menu/availability";
 import { evaluate, initialSelection, toggle } from "@/platform/menu/configurator";
 import { type MenuContent, parseMenuContent } from "@/platform/menu/content";
 import type { VenueMenu } from "@/platform/menu/types";
@@ -16,6 +17,11 @@ import { createVenue, removeVenues, type TestVenue } from "../tenant/fixtures";
  * D-04: the fixture venue's content file goes into a fresh test venue and comes back through the
  * read model unchanged (order, nesting, prices, image, drafts).
  */
+const TZ = "Europe/Istanbul";
+const at = (local: string) => new Date(`${local}:00+03:00`);
+/** Seed time: Friday 6 November 2026, 15:00 in Istanbul. */
+const SEEDED_AT = at("2026-11-06T15:00");
+
 describe("seedVenueContent: content file → database → read model", () => {
   let venue: TestVenue;
   let content: MenuContent;
@@ -24,12 +30,12 @@ describe("seedVenueContent: content file → database → read model", () => {
   beforeAll(async () => {
     venue = await createVenue("icerik");
     content = parseMenuContent("ornek", venueContents.ornek);
-    expect(await seedVenueContent(venue.id, content)).toEqual({
+    expect(await seedVenueContent(venue.id, content, { now: SEEDED_AT })).toEqual({
       written: true,
       images: 1,
       optionGroups: 3,
-      items: 12,
-      menus: 2,
+      items: 15,
+      menus: 3,
     });
     menu = await withVenue(venue.id, (tx) => loadVenueMenu(tx, venue.id));
   });
@@ -39,12 +45,13 @@ describe("seedVenueContent: content file → database → read model", () => {
   });
 
   it("menus, sections and sub-sections keep the file's order", () => {
-    expect(menu.menus.map((m) => m.slug)).toEqual(["gunun-yemekleri", "kahvalti"]);
+    expect(menu.menus.map((m) => m.slug)).toEqual(["gunun-yemekleri", "gunun-menusu", "kahvalti"]);
     const dishes = menu.menus[0]!;
     expect(dishes.sections.map((s) => s.name.tr)).toEqual([
       "Çorbalar",
       "Sulu yemekler",
       "Tatlılar",
+      "Tabaklar",
     ]);
     expect(dishes.sections[2]!.children.map((s) => s.name.tr)).toEqual(["Sütlü tatlılar"]);
     expect(dishes.sections[1]!.items.map((p) => [p.item.slug, p.featured])).toEqual([
@@ -52,7 +59,7 @@ describe("seedVenueContent: content file → database → read model", () => {
       ["etli-nohut", false],
       ["pirinc-pilavi", false],
     ]);
-    expect(menu.menus[1]!.schedule).toEqual({ windows: [{ start: "07:00", end: "11:00" }] });
+    expect(menu.menus[2]!.schedule).toEqual({ windows: [{ start: "07:00", end: "11:00" }] });
   });
 
   it("prices arrive in kuruş with their units; the first line is the default", () => {
@@ -123,6 +130,77 @@ describe("seedVenueContent: content file → database → read model", () => {
     expect(evaluate(coffee, chosen)).toMatchObject({ complete: true, totalMinor: 9000 });
   });
 
+  it("BR-MST-005: the menu of the day follows the weekday pattern; Sunday is empty", () => {
+    const daily = menu.menus.find((m) => m.slug === "gunun-menusu")!;
+    const slugOf = (id: string) => menu.items.find((item) => item.id === id)?.slug;
+    const dates = [...new Set(daily.daily.map((entry) => entry.onDate))];
+    expect(dates[0]).toBe("2026-11-06");
+    expect(dates.at(-1)).toBe("2026-11-19");
+    expect(dates).not.toContain("2026-11-08"); // Sunday: closed
+    expect(daily.daily).toHaveLength(46); // 14 days, two Sundays empty
+    expect(dailyEntries(daily.daily, "2026-11-07").map((e) => slugOf(e.itemId))).toEqual([
+      "ezogelin-corbasi",
+      "menemen",
+      "irmik-helvasi",
+    ]);
+    expect(dailyEntries(daily.daily, "2026-11-08")).toEqual([]);
+  });
+
+  it("BR-MST-001…004: availability arrives as the page needs it", () => {
+    const status = (slug: string, local: string) =>
+      availabilityStatus(
+        menu.items.find((item) => item.slug === slug)!.availability,
+        at(local),
+        TZ,
+      );
+    expect(status("etli-nohut", "2026-12-01T12:00").soldOut).toEqual({
+      reason: "marked",
+      until: null,
+    });
+    expect(status("irmik-helvasi", "2026-11-06T18:00").soldOut).toEqual({ reason: "count" });
+    expect(status("irmik-helvasi", "2026-11-07T04:00")).toMatchObject({
+      soldOut: null,
+      remaining: 10,
+    });
+    expect(status("sutlac", "2026-11-06T12:00").nextRelease).toEqual({ time: "16:00", inDays: 0 });
+    expect(status("salep", "2027-07-01T12:00").season).toMatchObject({
+      inSeason: false,
+      display: "dim",
+    });
+    expect(status("menemen", "2026-11-06T12:00").soldOut).toBeNull();
+  });
+
+  it("BR-ILS-001: pairings, suggestions, a set and a tasting menu", () => {
+    const bySlug = (slug: string) => menu.items.find((item) => item.slug === slug)!;
+    const idOf = (slug: string) => bySlug(slug).id;
+    expect(bySlug("zeytinyagli-kuru-fasulye").pairings).toEqual([
+      {
+        itemId: idOf("pirinc-pilavi"),
+        note: { tr: "Klasik ikili", en: "The classic pair", ar: "الثنائي الكلاسيكي" },
+      },
+    ]);
+    expect(bySlug("mercimek-corbasi").suggestions).toEqual([idOf("ezogelin-corbasi")]);
+    expect(bySlug("esnaf-tabagi").components).toEqual([
+      { itemId: idOf("zeytinyagli-kuru-fasulye"), qty: 1 },
+      { itemId: idOf("pirinc-pilavi"), qty: 1 },
+      { itemId: idOf("cay"), qty: 1 },
+    ]);
+    expect(bySlug("lokanta-tadimi").courses.map((c) => [c.no, c.title.tr, c.itemId])).toEqual([
+      [1, "Çorba", idOf("mercimek-corbasi")],
+      [2, "Sulu yemek", idOf("zeytinyagli-kuru-fasulye")],
+      [3, "Tatlı", idOf("sutlac")],
+    ]);
+  });
+
+  it("the read model can leave out past daily entries", async () => {
+    const later = await withVenue(venue.id, (tx) =>
+      loadVenueMenu(tx, venue.id, { dailyFrom: "2026-11-16" }),
+    );
+    const daily = later.menus.find((m) => m.slug === "gunun-menusu")!.daily;
+    expect(daily.every((entry) => entry.onDate >= "2026-11-16")).toBe(true);
+    expect(daily.length).toBeGreaterThan(0);
+  });
+
   it("BR-MNU-003: the Arabic page shows the missing description in Turkish, marked", () => {
     const ezogelin = menu.items.find((item) => item.slug === "ezogelin-corbasi")!;
     expect(localize(ezogelin.description!, "ar")).toMatchObject({ lang: "tr", fallback: true });
@@ -136,7 +214,7 @@ describe("seedVenueContent: content file → database → read model", () => {
     const before = menu.items.map((item) => item.id);
     expect(await seedVenueContent(venue.id, content, { replace: true })).toMatchObject({
       written: true,
-      items: 12,
+      items: 15,
     });
     const after = await withVenue(venue.id, (tx) => loadVenueMenu(tx, venue.id));
     expect(after.items.map((item) => item.slug)).toEqual(menu.items.map((item) => item.slug));
