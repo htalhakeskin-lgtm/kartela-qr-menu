@@ -13,12 +13,32 @@ export const publicRoutes = [
   "/bu-sayfa-yok", // global 404 (SCR-051)
 ] as const;
 
+/** Port of the server under test (local and CI: 3020, plan K-30). */
+// eslint-disable-next-line no-restricted-properties -- test harness setting, same variable as playwright.config.ts
+const port = new URL(process.env.E2E_BASE_URL ?? "http://localhost:3020").port || "3020";
+
 /**
- * Venue pages, reached through their theme tree. Faz 3: the Rakım measurement page, opened by its
- * internal path. From D-01 the proxy serves them on venue hosts (rakim.localhost:3020); D-22 turns
- * this list into the venue matrix (every venue × quick menu, Keşfet, item, info).
+ * A venue page on its own host (ADR-0002 v2): {slug}.localhost resolves to the local server in
+ * Chromium, and the host rewrites open the venue's theme tree. Use with page.goto.
  */
-export const venueRoutes = ["/tema-rakim/rakim/tr"] as const;
+export function venueUrl(slug: string, path = "/"): string {
+  return `http://${slug}.localhost:${port}${path}`;
+}
+
+/** The same server reached with a venue Host header (APIRequestContext: Node does not resolve *.localhost everywhere). */
+export function venueHost(slug: string): string {
+  return `${slug}.localhost:${port}`;
+}
+
+/**
+ * Venue pages on their own hosts. D-22 turns this list into the venue matrix (every venue × quick
+ * menu, Keşfet, item, info).
+ */
+export const venueRoutes = [
+  venueUrl("rakim"),
+  venueUrl("ornek"),
+  venueUrl("ornek", "/ar"),
+] as const;
 
 /** The 404 check route: excluded from SEO and image checks. */
 export const notFoundRoute = "/bu-sayfa-yok";

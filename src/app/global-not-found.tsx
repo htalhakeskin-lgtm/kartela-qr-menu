@@ -1,9 +1,13 @@
 import type { Metadata } from "next";
 
+import { publicEnv } from "@/lib/public-env";
+
 /**
  * 404 for URLs that match no route (SCR-051, plan K-32): the app has several root layouts
  * (platform + one per theme, ADR-0003), so there is no single layout to compose it from.
- * Unknown hosts are answered by the proxy (D-01); a venue's own 404 lives in its theme tree (D-11).
+ * Also the destination of unknown hosts and of direct /tema-* requests (host rewrites, ADR-0002 v2);
+ * its link therefore points to the platform's absolute address. A venue's own 404 lives in its theme
+ * tree (D-11).
  *
  * Self-contained on purpose (plan K-35): this module is part of EVERY route's entry, so any
  * stylesheet or next/font it imports is preloaded on every page of every theme. Measured in
@@ -60,9 +64,8 @@ export default function GlobalNotFound() {
             Adres yanlış yazılmış ya da sayfa kaldırılmış olabilir. Bir mekânın menüsünü arıyorsanız
             masadaki QR kodu yeniden okutun.
           </p>
-          {/* eslint-disable-next-line @next/next/no-html-link-for-pages -- rendered outside every layout */}
           <a
-            href="/"
+            href={publicEnv.NEXT_PUBLIC_PLATFORM_URL}
             style={{
               display: "inline-flex",
               alignItems: "center",

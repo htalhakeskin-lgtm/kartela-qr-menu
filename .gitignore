@@ -59,3 +59,6 @@ docs/tasarim/temas-sayfasi.*
 
 # Review screenshots (Faz 3–6). Portfolio shots are committed in Faz 7.
 /portfolyo/screenshot/
+
+# Personal Claude Code permissions (local only)
+.claude/settings.local.json

@@ -1,12 +1,12 @@
 # İlerleme — Kartela: Çok Mekânlı QR Menü Platformu
 
-> **Son güncelleme:** 2026-11-04 · **Faz:** 3 bitti (kurulum) · **Sıradaki dilim:** D-01
+> **Son güncelleme:** 2026-11-04 · **Faz:** 4 (Faz 1 dilimleri) · **Sıradaki dilim:** D-02
 
 ## Şu an
 
-- **Etkin dilim:** — (Faz 3 tamamlandı; kullanıcı raporu bekleniyor)
-- **Son yapılan:** Faz 3 kurulumu: Next.js 16.4.3 çok kök düzenli iskelet, platform kabuğu, Rakım ölçüm rotası, CI, Vercel + Neon yayını, RSK-01 ölçümü (K-37).
-- **Sıradaki adım:** D-01 — `proxy.ts` ile alan adına göre kiracı yönlendirme; ilk iş derleme anı alan adı haritası (`scripts/venues/build-domain-map.ts`) ve `rakim.localhost:3020`.
+- **Etkin dilim:** D-01 — Kiracı yönlendirme ve tema rota iskeleti · ✅ (PR #2; üretim doğrulaması yayından sonra)
+- **Son yapılan:** D-01: mekân kaydı, alan adı koşullu yeniden yazma kuralları (K-39, ADR-0002 v2), önizleme çerezi ve yol öneki, Sade ağacı iskeleti + fikstür mekân (RTL), mekân başına robots / sitemap / manifest; 19 birim + 10 e2e yeni test.
+- **Sıradaki adım:** D-02 — veri çekirdeği ve kiracı yalıtımı: `venues`, `venue_domains`, `venue_members`, `venue_settings` + RLS + bileşik FK; ilk iş `withVenue()` ve kiracı test takımının iskeleti; Neon önizleme dallanmasını doğrula.
 
 ## Gözetimsiz çalışma notları
 
@@ -49,7 +49,7 @@ Faz 1'in son dilimi (D-22) bitip Rakım yayına çıkınca durulur; teslim: yay�
 
 | No | Dilim | Kapsam (özellik / REQ) | Efor | Öncelik | Durum | 360 px | Test |
 |---|---|---|---|---|---|---|---|
-| D-01 | Kiracı yönlendirme ve tema rota iskeleti: `proxy.ts`, derleme anı alan adı haritası, `*.localhost`, `?mekan=`, `/m/{slug}`, bilinmeyen alan adı, `/tema-*` koruması, mekân başına `robots` / `sitemap` / manifest iskeleti | QR-01 · REQ-001 · SCR-051 | M | P0 | ⏳ | — | — |
+| D-01 | Kiracı yönlendirme ve tema rota iskeleti: alan adı koşullu yeniden yazma kuralları (K-39, ADR-0002 v2), derleme anı mekân kaydı, `*.localhost`, `?mekan=`, `/m/{slug}`, bilinmeyen alan adı, `/tema-*` koruması, mekân başına `robots` / `sitemap` / manifest, Sade ağacı iskeleti + fikstür mekân | QR-01 · REQ-001 · SCR-051 | M | P0 | ✅ | ✅ | 19 birim (kayıt, kurallar) + 10 e2e (`tenant.spec.ts`) |
 | D-02 | Veri çekirdeği ve kiracı yalıtımı: `venues`, `venue_domains`, `venue_members`, `venue_settings`; `withVenue`, bileşik FK, RLS, `app_rw` rolü; `audit_logs` / `demo_outbox` FK'leri; kiracı test takımı; `venueAction` | QR-02 · REQ-002 | M | P0 | ⏳ | — | — |
 | D-03 | Menü motoru I: menüler ve pencereler, bölümler, ürünler, fiyat türleri, ürün bilgisi (14 alerjen, bileşen, enerji), çeviri alanları ve düşme | QR-03…06 · REQ-003…006 | M | P0 | ⏳ | — | — |
 | D-04 | İçerik klasöründen tohum hattı: `content/mekanlar/{ad}/` (mekan.ts, menu.ts, hikayeler, gorseller.ts), Zod şemaları, `db:seed` / `db:reset`, görsel kaydı ve CDN loader, test fikstür mekânı | QR-03 · REQ-003 | M | P0 | ⏳ | — | — |
@@ -151,7 +151,15 @@ Faz 1'in son dilimi (D-22) bitip Rakım yayına çıkınca durulur; teslim: yay�
 
 ## Etkin dilim planı
 
-— (D-01 ile başlar)
+**D-01 — Kiracı yönlendirme ve tema rota iskeleti** (dal `feat/d01-tenant-routing`)
+- Kabul kriterleri (REQ-001, BR-KRC-004): `rakim.localhost:3020` Rakım'ı, `ornek.localhost:3020` fikstür mekânı (Sade) açar; `/ar` sağdan sola; `localhost:3020/?mekan=rakim` çerez yazar, parametresiz adrese döner ve sonraki istekler Rakım'ı gösterir; `?mekan=` boş → çerez silinir; `/m/rakim/` yol önekiyle açılır ve `X-Robots-Tag: noindex`; tanınmayan alan adı (`foo.localhost`) 404; `/tema-*` iç yolları dışarıdan 404; `/_next/*` ve `/api/*` mekân alan adlarında da yeniden yazılmaz; mekân başına `robots.txt`, `sitemap.xml`, `manifest.webmanifest`; `/api/health` mekân haritasının sürümünü döner.
+- Mimari değişiklik (K-39, ADR-0002 v2): çözümleme `proxy.ts` yerine `next.config.ts` `rewrites.beforeFiles` alan adı koşullu kurallarıyla; kurallar derleme anında mekân kaydından üretilir. Gerekçe: Next.js 16 proxy'si yalnızca Node.js çalışma ortamında çalışır; her menü isteği CDN'den önce fonksiyon çağırırdı. `proxy.ts` yalnız panelde kalır.
+- Tablolar / migration: yok (mekân kaydı D-01'de `content/mekanlar/*/mekan.ts`; D-02 veritabanına taşır, D-19 alan adı bağlamayı ekler).
+- Dosyalar: `src/platform/tenant/{registry-schema,registry,rewrites}.ts` (+ testler), `content/mekanlar/{index,rakim/mekan,_ornek/mekan}.ts`, `next.config.ts`, `src/proxy.ts`, `src/app/api/onizleme/route.ts`, `src/app/api/health/route.ts`, `src/platform/routes/venue-files.ts`, `src/app/tema-rakim/[mekan]/{robots.txt,sitemap.xml,manifest.webmanifest}/route.ts`, `src/app/tema-sade/[mekan]/[dil]/{layout,page}.tsx` + aynı dosya rotaları, `src/themes/sade/sade.css`, `src/app/global-not-found.tsx`.
+- Kurallar: BR-KRC-004.
+- Testler: birim — kayıt doğrulaması, kural üretimi ve Next'in kendi test aracıyla (`unstable_getResponseFromNextConfig`) kural davranışı; e2e — `tenant.spec.ts` (alan adları, yol öneki, önizleme çerezi, bilinmeyen alan adı, iç yol koruması, dosya rotaları); mevcut testler mekân adresleriyle (`rakim.localhost`) koşar; Lighthouse URL'leri mekân alan adına taşınır.
+- Yönetim kılavuzu: — (panel modülü yok)
+- Notlar: Rakım'ın kaydında şimdilik yalnızca `tr` (EN içerikle D-14'te); fikstür mekân `_ornek` üretim haritasına girmez (`VERCEL_ENV=production`). Mekâna özgü 404 sayfası D-11'de.
 
 ## Görsel inceleme
 
@@ -163,6 +171,9 @@ Faz 1'in son dilimi (D-22) bitip Rakım yayına çıkınca durulur; teslim: yay�
 | 2026-11-04 | Faz 3 / Rakım ölçüm sayfası 390 | GK-01, GK-05, GK-08 | Konsepte uygun: kâğıt zemin, mürekkep, monospace veri satırı; vurgu yalnızca etkin saatte; öne çıkan ürün tam genişlik (K-05) | ✅ |
 | 2026-11-04 | Faz 3 / Rakım ölçüm sayfası 390 | GK-11, GK-13 | Küçük görselli satırda fiyat, görselsiz satırdaki fiyatla aynı hizada değil (görsel sütunu fiyatı içeri itiyor). D-15'te fiyat ve küçük görsel düzeni tek ızgaraya bağlanır; görselsiz satırlarda veri kartı yedeği (K-23) | ❌ D-15'e |
 | 2026-11-04 | Faz 3 / Rakım ölçüm sayfası 1440 | GK-12, GK-13 | Masaüstünde tek 720 px sütun, kenarlar boş; §11.4'teki sol yapışkan kategori dizini (240 px) D-15'te | ❌ D-15'e |
+| 2026-11-04 | D-01 / `rakim.localhost` 390 | — | Mekân alan adı üzerinden Faz 3 görünümüyle birebir; yönlendirme görünümü değiştirmiyor | ✅ |
+| 2026-11-04 | D-01 / `ornek.localhost/ar` 390 | RTL | `dir="rtl"`: başlık ve ürün adları sağda, fiyatlar solda; Türkçe demo notu RTL bağlamda noktayı başa kaydırıyordu → `dir="ltr"` | ✅ düzeltildi |
+| 2026-11-04 | D-01 / Sade fikstür sayfası | GK-01 | İskelet sayfa, görsel yok: yalnızca test mekânı, üretimde yok; Sade D-09'da | — kabul (fikstür) |
 
 ## Kalite kapısı raporu
 
@@ -170,8 +181,9 @@ Faz 1'in son dilimi (D-22) bitip Rakım yayına çıkınca durulur; teslim: yay�
 
 ## Bilinen sorunlar
 
-- `rakim-kahve.vercel.app` ve `kepce-lokanta.vercel.app` şimdilik platform ana sayfasını gösteriyor; alan adına göre mekân yönlendirmesi D-01'de.
-- Rakım ölçüm sayfası iç yolundan (`/tema-rakim/rakim/tr`) açılıyor; D-01'de dışarıdan 404 olacak (BR-KRC-004).
+- `kepce-lokanta.vercel.app` projeye bağlı ama mekân kaydında yok (Kepçe D-39'da kaydedilir); o zamana kadar `*.vercel.app` kuralıyla platform ana sayfasını gösterir.
+- Mekâna özgü 404 sayfası yok: mekân alan adında bilinmeyen yol global 404'ü (Kartela) gösterir; D-11'de mekânın kendi 404'ü.
+- Rakım ölçüm sayfasındaki "TR · EN" yalnızca metin (dil seçici değil); EN içerikle D-14, dil seçici D-15.
 - Önizleme dalları için Neon dal ayrımı (PR başına veritabanı dalı) henüz doğrulanmadı; şimdilik önizleme ve üretim aynı Neon veritabanını görüyor. D-02'de (ilk tablo değişikliği) Vercel–Neon önizleme dallanması açılır ya da doğrulanır.
 - `pnpm audit`: iki orta düzey bulgu yalnızca geliştirme araçlarında (drizzle-kit → esbuild ≤ 0.24.2, eslint → minimatch < 11.0.1); yükseltme yolu çıkınca kapatılır.
 
@@ -185,3 +197,4 @@ Faz 1'in son dilimi (D-22) bitip Rakım yayına çıkınca durulur; teslim: yay�
 - 2026-11-04 · Faz 3 · `upload-artifact` gizli klasörleri (`.lighthouseci`) varsayılan olarak yüklemiyor; CI'da Lighthouse geçti ama rapor kayboldu. Çözüm: `include-hidden-files: true`. **Sisteme taşı:** iskelet `ci.yml`.
 - 2026-11-04 · Faz 3 · Statik sayfa CSP'sine betik özeti eklemek `'unsafe-inline'`'ı geçersiz kılar ve Next.js'in nonce'suz satır içi betiklerini kırar (ADR-0005 ilk taslağındaki hata, K-33). **Sisteme taşı:** 11 §8 notu.
 - 2026-11-04 · Faz 3 · Next.js 16.4.3 + React 19.3.1 çerçeve tabanı 177 KB gzip (Levha'da 16.4.2 ile 165 KB). Mobil Lighthouse ≥ 0,95 hedefinde payı yazı tipi baytları belirliyor: veri yazı tipinin ön yüklemesini kapatmak LCP görseline bant genişliği bıraktı (0,94 → 0,95). **Sisteme taşı:** 12 §3 taban değeri, 06 yazı tipi ön yükleme kuralı.
+- 2026-11-04 · D-01 · Next.js 16 `proxy.ts` yalnız Node.js çalışma ortamında çalışıyor; alan adına göre kiracı yönlendirmesini proxy'ye koymak Vercel'de her statik menü isteğine fonksiyon çağrısı ekleyecekti. `next.config` `beforeFiles` kuralları (`has: host`) aynı derleme anı haritasını yönlendirme katmanında uyguluyor. Tuzaklar: (1) `beforeFiles` zincirlenir, sonraki kurallar yeniden yazılmış yolu görür → iç yol öneki (`tema-`) dışlanmalı; (2) `unstable_getResponseFromNextConfig` ilk eşleşen kuralı döndürür, zinciri taklit etmez → gerçek zincir e2e ile sınanmalı; (3) yeniden yazılmış istekte rota işleyicisi özgün adresi görür; (4) sorgu koşulunda boş değer "parametre yok" sayılır. **Sisteme taşı:** 02-mimari (çok kiracılı yönlendirme kalıbı), 05 (yeniden yazma + rota işleyicisi), katalog `qr-menu-platformu`.

@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
 import Image from "next/image";
+import { notFound } from "next/navigation";
 
 import { SiteCredit } from "@/components/layout/site-credit";
 import { formatMoney } from "@/lib/format";
+import { isVenueRoute } from "@/platform/tenant/registry";
 import { featured, type MeasureItem, sections } from "@/themes/rakim/olcum";
 
 /**
@@ -47,7 +49,13 @@ function Row({ item }: { item: MeasureItem }) {
   );
 }
 
-export default function MeasurementMenuPage() {
+export default async function MeasurementMenuPage({
+  params,
+}: {
+  params: Promise<{ mekan: string; dil: string }>;
+}) {
+  const { mekan, dil } = await params;
+  if (!isVenueRoute("rakim", mekan, dil)) notFound();
   return (
     <>
       <header className="sticky top-0 z-10 border-b border-border bg-background/95 backdrop-blur-none">

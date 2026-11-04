@@ -1,5 +1,16 @@
 import type { NextConfig } from "next";
 
+import { venues } from "./src/platform/tenant/registry";
+import { buildTenantHeaders, buildTenantRewrites } from "./src/platform/tenant/rewrites";
+
+/**
+ * Tenant routing (ADR-0002 v2, K-39): host-based beforeFiles rewrites built from the venue
+ * registry at build time. The platform's own host comes from NEXT_PUBLIC_PLATFORM_URL.
+ */
+const platformHost = new URL(process.env.NEXT_PUBLIC_PLATFORM_URL ?? "http://localhost:3020")
+  .hostname;
+const tenantRewrites = buildTenantRewrites(venues, { platformHosts: [platformHost] });
+
 /**
  * Security headers for every response (11-guvenlik §8). The panel gets a stricter nonce-based
  * CSP from src/proxy.ts, so the static CSP below skips it (two CSP headers would be combined
@@ -68,6 +79,9 @@ const nextConfig: NextConfig = {
     qualities: [60, 75, 85, 90],
   },
   poweredByHeader: false,
+  rewrites() {
+    return Promise.resolve({ beforeFiles: tenantRewrites, afterFiles: [], fallback: [] });
+  },
   headers() {
     return Promise.resolve([
       { source: "/:path*", headers: securityHeaders },
@@ -75,6 +89,7 @@ const nextConfig: NextConfig = {
         source: "/((?!panel|api).*)",
         headers: [{ key: "Content-Security-Policy", value: publicCsp }],
       },
+      ...buildTenantHeaders(),
     ]);
   },
 };

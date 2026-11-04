@@ -1,0 +1,53 @@
+@import "tailwindcss";
+
+/*
+ * Sade — the reference ready-made theme (plan §11.8). Loaded only by the tema-sade root layout
+ * (ADR-0003). D-01 skeleton: neutral defaults on the system font stack; D-09 / D-10 build the
+ * slots, the three quick-menu layouts, the dark set and the per-venue token configuration.
+ * Contrast: ink #18181b on #ffffff 17.7:1; muted #5b5b63 6.6:1; accent #1f5f4a 7.5:1.
+ */
+:root {
+  --background: #ffffff;
+  --surface: #f7f7f5;
+  --surface-muted: #eeeeea;
+  --foreground: #18181b;
+  --muted-foreground: #5b5b63;
+  --border: #e4e4df;
+  --primary: #1f5f4a;
+  --primary-foreground: #ffffff;
+  --accent: #1f5f4a;
+  --accent-foreground: #ffffff;
+  --focus: #18181b;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-surface: var(--surface);
+  --color-surface-muted: var(--surface-muted);
+  --color-foreground: var(--foreground);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-border: var(--border);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --font-sans:
+    ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans", "Noto Sans Arabic",
+    sans-serif;
+  --font-mono: ui-monospace, Menlo, Consolas, monospace;
+}
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+  body {
+    background: var(--background);
+    color: var(--foreground);
+    font-family: var(--font-sans);
+  }
+  :focus-visible {
+    outline: 2px solid var(--focus);
+    outline-offset: 2px;
+  }
+}
