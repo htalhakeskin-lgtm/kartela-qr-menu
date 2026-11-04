@@ -2,8 +2,9 @@
  * Demo data (04-veri §11, 17-icerik-ve-demo-verisi). Deterministic and idempotent: running it
  * twice gives the same result. Run with: pnpm db:seed   (tsx --conditions=react-server)
  *
- * Seeds the platform row, the demo platform admin and the registry's venues (content/mekanlar,
- * D-02: venue row, settings, domains). Menus and stories come through the content pipeline (D-04).
+ * Seeds the platform row, the demo platform admin, the registry's venues (D-02: venue row,
+ * settings, domains) and their menu content files (D-04: content/mekanlar/{ad}/menu.ts, written
+ * only into a venue without a menu). Stories follow with D-07.
  */
 import { loadEnvConfig } from "@next/env";
 
@@ -19,6 +20,9 @@ async function main() {
   const { hashPassword } = await import("better-auth/crypto");
   const { venues: registry } = await import("@/platform/tenant/registry");
   const { seedVenues } = await import("@/server/db/tenant/seed-venues");
+  const { seedVenueContent } = await import("@/server/db/tenant/seed-content");
+  const { parseMenuContent } = await import("@/platform/menu/content");
+  const { venueContents } = await import("../content/mekanlar/icerik");
 
   async function seedPlatform() {
     await db
@@ -55,6 +59,20 @@ async function main() {
   await seedDemoAdmin();
   const venueIds = await seedVenues(registry);
   console.log(`✓ Mekânlar: ${[...venueIds.keys()].join(", ")}`);
+
+  // Content goes only into a venue without a menu (panel edits survive a deploy);
+  // --icerik-yenile rewrites it from the files (local content work; db:reset starts empty anyway).
+  const replace = process.argv.includes("--icerik-yenile");
+  for (const [slug, venueId] of venueIds) {
+    const input = venueContents[slug];
+    if (!input) continue;
+    const result = await seedVenueContent(venueId, parseMenuContent(slug, input), { replace });
+    console.log(
+      result.written
+        ? `✓ ${slug}: ${String(result.menus)} menü, ${String(result.items)} ürün, ${String(result.images)} görsel`
+        : `· ${slug}: menüsü var, içerik yazılmadı (yenilemek için: pnpm db:seed --icerik-yenile)`,
+    );
+  }
   console.log("✓ Seed tamamlandı");
 }
 

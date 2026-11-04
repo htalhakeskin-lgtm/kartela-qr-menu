@@ -17,3 +17,7 @@ Faz 3 ölçüm sayfasında (`src/themes/rakim/olcum.ts`) kullanılanlar. D-14'te
 | `1630993671627-094c308f6902` | Ürün küçük görseli | [Unsplash 4JrlQdkHVJQ](https://unsplash.com/photos/4JrlQdkHVJQ) | elnaz asadi | 3433 × 3256 | 1:1, entropy | Beyaz zeminde yukarıdan üç fincan: süt, sütlü kahve ve sade kahve |
 
 Ön tarama (Faz 1, `docs/arastirma.md` §9): açık / gün ışıklı seride 10 adayın 7'si tutarlı; koyu seride 5 aday marka logosu nedeniyle elendi.
+
+## Test fikstürü (`content/mekanlar/_ornek/menu.ts`)
+
+Yalnızca yerel ve CI testlerinde; üretim derlemesine girmez (`fixture: true`). Görsel kaydı ve fotoğraflı ürün yolunu sınamak için Rakım tablosundaki `1610889556528-9a770e32642f` (Adi Goldstein, cortado) bir ürüne bağlıdır. Ayrı bir site olduğu için GK-03 (tek rol) ihlali sayılmaz; D-14'te Rakım serisi seçilirken bu görsel Rakım'da kullanılırsa fikstür başka bir görsele geçer.

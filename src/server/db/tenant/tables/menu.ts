@@ -1,6 +1,5 @@
-import { type SQL, sql } from "drizzle-orm";
+import { sql } from "drizzle-orm";
 import {
-  type AnyPgColumn,
   boolean,
   check,
   foreignKey,
@@ -28,8 +27,9 @@ import {
   MENU_KINDS,
 } from "../../../../platform/menu/vocabulary";
 import { id, money, timestamps, version } from "../../columns";
-import { venues } from "../../schema/venues";
 import { tenantPolicy } from "../policy";
+import { hasTurkish, list, optionalTurkish, textArray, venueColumn } from "./checks";
+import { mediaAssets } from "./media";
 
 /**
  * Menu engine I (plan §9, D-03). Tenant tables: venue_id + row level security (ADR-0004). Every
@@ -39,25 +39,6 @@ import { tenantPolicy } from "../policy";
  *
  * Translated fields are jsonb { tr, en, ar, … } with Turkish required (BR-MNU-003).
  */
-
-const quoted = (values: readonly string[]) => values.map((value) => `'${value}'`).join(", ");
-/** A fixed value set inlined into a check constraint (the sets live in src/platform/menu). */
-const list = (values: readonly string[]) => sql.raw(quoted(values));
-const textArray = (values: readonly string[]) => sql.raw(`array[${quoted(values)}]::text[]`);
-
-/**
- * A translated field has a non-blank Turkish text. coalesce matters: a check whose expression is
- * NULL passes, so { "en": "…" } without a "tr" key would otherwise be accepted.
- */
-const hasTurkish = (column: AnyPgColumn): SQL =>
-  sql`coalesce(length(trim(${column} ->> 'tr')), 0) > 0`;
-const optionalTurkish = (column: AnyPgColumn): SQL =>
-  sql`${column} is null or coalesce(length(trim(${column} ->> 'tr')), 0) > 0`;
-
-const venueColumn = () =>
-  uuid()
-    .notNull()
-    .references(() => venues.id, { onDelete: "cascade" });
 
 export const menus = pgTable(
   "menus",
@@ -161,7 +142,7 @@ export const items = pgTable(
     /** Kind-specific facts, validated per kind by the content schema (bean: origin, altitude …). */
     attributes: jsonb().$type<Record<string, unknown>>().notNull().default({}),
     alcohol: jsonb().$type<Alcohol>(),
-    /** media_assets (D-04 adds the composite foreign key). */
+    /** media_assets of the same venue; null = no photo, a first-class state (K-23). */
     imageId: uuid(),
     status: text().notNull().default("published"),
     ...version,
@@ -170,6 +151,11 @@ export const items = pgTable(
   (table) => [
     unique("ux_items_venue_id_id").on(table.venueId, table.id),
     uniqueIndex("ux_items_venue_slug").on(table.venueId, table.slug),
+    foreignKey({
+      name: "fk_items_image",
+      columns: [table.venueId, table.imageId],
+      foreignColumns: [mediaAssets.venueId, mediaAssets.id],
+    }),
     check("ck_items_kind", sql`${table.kind} in (${list(ITEM_KINDS)})`),
     check("ck_items_status", sql`${table.status} in (${list(ITEM_STATUSES)})`),
     check("ck_items_name", hasTurkish(table.name)),

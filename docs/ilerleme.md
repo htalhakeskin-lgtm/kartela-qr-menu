@@ -4,9 +4,9 @@
 
 ## Şu an
 
-- **Etkin dilim:** D-03 — Menü motoru I · ✅
-- **Son yapılan:** D-03: menü motoru I — `menus`, `menu_sections` (alt bölüm), `section_items`, `items`, `item_prices` bileşik FK'li kiracı tabloları; 14 alerjen, diyet, acılık, ürün türü ve fiyat birimi veritabanında `check`; zaman penceresi (gece yarısını aşan, gün ve mevsim), fiyat birimi metni, alan bazında çeviri düşmesi, eksik bileşen / enerji raporu; `loadVenueMenu` okuma modeli. D-02: veri çekirdeği ve kiracı yalıtımı (K-41, K-42).
-- **Sıradaki adım:** D-04 — içerik klasöründen tohum hattı (`content/mekanlar/{ad}/menu.ts`, hikâyeler, görseller, Zod şemaları, `media_assets`, görsel FK). Öncesinde Neon önizleme dallanması açılmalı (kullanıcı adımı, K-42).
+- **Etkin dilim:** D-04 — İçerik klasöründen tohum hattı · ✅
+- **Son yapılan:** D-04: `content/mekanlar/{ad}/menu.ts` içerik dosyası (Zod şeması; tutarlar `parseMoney` ile kuruşa; bağlantı, tekrar, derinlik ve BR-FYT-002 denetimi), `media_assets` + ürün görseli bileşik FK, `seedVenueContent` (yalnızca menüsü olmayan mekâna; `--icerik-yenile`), fikstür mekânın TR / EN / AR lokanta menüsü; üretim derlemesi tohumu da çalıştırır (K-42). D-03 canlıda (migration uygulandı, `/api/health` → `tenant: isolated`).
+- **Sıradaki adım:** D-05 — menü motoru II: seçenek grupları, en az / en çok, fiyat farkı, uyumluluk kuralları, `domain/configurator.ts`. Neon önizleme dallanması (kullanıcı adımı, K-42) menü sayfaları derlemede veritabanını okumaya başlamadan (D-08 / D-09) açılmalı.
 
 ## Gözetimsiz çalışma notları
 
@@ -54,7 +54,7 @@ Faz 1'in son dilimi (D-22) bitip Rakım yayına çıkınca durulur; teslim: yay�
 | D-01 | Kiracı yönlendirme ve tema rota iskeleti: alan adı koşullu yeniden yazma kuralları (K-39, ADR-0002 v2), derleme anı mekân kaydı, `*.localhost`, `?mekan=`, `/m/{slug}`, bilinmeyen alan adı, `/tema-*` koruması, mekân başına `robots` / `sitemap` / manifest, Sade ağacı iskeleti + fikstür mekân | QR-01 · REQ-001 · SCR-051 | M | P0 | ✅ | ✅ | 20 birim (kayıt, kurallar) + 11 e2e (`tenant.spec.ts`) |
 | D-02 | Veri çekirdeği ve kiracı yalıtımı: `venues`, `venue_domains`, `venue_members`, `venue_settings`; `withVenue`, bileşik FK, RLS, `app_rw` rolü; `audit_logs` / `demo_outbox` FK'leri; kiracı test takımı; `venueAction` | QR-02 · REQ-002 | M | P0 | ✅ | — (arayüz yok) | 22 entegrasyon (RLS, bileşik FK, `venueAction`, tohum) + ESLint içe aktarma kuralı |
 | D-03 | Menü motoru I: menüler ve pencereler, bölümler, ürünler, fiyat türleri, ürün bilgisi (14 alerjen, bileşen, enerji), çeviri alanları ve düşme | QR-03…06 · REQ-003…006 | M | P0 | ✅ | — (arayüz yok) | 42 birim (pencere, fiyat, çeviri, eksik bilgi) + 14 entegrasyon (kısıtlar, bileşik FK davranışı, okuma modeli; kiracı takımı 10 tabloya çıktı) |
-| D-04 | İçerik klasöründen tohum hattı: `content/mekanlar/{ad}/` (mekan.ts, menu.ts, hikayeler, gorseller.ts), Zod şemaları, `db:seed` / `db:reset`, görsel kaydı ve CDN loader, test fikstür mekânı | QR-03 · REQ-003 | M | P0 | ⏳ | — | — |
+| D-04 | İçerik klasöründen tohum hattı: `content/mekanlar/{ad}/` (mekan.ts, menu.ts, hikayeler, gorseller.ts), Zod şemaları, `db:seed` / `db:reset`, görsel kaydı ve CDN loader, test fikstür mekânı | QR-03 · REQ-003 | M | P0 | ✅ | — (arayüz yok) | 10 birim (şema, gönderilen içerik dosyaları geçerli ve eksiksiz) + 6 entegrasyon (yazma → geri okuma, ikinci çalıştırma, yeniden kurma, görsel FK; kiracı takımı 11 tablo) |
 | D-05 | Menü motoru II: seçenek grupları, en az / en çok, fiyat farkı, uyumluluk kuralları, `domain/configurator.ts` | QR-07 · REQ-007 | M | P0 | ⏳ | — | — |
 | D-06 | Menü motoru III: müsaitlik (tükendi, günlük adet, saatli çıkış, mevsim, günün menüsü) + ilişkiler (eşleşme, öneri, set, tadım) | QR-08, QR-09 · REQ-008, REQ-009 | M | P0 | ⏳ | — | — |
 | D-07 | Keşfet içerik modeli: hikâye türleri, koleksiyon ve durak, Markdown (sunucuda `react-markdown`, K-34), galeri, ürün bağları | QR-10 · REQ-010 | M | P0 | ⏳ | — | — |
@@ -153,14 +153,14 @@ Faz 1'in son dilimi (D-22) bitip Rakım yayına çıkınca durulur; teslim: yay�
 
 ## Etkin dilim planı
 
-**D-03 — Menü motoru I** (dal `feat/d03-menu-engine`)
-- Kabul kriterleri (REQ-003…006, BR-MNU-001…003, BR-FYT-001/002, BR-YSL-005, BR-KRC-002): 08:00–12:00 penceresi İstanbul saatiyle açılır ve kapanır; 22:00–02:00 penceresi gece yarısını doğru aşar (başladığı günün gün listesine bağlı); pencere dışı menü `dim` ise "HH:MM'de başlar" bilgisini, `hide` ise gizlenmeyi döndürür; mevsim / tarih aralığı yıl sonunu aşabilir. Fiyat birimleri (tek, boy, yarım, 100 g, kg, kadeh, şişe, adet) birimiyle yazılır ("100 g · 240 ₺"); aynı üründe kg ve 100 g birlikte olamaz; tek varsayılan fiyat. 14 alerjen ve diyetler sabit küme (veritabanında da `check`); acılık 0–3. Çevirisi olmayan alan varsayılan dile düşer ve hangi dilde gösterildiğini söyler. Bileşen / enerji eksik ürünler raporlanır. Mekân A'nın bölümüne mekân B'nin ürünü bağlanamaz (bileşik FK, platform kapsamında bile).
-- Tablolar / migration: `menus`, `menu_sections` (iç içe en çok 2: içerik şemasında), `section_items`, `items`, `item_prices`; hepsi kiracı tablosu (RLS + FORCE + `app_rw` yetkisi), `(venue_id, id)` benzersiz anahtarları ve `(venue_id, x_id)` bileşik FK'leri; çevrilebilir alanlar `jsonb` (`tr` zorunlu, `check`).
-- Dosyalar: `src/platform/menu/{types,allergens,clock,schedule,price,completeness}.ts` (+ testler), `src/platform/i18n/fallback.ts` (+ test), `src/server/db/tenant/tables/menu.ts`, `src/server/db/tenant/menu.ts` (okuma modeli: mekânın bütün menüsü tek yapıda), `drizzle/0004…`, `tests/integration/tenant/{fixtures,cross-venue-fk,menu-read}.ts`.
-- Kurallar: BR-MNU-001, BR-MNU-002, BR-MNU-003, BR-FYT-001, BR-FYT-002, BR-YSL-005, BR-KRC-002.
-- Testler: birim — `schedule.test.ts` (it.each: 07:59, 08:00, 11:59, 12:00, 23:59, 00:00, 01:59, 02:00; gün listesi; yıl sonunu aşan dönem), `price.test.ts`, `fallback.test.ts`, `completeness.test.ts`; entegrasyon — yeni tablolar kiracı takımına fikstürle girer, bileşik FK davranış testi, `check` kısıtları, okuma modeli sıralama ve iç içe bölümler.
-- Yönetim kılavuzu: — (panel D-18'den sonra)
-- Notlar: Arayüz yok (temalar D-09 / D-15); menü içeriği tohum hattıyla D-04'te. Seçenekler D-05, müsaitlik ve ilişkiler D-06.
+**D-04 — İçerik klasöründen tohum hattı** (dal `feat/d04-content-pipeline`)
+- Kabul kriterleri (REQ-003): `content/mekanlar/{ad}/menu.ts` tek bir tipli dosyada mekânın görsellerini, ürünlerini ve menülerini tanımlar; Zod şeması fiyatları `parseMoney` ile kuruşa çevirir (kayan nokta yok), bilinmeyen alerjen / birim / tür, `tr`'siz çeviri, kayıtsız görsele ya da ürüne bağlantı, tekrarlanan slug, iki düzeyden derin bölüm, BR-FYT-002 ihlali, aynı bölümde iki kez yer alan ürün hata verir ve hata yolu söylenir. `pnpm db:seed` içeriği yalnızca menüsü olmayan mekâna yazar (panel düzenlemeleri ezilmez); `pnpm db:reset` baştan kurar. Yazılan menü `loadVenueMenu` ile birebir geri okunur. Demo içeriğinde yayındaki her üründe bileşen ve enerji dolu (REQ-005).
+- Tablolar / migration: `media_assets` (kiracı tablosu; kaynak, adres, boyut, fotoğrafçı, kaynak sayfa, lisans, çevrilebilir alt metin, odak noktası); `items.image_id` → `media_assets (venue_id, id)` bileşik FK.
+- Dosyalar: `src/platform/menu/content.ts` (şema + `defineMenuContent`), `src/server/db/tenant/tables/media.ts`, `src/server/db/tenant/seed-content.ts`, `content/mekanlar/icerik.ts` (slug → içerik; `next.config` yükü taşımaz), `content/mekanlar/_ornek/menu.ts` (fikstür: TR / EN / AR, yarım porsiyon, fotoğrafsız ürünler, eksik AR çevirisi), `scripts/seed.ts`, `scripts/vercel-build.mjs` (üretimde tohum), `drizzle/0006…`.
+- Kurallar: BR-FYT-001, BR-FYT-002, BR-MNU-003, BR-YSL-005, BR-KRC-002.
+- Testler: birim — şema hataları ve dönüşümler, kayıttaki her içerik dosyası geçerli ve eksiksiz; entegrasyon — içerik yazma + geri okuma, ikinci çalıştırmada dokunmama, `replace` ile yeniden kurma, görsel FK'si, kiracı takımına `media_assets`.
+- Yönetim kılavuzu: — (içerik dosyası geliştirici aracı; panel içe aktarma D-27)
+- Notlar: Rakım'ın gerçek menüsü ve görsel havuzu D-14'te; hikâye tabloları D-07'de (bu dilimde hikâye içeriği yok). Üretim derlemesinde tohum yalnızca boş mekâna yazar; önizleme derlemesi (paylaşılan veritabanı, K-42) tohum da çalıştırmaz.
 
 ## Görsel inceleme
 
@@ -185,7 +185,7 @@ Faz 1'in son dilimi (D-22) bitip Rakım yayına çıkınca durulur; teslim: yay�
 - `kepce-lokanta.vercel.app` projeye bağlı ama mekân kaydında yok (Kepçe D-39'da kaydedilir); o zamana kadar `*.vercel.app` kuralıyla platform ana sayfasını gösterir.
 - Mekâna özgü 404 sayfası yok: mekân alan adında bilinmeyen yol global 404'ü (Kartela) gösterir; D-11'de mekânın kendi 404'ü.
 - Rakım ölçüm sayfasındaki "TR · EN" yalnızca metin (dil seçici değil); EN içerikle D-14, dil seçici D-15.
-- Önizleme ve üretim aynı Neon veritabanını görüyor (doğrulandı: Vercel'de `DATABASE_URL` üç ortamda aynı). K-42 ile önizleme derlemesi migration uygulamıyor; önizlemede panel / veritabanı okuyan sayfa yeni tabloları göremeyebilir. D-04'ten önce Neon önizleme dallanması açılır (Vercel → Storage → kartela-db → bağlantıda "Create database branch for deployment: Preview"), ardından Preview ortamına `PREVIEW_DB_BRANCH=true`.
+- Önizleme ve üretim aynı Neon veritabanını görüyor (doğrulandı: Vercel'de `DATABASE_URL` üç ortamda aynı). K-42 ile önizleme derlemesi migration uygulamıyor; önizlemede panel / veritabanı okuyan sayfa yeni tabloları göremeyebilir. Menü sayfaları derlemede veritabanını okumaya başlamadan (D-08 / D-09) Neon önizleme dallanması açılır (Vercel → Storage → kartela-db → bağlantıda "Create database branch for deployment: Preview"), ardından Preview ortamına `PREVIEW_DB_BRANCH=true`.
 - Neon sahip rolünün `BYPASSRLS` özelliği doğrulanmadı (üretim veritabanını okuma izni yok). Tasarım buna bağlı değil: kiracı erişimi her zaman `app_rw` ile (K-41); yalnızca ESLint dışı, sahip rolle kiracı tablosuna giden bir kod RLS'ye takılmayabilir.
 - `pnpm audit`: iki orta düzey bulgu yalnızca geliştirme araçlarında (drizzle-kit → esbuild ≤ 0.24.2, eslint → minimatch < 11.0.1); yükseltme yolu çıkınca kapatılır.
 
