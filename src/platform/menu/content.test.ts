@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
 
+import { loadVenueContent, venuesWithContent } from "@/server/content/venue-content";
+
 import { venueRecords } from "../../../content/mekanlar";
-import { venueContents } from "../../../content/mekanlar/icerik";
 import { parseRegistry } from "../tenant/registry-schema";
 import { infoGaps } from "./completeness";
 import { type MenuContentInput, menuContentSchema, parseMenuContent } from "./content";
@@ -119,15 +120,18 @@ describe("menu content file (D-04)", () => {
 describe("the shipped content files", () => {
   const registry = parseRegistry(venueRecords);
 
-  it.each(Object.entries(venueContents))("%s: valid and its venue is registered", (slug, input) => {
-    expect(registry.map((venue) => venue.slug)).toContain(slug);
-    expect(() => parseMenuContent(slug, input)).not.toThrow();
-  });
+  it.each(venuesWithContent())(
+    "%s: valid (menu, stories and their bodies) and registered",
+    async (slug) => {
+      expect(registry.map((venue) => venue.slug)).toContain(slug);
+      await expect(loadVenueContent(slug)).resolves.toBeTruthy();
+    },
+  );
 
-  it.each(Object.entries(venueContents))(
+  it.each(venuesWithContent())(
     "REQ-005: %s demo data has ingredients and energy on every published product",
-    (slug, input) => {
-      const content = parseMenuContent(slug, input);
+    async (slug) => {
+      const content = (await loadVenueContent(slug))!;
       const gaps = content.items
         .filter((item) => item.status === "published")
         .flatMap((item) =>
@@ -264,5 +268,50 @@ describe("availability and relations in the content file (D-06)", () => {
     input.menus[1]!.daily = { weekdays: { "1": ["corba"] } };
     input.menus[0]!.daily = { weekdays: { "2": ["pilav"] } };
     expect(problems(input).join()).toContain("daily yalnızca kind: daily menüde");
+  });
+});
+
+describe("Keşfet stories in the content file (D-07)", () => {
+  const withStories = (stories: unknown[]): unknown => ({ ...minimal(), stories });
+  const story = (extra: Record<string, unknown> = {}) => ({
+    slug: "demleme",
+    kind: "guide",
+    collection: "cay",
+    title: { tr: "Demleme" },
+    body: { tr: "Kaynar su." },
+    ...extra,
+  });
+
+  it("accepts a story and fills its defaults", () => {
+    const content = menuContentSchema.parse(withStories([story({ items: ["cay"] })]));
+    expect(content.stories[0]).toMatchObject({ gallery: [], items: ["cay"], status: "published" });
+  });
+
+  it("a stop belongs to a collection; only chapters and guides have stop numbers", () => {
+    expect(problems(withStories([story({ collection: undefined })])).join()).toContain(
+      "Durak (chapter / guide) bir koleksiyona aittir",
+    );
+    expect(problems(withStories([story({ kind: "chef_note", stop: 2 })])).join()).toContain(
+      "Durak numarası yalnızca chapter / guide hikâyede",
+    );
+    expect(
+      problems(withStories([story({ stop: 1 }), story({ slug: "ikinci", stop: 1 })])).join(),
+    ).toContain("Tekrarlanan durak: cay#1");
+  });
+
+  it("refuses unknown images and products, and duplicate stories", () => {
+    const found = problems(
+      withStories([story({ cover: "yok", gallery: ["hic"], items: ["kofte"] }), story()]),
+    ).join(" | ");
+    expect(found).toContain("Kayıtsız görsel: yok");
+    expect(found).toContain("Kayıtsız görsel: hic");
+    expect(found).toContain("Kayıtsız ürün: kofte");
+    expect(found).toContain("Tekrarlanan hikâye: demleme");
+  });
+
+  it("a story needs its Turkish body (the hikayeler/{slug}.tr.md file)", () => {
+    expect(problems(withStories([story({ body: { en: "Boiling water." } })]))).toContain(
+      "stories.0.body.tr: Invalid input: expected string, received undefined",
+    );
   });
 });

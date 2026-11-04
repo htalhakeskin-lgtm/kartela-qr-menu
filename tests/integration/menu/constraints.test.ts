@@ -13,6 +13,7 @@ import {
   optionRules,
   options,
   setComponents,
+  stories,
   tastingCourses,
 } from "@/server/db/tenant/tables";
 
@@ -239,5 +240,27 @@ describe("menu engine constraints", () => {
       }),
     );
     expect(await course).toBe(CHECK_VIOLATION);
+  });
+
+  it("Keşfet: a numbered stop needs its collection, and a stop number is used once", async () => {
+    const story = (extra: Partial<typeof stories.$inferInsert>) =>
+      errorCode(
+        withVenue(venue.id, (tx) =>
+          tx.insert(stories).values({
+            venueId: venue.id,
+            slug: `hikaye-${newId()}`,
+            kind: "guide",
+            title: { tr: "Adım" },
+            bodyMd: { tr: "Metin." },
+            ...extra,
+          }),
+        ),
+      );
+    expect(await story({ chapterNo: 1 })).toBe(CHECK_VIOLATION); // no collection
+    expect(await story({ collection: "rehber", chapterNo: 0 })).toBe(CHECK_VIOLATION);
+    expect(await story({ kind: "essay" })).toBe(CHECK_VIOLATION);
+    expect(await story({ bodyMd: { en: "Text." } as never })).toBe(CHECK_VIOLATION);
+    expect(await story({ collection: "rehber", chapterNo: 1 })).toBe("no error");
+    expect(await story({ collection: "rehber", chapterNo: 1 })).toBe(UNIQUE_VIOLATION);
   });
 });

@@ -22,11 +22,20 @@ import {
   options as optionsTable,
   sectionItems,
   setComponents,
+  stories,
+  storyItems,
   tastingCourses,
 } from "./tables";
 
 export type SeedContentResult =
-  | { written: true; images: number; optionGroups: number; items: number; menus: number }
+  | {
+      written: true;
+      images: number;
+      optionGroups: number;
+      stories: number;
+      items: number;
+      menus: number;
+    }
   | { written: false; reason: "venue already has a menu" };
 
 /**
@@ -48,7 +57,9 @@ export async function seedVenueContent(
   const today = businessDate(now, timeZone);
   return withVenue(venueId, async (tx) => {
     if (options.replace) {
-      // Children cascade: sections → placements, items → prices. Items before images (FK).
+      // Children cascade: sections → placements, items → prices. Stories and items before
+      // images (cover and photo keys have no cascade).
+      await tx.delete(stories).where(eq(stories.venueId, venueId));
       await tx.delete(menus).where(eq(menus.venueId, venueId));
       await tx.delete(items).where(eq(items.venueId, venueId));
       await tx.delete(optionGroups).where(eq(optionGroups.venueId, venueId)); // options, links, rules
@@ -149,6 +160,7 @@ export async function seedVenueContent(
 
     await writeOptions();
     await writeAvailabilityAndRelations();
+    await writeStories();
 
     for (const [menuSort, menu] of content.menus.entries()) {
       const [menuRow] = await tx
@@ -192,10 +204,51 @@ export async function seedVenueContent(
     return {
       written: true,
       optionGroups: Object.keys(content.optionGroups).length,
+      stories: content.stories.length,
       images: imageEntries.length,
       items: content.items.length,
       menus: content.menus.length,
     };
+
+    /** Keşfet stories with their products (D-07); stops numbered in file order per collection. */
+    async function writeStories(): Promise<void> {
+      const nextStop = new Map<string, number>();
+      for (const [sort, story] of content.stories.entries()) {
+        let chapterNo: number | null = null;
+        if (story.collection && (story.kind === "chapter" || story.kind === "guide")) {
+          chapterNo = story.stop ?? (nextStop.get(story.collection) ?? 0) + 1;
+          nextStop.set(story.collection, chapterNo);
+        }
+        const [row] = await tx
+          .insert(stories)
+          .values({
+            venueId,
+            slug: story.slug,
+            kind: story.kind,
+            collection: story.collection ?? null,
+            chapterNo,
+            title: story.title,
+            summary: story.summary ?? null,
+            bodyMd: story.body,
+            coverId: story.cover ? lookup(imageIds, story.cover) : null,
+            galleryIds: story.gallery.map((key) => lookup(imageIds, key)),
+            status: story.status,
+            sort,
+          })
+          .returning({ id: stories.id });
+        if (!row) throw new Error(`Hikâye yazılamadı: ${story.slug}`);
+        if (story.items.length > 0) {
+          await tx.insert(storyItems).values(
+            story.items.map((slug, itemSort) => ({
+              venueId,
+              storyId: row.id,
+              itemId: itemId(slug),
+              sort: itemSort,
+            })),
+          );
+        }
+      }
+    }
 
     /** Availability rows and the relations between products (D-06). */
     async function writeAvailabilityAndRelations(): Promise<void> {

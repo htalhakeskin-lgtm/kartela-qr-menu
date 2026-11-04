@@ -74,6 +74,7 @@ export type MenuBase = {
   itemId: string;
   /** A second product, for relations (an item cannot relate to itself). */
   otherItemId: string;
+  storyId: string;
   groupId: string;
   optionId: string;
   otherOptionId: string;
@@ -116,7 +117,18 @@ export async function createMenuBase(tx: TenantTx, venueId: string): Promise<Men
       },
     ])
     .returning({ id: tables.options.id });
+  const [story] = await tx
+    .insert(tables.stories)
+    .values({
+      venueId,
+      slug: `story-${suffix}`,
+      kind: "supplier",
+      title: { tr: "Temel hikâye" },
+      bodyMd: { tr: "Gövde." },
+    })
+    .returning({ id: tables.stories.id });
   return {
+    storyId: story!.id,
     menuId: menu!.id,
     sectionId: section!.id,
     itemId: item!.id,
@@ -240,6 +252,18 @@ export const tenantFixtures: Record<string, Fixture> = {
     courseNo: 1,
     title: { tr: "Çorba" },
     itemId: base.otherItemId,
+  })),
+  stories: fixture(tables.stories, (venueId) => ({
+    venueId,
+    slug: `fixture-${newId()}`,
+    kind: "chef_note",
+    title: { tr: "Ustanın notu" },
+    bodyMd: { tr: "Kısa bir not." },
+  })),
+  story_items: fixture(tables.storyItems, (venueId, { base }) => ({
+    venueId,
+    storyId: base.storyId,
+    itemId: base.itemId,
   })),
   media_assets: fixture(tables.mediaAssets, (venueId) => ({
     venueId,

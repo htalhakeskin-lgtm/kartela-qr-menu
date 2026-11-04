@@ -21,8 +21,7 @@ async function main() {
   const { venues: registry } = await import("@/platform/tenant/registry");
   const { seedVenues } = await import("@/server/db/tenant/seed-venues");
   const { seedVenueContent } = await import("@/server/db/tenant/seed-content");
-  const { parseMenuContent } = await import("@/platform/menu/content");
-  const { venueContents } = await import("../content/mekanlar/icerik");
+  const { loadVenueContent } = await import("@/server/content/venue-content");
 
   async function seedPlatform() {
     await db
@@ -64,12 +63,12 @@ async function main() {
   // --icerik-yenile rewrites it from the files (local content work; db:reset starts empty anyway).
   const replace = process.argv.includes("--icerik-yenile");
   for (const [slug, venueId] of venueIds) {
-    const input = venueContents[slug];
-    if (!input) continue;
-    const result = await seedVenueContent(venueId, parseMenuContent(slug, input), { replace });
+    const content = await loadVenueContent(slug);
+    if (!content) continue;
+    const result = await seedVenueContent(venueId, content, { replace });
     console.log(
       result.written
-        ? `✓ ${slug}: ${String(result.menus)} menü, ${String(result.items)} ürün, ${String(result.optionGroups)} seçenek grubu, ${String(result.images)} görsel`
+        ? `✓ ${slug}: ${String(result.menus)} menü, ${String(result.items)} ürün, ${String(result.optionGroups)} seçenek grubu, ${String(result.stories)} hikâye, ${String(result.images)} görsel`
         : `· ${slug}: menüsü var, içerik yazılmadı (yenilemek için: pnpm db:seed --icerik-yenile)`,
     );
   }
