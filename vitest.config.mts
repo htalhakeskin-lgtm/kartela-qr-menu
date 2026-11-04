@@ -23,7 +23,11 @@ export default defineConfig({
     projects: [
       {
         resolve: { alias },
-        test: { ...shared, name: "unit", include: ["src/**/*.test.{ts,tsx}"] },
+        test: {
+          ...shared,
+          name: "unit",
+          include: ["src/**/*.test.{ts,tsx}", "scripts/**/*.test.ts"],
+        },
       },
       {
         resolve: { alias },

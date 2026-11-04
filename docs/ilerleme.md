@@ -185,7 +185,7 @@ Faz 1'in son dilimi (D-22) bitip Rakım yayına çıkınca durulur; teslim: yay�
 - `kepce-lokanta.vercel.app` projeye bağlı ama mekân kaydında yok (Kepçe D-39'da kaydedilir); o zamana kadar `*.vercel.app` kuralıyla platform ana sayfasını gösterir.
 - Mekâna özgü 404 sayfası yok: mekân alan adında bilinmeyen yol global 404'ü (Kartela) gösterir; D-11'de mekânın kendi 404'ü.
 - Rakım ölçüm sayfasındaki "TR · EN" yalnızca metin (dil seçici değil); EN içerikle D-14, dil seçici D-15.
-- Önizleme ve üretim aynı Neon veritabanını görüyor (doğrulandı: Vercel'de `DATABASE_URL` üç ortamda aynı). K-42 ile önizleme derlemesi migration uygulamıyor; önizlemede panel / veritabanı okuyan sayfa yeni tabloları göremeyebilir. Menü sayfaları derlemede veritabanını okumaya başlamadan (D-08 / D-09) Neon önizleme dallanması açılır (Vercel → Storage → kartela-db → bağlantıda "Create database branch for deployment: Preview"), ardından Preview ortamına `PREVIEW_DB_BRANCH=true`.
+- Önizleme veritabanı ayrımı (K-42 → K-43): 2026-11-05'te Neon önizleme dallanması açıldı. Önizleme derlemesi kendi dalında migration ve tohum çalıştırır; koşul `PREVIEW_DB_BRANCH=true` ve veritabanı parmak izinin üretiminkinden farklı olması. Neon ücretsiz planında en çok 10 dal var: birleştirilen PR'ların önizleme yayınları silinir (`vercel remove`), dalları da onlarla gider.
 - Neon sahip rolünün `BYPASSRLS` özelliği doğrulanmadı (üretim veritabanını okuma izni yok). Tasarım buna bağlı değil: kiracı erişimi her zaman `app_rw` ile (K-41); yalnızca ESLint dışı, sahip rolle kiracı tablosuna giden bir kod RLS'ye takılmayabilir.
 - `pnpm audit`: iki orta düzey bulgu yalnızca geliştirme araçlarında (drizzle-kit → esbuild ≤ 0.24.2, eslint → minimatch < 11.0.1); yükseltme yolu çıkınca kapatılır.
 
