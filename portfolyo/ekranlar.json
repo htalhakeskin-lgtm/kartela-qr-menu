@@ -1,0 +1,41 @@
+{
+  "$comment": "Plan §21'deki ekran listesi. dosya: {sıra}-{ekran}-{cihaz}; cihaz: masaustu | mobil | tablet. tamSayfa: true ise ayrıca '-tam' sonekli tam sayfa görüntüsü alınır. panel: true ise demo yöneticisinin oturumuyla. hazirla: çekimden önce adımlar — { doldur, metin } · { tikla } · { bekle } (Playwright seçicileri; yerel <dialog> için dialog[open]). Yolda {anahtar} yer tutucusu testteki resolveLinks() ile dolar (ör. {takip}).",
+  "ekranlar": [
+    {
+      "dosya": "01-platform-masaustu",
+      "yol": "/",
+      "cihaz": "masaustu",
+      "tamSayfa": true
+    },
+    {
+      "dosya": "02-platform-mobil",
+      "yol": "/",
+      "cihaz": "mobil",
+      "tamSayfa": true
+    },
+    {
+      "dosya": "03-rakim-menu-mobil",
+      "yol": "/tema-rakim/rakim/tr",
+      "cihaz": "mobil",
+      "tamSayfa": true
+    },
+    {
+      "dosya": "04-rakim-menu-masaustu",
+      "yol": "/tema-rakim/rakim/tr",
+      "cihaz": "masaustu",
+      "tamSayfa": true
+    },
+    {
+      "dosya": "05-stil-masaustu",
+      "yol": "/stil",
+      "cihaz": "masaustu",
+      "tamSayfa": true
+    },
+    {
+      "dosya": "06-stil-mobil",
+      "yol": "/stil",
+      "cihaz": "mobil",
+      "tamSayfa": true
+    }
+  ]
+}

@@ -1,0 +1,26 @@
+# Local PostgreSQL (16-ortamlar-ve-yayin §4). Keep the major version equal to Neon's (18, checked 2026-11-04).
+# docker compose up -d  →  postgres://app:app@localhost:5436/app  (tests: app_test). Host port 5436: 5432, 5434 and 5435 are used by other local projects (plan K-30).
+name: kartela
+services:
+  db:
+    image: postgres:18-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: app
+      POSTGRES_PASSWORD: app
+      POSTGRES_DB: app
+      TZ: UTC
+    ports:
+      - "5436:5432"
+    volumes:
+      # PostgreSQL 18 images keep data under a versioned folder: mount the parent directory.
+      - db-data-18:/var/lib/postgresql
+      - ./docker/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U app -d app"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  db-data-18:

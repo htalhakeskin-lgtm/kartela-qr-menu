@@ -1,0 +1,27 @@
+# Dependency updates (15-git-ve-ci §6): weekly, grouped, with a cooldown before new versions.
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule: { interval: weekly, day: monday }
+    cooldown:
+      default-days: 3
+      semver-major-days: 7
+    groups:
+      minor-and-patch:
+        update-types: [minor, patch]
+    commit-message: { prefix: build, prefix-development: build, include: scope }
+    open-pull-requests-limit: 5
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule: { interval: weekly, day: monday }
+    cooldown: { default-days: 3 }
+    groups:
+      actions:
+        patterns: ["*"]
+    commit-message: { prefix: ci }
+
+  - package-ecosystem: docker-compose
+    directory: /
+    schedule: { interval: monthly }

@@ -1,0 +1,10 @@
+# Never upload local secrets or build output with `vercel deploy` (CLI uploads).
+.env*
+!.env.example
+.next
+node_modules
+playwright
+test-results
+playwright-report
+portfolyo/screenshot
+portfolyo/mockup

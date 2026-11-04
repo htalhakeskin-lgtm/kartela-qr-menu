@@ -1,0 +1,23 @@
+# Supply-chain protections (15-git-ve-ci §6). Single-package repo: no `packages` list needed.
+
+# Do not install versions published less than 3 days ago (minutes). create-next-app@latest
+# may pick a release that is only hours old: pin the newest version older than 3 days instead
+# (see iskelet/README.md, step 1) or add a dated, justified minimumReleaseAgeExclude entry.
+minimumReleaseAge: 4320
+# minimumReleaseAgeExclude:
+#   - some-package   # urgent security fix — PR link and date
+
+# Install scripts are blocked unless listed (pnpm 12: `allowBuilds`, replaces
+# `ignoredBuiltDependencies` / `onlyBuiltDependencies`). These packages work without theirs:
+allowBuilds:
+  sharp: false # prebuilt binaries ship as optional dependencies
+  unrs-resolver: false # same
+  lefthook: false # hooks are installed by the "prepare" script instead
+  esbuild: false # platform binary ships as an optional dependency
+
+
+# Temporary audit exemptions (15-git-ve-ci §6): reason + date + review date. None needed
+# (2026-10-23: pnpm audit --audit-level=high is clean; Lighthouse CI runs via npx, not as a dependency).
+# auditConfig:
+#   ignoreGhsas:
+#     - GHSA-xxxx-xxxx-xxxx # package, path, why it cannot reach user input, review date

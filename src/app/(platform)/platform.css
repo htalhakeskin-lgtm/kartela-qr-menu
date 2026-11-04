@@ -1,0 +1,60 @@
+@import "tailwindcss";
+
+/*
+ * Kartela platform tokens (plan §11.8): the introduction page, legal texts, style tile and — from
+ * D-18 — the panel. Venue sites never load this file; each theme has its own stylesheet in its
+ * own root layout (ADR-0003). Contrast measured 2026-11-04 (WCAG relative luminance).
+ */
+:root {
+  --background: #f7f7f5;
+  --surface: #ffffff;
+  --surface-muted: #eeeeea;
+  --foreground: #18181b; /* 16.52:1 */
+  --muted-foreground: #5b5b63; /* 6.27:1 */
+  --border: #d8d8d2; /* decorative only; form controls use --control-border */
+  --control-border: #8a8a84; /* 3.24:1 (WCAG 1.4.11) */
+  --primary: #1f5f4a; /* 7.01:1 */
+  --primary-foreground: #f7f7f5;
+  --accent: #1f5f4a;
+  --accent-foreground: #f7f7f5;
+  --success: #1f5f4a;
+  --warning: #8a5a00;
+  --danger: #a32121;
+  --info: #24527a;
+  --focus: #18181b;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-surface: var(--surface);
+  --color-surface-muted: var(--surface-muted);
+  --color-foreground: var(--foreground);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-border: var(--border);
+  --color-control-border: var(--control-border);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+}
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+  body {
+    background: var(--background);
+    color: var(--foreground);
+    font-family: var(--font-sans);
+  }
+  :focus-visible {
+    outline: 2px solid var(--focus);
+    outline-offset: 2px;
+  }
+  ::selection {
+    background: var(--primary);
+    color: var(--primary-foreground);
+  }
+}
