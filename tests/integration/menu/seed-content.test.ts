@@ -4,13 +4,13 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { localize } from "@/platform/i18n/fallback";
 import { availabilityStatus, dailyEntries } from "@/platform/menu/availability";
 import { evaluate, initialSelection, toggle } from "@/platform/menu/configurator";
-import { type MenuContent, parseMenuContent } from "@/platform/menu/content";
+import type { MenuContent } from "@/platform/menu/content";
 import type { VenueMenu } from "@/platform/menu/types";
-import { loadVenueMenu, withVenue } from "@/server/db/tenant";
+import { loadVenueContent } from "@/server/content/venue-content";
+import { loadVenueMedia, loadVenueMenu, loadVenueStories, withVenue } from "@/server/db/tenant";
 import { seedVenueContent } from "@/server/db/tenant/seed-content";
 import { items, mediaAssets } from "@/server/db/tenant/tables";
 
-import { venueContents } from "../../../content/mekanlar/icerik";
 import { createVenue, removeVenues, type TestVenue } from "../tenant/fixtures";
 
 /**
@@ -29,11 +29,12 @@ describe("seedVenueContent: content file → database → read model", () => {
 
   beforeAll(async () => {
     venue = await createVenue("icerik");
-    content = parseMenuContent("ornek", venueContents.ornek);
+    content = (await loadVenueContent("ornek"))!;
     expect(await seedVenueContent(venue.id, content, { now: SEEDED_AT })).toEqual({
       written: true,
-      images: 1,
+      images: 2,
       optionGroups: 3,
+      stories: 4,
       items: 15,
       menus: 3,
     });
@@ -190,6 +191,32 @@ describe("seedVenueContent: content file → database → read model", () => {
       [2, "Sulu yemek", idOf("zeytinyagli-kuru-fasulye")],
       [3, "Tatlı", idOf("sutlac")],
     ]);
+  });
+
+  it("D-07: stories keep their order, numbered stops, products and cover", async () => {
+    const [stories, media] = await withVenue(venue.id, (tx) =>
+      Promise.all([loadVenueStories(tx, venue.id), loadVenueMedia(tx, venue.id)]),
+    );
+    expect(stories.map((s) => [s.slug, s.kind, s.collection, s.stop])).toEqual([
+      ["fasulyenin-yolu", "supplier", null, null],
+      ["ustanin-notu", "chef_note", null, null],
+      ["cay-demligi-isitmak", "guide", "cay-demleme", 1],
+      ["cay-demlenmesi", "guide", "cay-demleme", 2],
+    ]);
+    const bySlug = (slug: string) => menu.items.find((item) => item.slug === slug)!.id;
+    expect(stories[0]!.itemIds).toEqual([
+      bySlug("zeytinyagli-kuru-fasulye"),
+      bySlug("esnaf-tabagi"),
+    ]);
+    expect(stories[0]!.coverId).toBeNull(); // a story without an image is a first-class state
+    const cover = media[stories[1]!.coverId!]!;
+    expect(cover).toMatchObject({
+      url: "https://images.unsplash.com/photo-1493606278519-11aa9f86e40a",
+      width: 2442,
+    });
+    expect(Object.keys(media)).toHaveLength(2);
+    expect(stories[0]!.body.tr).toContain("## Neden aynı köy?");
+    expect(localize(stories[1]!.body, "ar")).toMatchObject({ lang: "tr", fallback: true });
   });
 
   it("the read model can leave out past daily entries", async () => {

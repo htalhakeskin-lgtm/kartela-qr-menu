@@ -30,6 +30,18 @@ export default defineMenuContent({
       },
       focal: [50, 55],
     },
+    "fincan-sade-kahve": {
+      source: "unsplash",
+      url: "https://images.unsplash.com/photo-1493606278519-11aa9f86e40a",
+      width: 2442,
+      height: 1628,
+      photographer: "Isaac Benhesed",
+      sourcePage: "https://unsplash.com/photos/onLbXleIkds",
+      alt: {
+        tr: "Beyaz masada yukarıdan çekilmiş beyaz fincanda sade kahve",
+        en: "Black coffee in a white cup on a white table, from above",
+      },
+    },
   },
 
   optionGroups: {

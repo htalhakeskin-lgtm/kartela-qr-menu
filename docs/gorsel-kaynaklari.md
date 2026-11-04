@@ -20,4 +20,4 @@ Faz 3 ölçüm sayfasında (`src/themes/rakim/olcum.ts`) kullanılanlar. D-14'te
 
 ## Test fikstürü (`content/mekanlar/_ornek/menu.ts`)
 
-Yalnızca yerel ve CI testlerinde; üretim derlemesine girmez (`fixture: true`). Görsel kaydı ve fotoğraflı ürün yolunu sınamak için Rakım tablosundaki `1610889556528-9a770e32642f` (Adi Goldstein, cortado) bir ürüne bağlıdır. Ayrı bir site olduğu için GK-03 (tek rol) ihlali sayılmaz; D-14'te Rakım serisi seçilirken bu görsel Rakım'da kullanılırsa fikstür başka bir görsele geçer.
+Yalnızca yerel ve CI testlerinde; üretim derlemesine girmez (`fixture: true`). Görsel kaydı, fotoğraflı ürün ve hikâye kapağı yollarını sınamak için Rakım tablosundaki `1610889556528-9a770e32642f` (Adi Goldstein, cortado) bir ürüne, `1493606278519-11aa9f86e40a` (Isaac Benhesed, sade kahve) bir Keşfet hikâyesinin kapağına bağlıdır. Ayrı bir site olduğu için GK-03 (tek rol) ihlali sayılmaz; D-14'te Rakım serisi seçilirken bu görseller Rakım'da kullanılırsa fikstür başka görsellere geçer.

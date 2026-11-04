@@ -4,7 +4,7 @@ import { parseMoney } from "../../lib/money";
 import type { Locale } from "../tenant/registry-schema";
 import type { IsoWeekday } from "./clock";
 import { PRICE_UNITS, priceProblems } from "./price";
-import { ALLERGENS, DIETS, ITEM_KINDS, ITEM_STATUSES, MENU_KINDS } from "./vocabulary";
+import { ALLERGENS, DIETS, ITEM_KINDS, ITEM_STATUSES, MENU_KINDS, STORY_KINDS } from "./vocabulary";
 
 /**
  * Menu content file of a venue: content/mekanlar/{ad}/menu.ts (plan §10, D-04). One typed file
@@ -355,6 +355,47 @@ const menuSchema = z
     }
   });
 
+/**
+ * A Keşfet story (D-07, REQ-010). Metadata lives in content/mekanlar/{ad}/hikayeler.ts, the body
+ * in hikayeler/{slug}.{dil}.md; the content loader joins them into `body` before validation.
+ * Stops of a collection (chapter, guide) are numbered in file order unless `stop` is given.
+ */
+const storySchema = z
+  .object({
+    slug,
+    kind: z.enum(STORY_KINDS),
+    collection: slug.optional(),
+    stop: z.number().int().min(1).optional(),
+    title: translatedSchema,
+    summary: translatedSchema.optional(),
+    /** Markdown per language; Turkish required. Inline images are not rendered (K-34). */
+    body: translatedSchema,
+    cover: slug.optional(),
+    gallery: z.array(slug).default([]),
+    items: z.array(slug).default([]),
+    status: z.enum(ITEM_STATUSES).default("published"),
+  })
+  .strict()
+  .superRefine((story, ctx) => {
+    const numbered = story.kind === "chapter" || story.kind === "guide";
+    if (numbered && !story.collection) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["collection"],
+        message: "Durak (chapter / guide) bir koleksiyona aittir",
+      });
+    }
+    if (!numbered && story.stop !== undefined) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["stop"],
+        message: "Durak numarası yalnızca chapter / guide hikâyede",
+      });
+    }
+  });
+
+export type StoryInput = Omit<z.input<typeof storySchema>, "body">;
+
 export const menuContentSchema = z
   .object({
     images: z.record(slug, imageSchema).default({}),
@@ -362,6 +403,7 @@ export const menuContentSchema = z
     items: z.array(itemSchema).min(1),
     rules: z.array(ruleSchema).default([]),
     menus: z.array(menuSchema).min(1),
+    stories: z.array(storySchema).default([]),
   })
   .strict()
   .superRefine((content, ctx) => {
@@ -450,6 +492,44 @@ export const menuContentSchema = z
             });
           }
         }
+      }
+    });
+
+    const storySlugs = new Set<string>();
+    const stops = new Set<string>();
+    content.stories.forEach((story, index) => {
+      const path = ["stories", index];
+      if (storySlugs.has(story.slug)) {
+        ctx.addIssue({
+          code: "custom",
+          path: [...path, "slug"],
+          message: `Tekrarlanan hikâye: ${story.slug}`,
+        });
+      }
+      storySlugs.add(story.slug);
+      for (const key of [story.cover, ...story.gallery]) {
+        if (key !== undefined && !(key in content.images)) {
+          ctx.addIssue({ code: "custom", path, message: `Kayıtsız görsel: ${key}` });
+        }
+      }
+      for (const ref of story.items) {
+        if (!known(ref))
+          ctx.addIssue({
+            code: "custom",
+            path: [...path, "items"],
+            message: `Kayıtsız ürün: ${ref}`,
+          });
+      }
+      if (story.collection && story.stop !== undefined) {
+        const stop = `${story.collection}#${String(story.stop)}`;
+        if (stops.has(stop)) {
+          ctx.addIssue({
+            code: "custom",
+            path: [...path, "stop"],
+            message: `Tekrarlanan durak: ${stop}`,
+          });
+        }
+        stops.add(stop);
       }
     });
 
@@ -545,6 +625,11 @@ export type MenuContent = z.output<typeof menuContentSchema>;
 /** Typed helper for content/mekanlar/{ad}/menu.ts; validation happens when the seed reads it. */
 export function defineMenuContent(content: MenuContentInput): MenuContentInput {
   return content;
+}
+
+/** Typed helper for content/mekanlar/{ad}/hikayeler.ts (bodies come from hikayeler/*.md). */
+export function defineStories(stories: readonly StoryInput[]): readonly StoryInput[] {
+  return stories;
 }
 
 /** Validates a content file and throws with every problem and its path. */

@@ -51,3 +51,7 @@ export type MenuKind = (typeof MENU_KINDS)[number];
 
 export const ITEM_STATUSES = ["draft", "published", "archived"] as const;
 export type ItemStatus = (typeof ITEM_STATUSES)[number];
+
+/** Keşfet story kinds (plan §9, D-07): chapter and guide are numbered stops of a collection. */
+export const STORY_KINDS = ["item_story", "chef_note", "supplier", "chapter", "guide"] as const;
+export type StoryKind = (typeof STORY_KINDS)[number];

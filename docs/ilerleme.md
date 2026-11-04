@@ -4,9 +4,9 @@
 
 ## Şu an
 
-- **Etkin dilim:** D-06 — Menü motoru III · ✅
-- **Son yapılan:** D-06: müsaitlik (tükendi işareti ve süresizi, günlük adet ve 04:00 sıfırlaması, saatli çıkış, mevsim), günün menüsü (haftanın günü deseninden iş günü kayıtları), ilişkiler (eşleşme, öneri), set bileşenleri, tadım sırası; saf `availability` modülü tarayıcıda saati uygular. D-05 canlıda (migration uygulandı, `tenant: isolated`).
-- **Sıradaki adım:** D-07 — Keşfet içerik modeli: hikâye türleri, koleksiyon ve durak, Markdown (sunucuda `react-markdown`, K-34), galeri, ürün bağları. Neon önizleme dallanması (kullanıcı adımı, K-42) D-08 / D-09'dan önce açılmalı.
+- **Etkin dilim:** D-07 — Keşfet içerik modeli · ✅
+- **Son yapılan:** D-07: Keşfet hikâyeleri (tür, koleksiyon ve durak, çevrilebilir Markdown gövde, kapak, galeri, ürün bağları), içerik yükleyicisi (TS bilgisi + `.md` gövdeleri tek doğrulamada), sunucuda güvenli Markdown bileşeni, hikâye ve görsel kaydı okuma modeli. D-06 canlıda (migration uygulandı, `tenant: isolated`).
+- **Sıradaki adım:** D-08 — tema sözleşmesi ve görünümsüz çekirdek (`ThemeModule`, yuvalar, kancalar, `formatPrice`, `t()`, ön boyama betiği). Menü sayfaları derlemede veritabanını okumaya bu dilimle başlar: **önce Neon önizleme dallanması açılmalı (kullanıcı adımı, K-42).**
 
 ## Gözetimsiz çalışma notları
 
@@ -57,7 +57,7 @@ Faz 1'in son dilimi (D-22) bitip Rakım yayına çıkınca durulur; teslim: yay�
 | D-04 | İçerik klasöründen tohum hattı: `content/mekanlar/{ad}/` (mekan.ts, menu.ts, hikayeler, gorseller.ts), Zod şemaları, `db:seed` / `db:reset`, görsel kaydı ve CDN loader, test fikstür mekânı | QR-03 · REQ-003 | M | P0 | ✅ | — (arayüz yok) | 10 birim (şema, gönderilen içerik dosyaları geçerli ve eksiksiz) + 6 entegrasyon (yazma → geri okuma, ikinci çalıştırma, yeniden kurma, görsel FK; kiracı takımı 11 tablo) |
 | D-05 | Menü motoru II: seçenek grupları, en az / en çok, fiyat farkı, uyumluluk kuralları, `domain/configurator.ts` | QR-07 · REQ-007 | M | P0 | ✅ | — (arayüz yok) | 13 birim (ürün kurucu 9, içerik şeması 4) + 5 entegrasyon (kısıtlar, içerik → okuma modeli → ürün kurucu; kiracı takımı 15 tablo) |
 | D-06 | Menü motoru III: müsaitlik (tükendi, günlük adet, saatli çıkış, mevsim, günün menüsü) + ilişkiler (eşleşme, öneri, set, tadım) | QR-08, QR-09 · REQ-008, REQ-009 | M | P0 | ✅ | — (arayüz yok) | 25 birim (müsaitlik) + 4 birim (içerik şeması) + 6 entegrasyon (kısıtlar, günün menüsü, müsaitlik, ilişkiler; kiracı takımı 20 tablo) |
-| D-07 | Keşfet içerik modeli: hikâye türleri, koleksiyon ve durak, Markdown (sunucuda `react-markdown`, K-34), galeri, ürün bağları | QR-10 · REQ-010 | M | P0 | ⏳ | — | — |
+| D-07 | Keşfet içerik modeli: hikâye türleri, koleksiyon ve durak, Markdown (sunucuda `react-markdown`, K-34), galeri, ürün bağları | QR-10 · REQ-010 | M | P0 | ✅ | — (arayüz yok) | 4 birim (güvenli Markdown) + 4 birim (hikâye şeması) + 2 entegrasyon (kısıtlar, içerik → okuma modeli; kiracı takımı 22 tablo) |
 | D-08 | Tema sözleşmesi + görünümsüz çekirdek: `ThemeModule`, yuvalar, `useActiveMenus`, `useMenuSearch`, `useMenuFilters`, `useConfigurator`, `usePicks`, `useView`, `useVenueContext`, `formatPrice`, `t()`; ön boyama betiği | QR-11, QR-13 · REQ-011, REQ-013 | M | P0 | ⏳ | — | — |
 | D-09 | Sade I: kabuk, hızlı menü (liste / kart / ızgara), yapışkan kategori çubuğu, arama, filtre paneli, alttan ürün paneli, alt çubuk | QR-12, QR-14 · REQ-012, REQ-014 · SCR-001, SCR-003 | M | P0 | ⏳ | — | — |
 | D-10 | Sade II: Keşfet (akış / dergi), Seçtiklerim + garsona göster, RTL, koyu mod, fotoğrafsız ürün (birinci sınıf, K-23), baskı yuvaları, `/stil`, tema konformans takımı | QR-06, QR-13, QR-14 · REQ-006, REQ-013, REQ-014 · SCR-002, SCR-004, SCR-007 | M | P0 | ⏳ | — | — |
@@ -153,14 +153,14 @@ Faz 1'in son dilimi (D-22) bitip Rakım yayına çıkınca durulur; teslim: yay�
 
 ## Etkin dilim planı
 
-**D-06 — Menü motoru III: müsaitlik ve ilişkiler** (dal `feat/d06-availability`)
-- Kabul kriterleri (REQ-008, REQ-009, BR-MST-001…005, BR-ILS-001): tükendi işareti varsayılan olarak bir sonraki 04:00'te düşer, süresiz işaret panel kaldırana dek kalır; günlük adet 0'a inince ürün o iş günü tükenir, 04:00'te tam sayıya döner; saatli çıkışta sıradaki çıkış gösterilir, gün bittiyse yarının ilki; mevsim dışı ürün `dim` ise ayları yazılı soluk, `hide` ise gizli; günün menüsü yalnızca iş gününün kayıtlarını gösterir, kaydı olmayan gün boştur; ürün kendisiyle eşleşemez, aynı çift aynı türde tekrar etmez; set ürünün bileşenleri, tadım menüsünün sıralı tabakları okuma modelinde.
-- Tablolar / migration: `item_availability` (ürün başına tek satır; tükendi bitişi / süresiz, günlük adet + kalan + iş günü, çıkış saatleri `time[]`, mevsim ayları, mevsim dışı görünüm), `daily_menu_entries`, `item_relations` (eşleşme / öneri, not), `set_components`, `tasting_courses`; hepsi kiracı tablosu, bileşik FK.
-- Dosyalar: `src/platform/menu/{availability,clock}.ts` (+ test), `src/platform/menu/{types,content}.ts`, `src/server/db/tenant/tables/availability.ts`, `src/server/db/tenant/{menu,seed-content}.ts`, `content/mekanlar/_ornek/menu.ts`, `drizzle/0010…0011`.
-- Kurallar: BR-MST-001…005, BR-ILS-001, BR-KRC-002; P-01 (iş günü 04:00'te biter).
-- Testler: birim — `availability.test.ts` (iş günü sınırı, varsayılan tükendi bitişi, adet sıfırlama, çıkış saatleri, yıl sonunu aşan mevsim, günün menüsü), içerik şeması D-06 hataları; entegrasyon — kiracı takımına 5 tablo, kısıtlar, sabit bir tohum anıyla günün menüsü deseni (pazar boş), müsaitlik, ilişkiler, set, tadım, `dailyFrom`.
-- Yönetim kılavuzu: — (panel müsaitlik ekranı D-20)
-- Notlar: Menü sayfası statik (ADR-0005): panelin son yazdığı sayfada, saate bağlı kısmı tarayıcı uygular. Panelden değişiklikte etiket yenileme D-12'de. Demo içeriğindeki "bugün tükendi" ve "bugünkü kalan" tohumun çalıştığı güne bağlıdır; Rakım'ın kalıcı uç durumları D-14'te süresiz işaretle ya da günlük cron'la (D-12) korunur.
+**D-07 — Keşfet içerik modeli** (dal `feat/d07-stories`)
+- Kabul kriterleri (REQ-010): bir mekânın hikâyeleri türüyle (ürün hikâyesi, şef notu, tedarikçi, bölüm, rehber), koleksiyonu ve durak sırasıyla, çevrilebilir başlık / özet / Markdown gövdesiyle, kapak ve galerisiyle, bağlı ürünleriyle yazılır ve okunur; bölüm / rehber durağı bir koleksiyona aittir, durak numarası koleksiyonda bir kez kullanılır; gövdenin Türkçesi zorunlu, eksik dil Türkçeye düşer; Markdown yalnızca sunucuda React öğelerine dönüşür, ham HTML ve satır içi görsel atılır, `javascript:` bağlantısı etkisizleşir (K-34); görselsiz hikâye birinci sınıf durum.
+- Tablolar / migration: `stories` (tür, koleksiyon, durak, başlık, özet, `body_md` jsonb, kapak bileşik FK, galeri kimlikleri, durum, sıra, sürüm), `story_items`; kiracı tablosu, bileşik FK.
+- Dosyalar: `src/server/db/tenant/tables/stories.ts`, `src/server/db/tenant/stories.ts` (hikâye ve görsel kaydı okuma modeli), `src/server/content/venue-content.ts` (menü + hikâye bilgisi + Markdown gövdeleri tek doğrulamada), `src/components/markdown/story-markdown.tsx` (+ test), `src/platform/menu/{content,types,vocabulary}.ts`, `content/mekanlar/icerik.ts`, `content/mekanlar/_ornek/hikayeler.ts` + `hikayeler/*.md`, `drizzle/0012…0013`.
+- Kurallar: K-34, BR-MNU-003, BR-KRC-002.
+- Testler: birim — güvenli Markdown (GFM, ham HTML, satır içi görsel, `javascript:`, dış bağlantı `rel`), hikâye şeması hataları; entegrasyon — kiracı takımına 2 tablo, kısıtlar (koleksiyonsuz durak, tekrarlanan durak, `tr`'siz gövde), içerik → veritabanı → okuma modeli (sıra, durak numaraları, ürünler, kapak, AR düşmesi).
+- Yönetim kılavuzu: — (panel hikâye ekranı D-26)
+- Notlar: Keşfet sayfaları temalarda (Sade D-10, Rakım D-15); bu dilim yalnızca model, içerik hattı ve güvenli Markdown bileşeni. Hikâye bilgisi TS'te tipli, gövdesi `.md` dosyasında: yeni bağımlılık (ön madde ayrıştırıcı) gerekmedi.
 
 ## Görsel inceleme
 

@@ -3,7 +3,7 @@ import type { ItemAvailability } from "./availability";
 import type { ConfigGroup, ConfigRule } from "./configurator";
 import type { PriceLine } from "./price";
 import type { MenuSchedule, OutsideWindow } from "./schedule";
-import type { Allergen, Diet, ItemKind, MenuKind, SpiceLevel } from "./vocabulary";
+import type { Allergen, Diet, ItemKind, MenuKind, SpiceLevel, StoryKind } from "./vocabulary";
 
 /**
  * The menu engine's read model (plan §9, ADR-0003): what the server hands a theme for one venue.
@@ -97,4 +97,35 @@ export type VenueMenu = {
   menus: Menu[];
   /** Every published product once, menu order first (search, product pages, print lists). */
   items: MenuItem[];
+};
+
+/** A registered image (20-gorsel-kalite §5.4): served from its CDN, never larger than it is. */
+export type MediaAsset = {
+  id: string;
+  source: "unsplash" | "pexels" | "upload";
+  url: string;
+  width: number;
+  height: number;
+  alt: Translated;
+  focalX: number;
+  focalY: number;
+  photographer: string | null;
+  sourcePage: string | null;
+  license: string | null;
+};
+
+/** A Keşfet story (D-07, REQ-010); `stop` orders the stops of a collection. */
+export type Story = {
+  id: string;
+  slug: string;
+  kind: StoryKind;
+  collection: string | null;
+  stop: number | null;
+  title: Translated;
+  summary: Translated | null;
+  /** Markdown per language, rendered on the server only (K-34). */
+  body: Translated;
+  coverId: string | null;
+  galleryIds: string[];
+  itemIds: string[];
 };

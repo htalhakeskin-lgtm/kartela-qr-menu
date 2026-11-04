@@ -5,4 +5,5 @@ export * from "./media";
 export * from "./menu";
 export * from "./options";
 export * from "./records";
+export * from "./stories";
 export * from "./venue";

@@ -85,6 +85,20 @@
       "when": 1793822821711,
       "tag": "0011_availability_relations_access",
       "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1793823538384,
+      "tag": "0012_stories",
+      "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1793823546059,
+      "tag": "0013_stories_access",
+      "breakpoints": true
     }
   ]
 }

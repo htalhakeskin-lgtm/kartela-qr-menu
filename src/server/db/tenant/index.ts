@@ -4,3 +4,4 @@ export { type VenueAccess, venueAccess } from "./access";
 export { loadVenueMenu } from "./menu";
 export { type AuditEntry, type DemoOutboxEntry, recordAudit, saveToDemoOutbox } from "./records";
 export { tenantIsolationHolds, type TenantTx, withPlatform, withVenue } from "./scope";
+export { loadVenueMedia, loadVenueStories } from "./stories";
