@@ -12,7 +12,12 @@ const config = {
       1,
       "always",
       [
-        "leads",
+        "tenant",
+        "menu",
+        "theme",
+        "rakim",
+        "sade",
+        "platform",
         "panel",
         "auth",
         "db",
