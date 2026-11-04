@@ -5,8 +5,11 @@ import { defineMenuContent } from "../../../src/platform/menu/content";
  * Turkish, English and Arabic. Never in the production build (fixture: true). Edge cases on
  * purpose: half portions, a sub-section, one Arabic description missing (falls back to Turkish,
  * BR-MNU-003), products without a photo (K-23), a time-limited breakfast menu, a draft product,
- * and the configurator (D-05): a required choice without a default (sugar), a milk choice, extras
- * offered only on the double shot, a sold-out extra and an incompatible pair (oat milk ↔ cream).
+ * the configurator (D-05): a required choice without a default (sugar), a milk choice, extras
+ * offered only on the double shot, a sold-out extra and an incompatible pair (oat milk ↔ cream);
+ * and D-06: a product sold out until further notice, a dessert whose daily count ran out today,
+ * bake times, a winter-only drink, a pairing, a suggestion, a set, a tasting menu and a two-week
+ * menu of the day with Sunday closed.
  *
  * Every published product carries ingredients and energy (REQ-005). Figures are estimates for a
  * typical portion, not lab values. The one photo is registered in docs/gorsel-kaynaklari.md.
@@ -107,6 +110,7 @@ export default defineMenuContent({
       energyKcal: 210,
       portionG: 300,
       prices: [{ amount: "120" }],
+      suggestions: ["ezogelin-corbasi"],
     },
     {
       slug: "ezogelin-corbasi",
@@ -142,6 +146,12 @@ export default defineMenuContent({
       energyKcal: 340,
       portionG: 350,
       prices: [{ amount: "220" }, { unit: "half", amount: "140" }],
+      pairings: [
+        {
+          item: "pirinc-pilavi",
+          note: { tr: "Klasik ikili", en: "The classic pair", ar: "الثنائي الكلاسيكي" },
+        },
+      ],
     },
     {
       slug: "etli-nohut",
@@ -155,6 +165,7 @@ export default defineMenuContent({
       energyKcal: 480,
       portionG: 350,
       prices: [{ amount: "260" }, { unit: "half", amount: "170" }],
+      availability: { soldOut: "indefinite" },
     },
     {
       slug: "pirinc-pilavi",
@@ -182,6 +193,7 @@ export default defineMenuContent({
       energyKcal: 260,
       portionG: 200,
       prices: [{ amount: "110" }],
+      availability: { releaseTimes: ["11:30", "16:00"] },
     },
     {
       slug: "irmik-helvasi",
@@ -196,6 +208,7 @@ export default defineMenuContent({
       energyKcal: 380,
       portionG: 150,
       prices: [{ amount: "100" }],
+      availability: { dailyLimit: 10, remainingToday: 0 },
     },
     {
       slug: "menemen",
@@ -259,6 +272,67 @@ export default defineMenuContent({
       options: [{ group: "sut" }, { group: "ekstra", appliesTo: ["cift"] }],
     },
     {
+      slug: "salep",
+      kind: "drink",
+      name: { tr: "Salep", en: "Salep", ar: "سحلب" },
+      ingredients: {
+        tr: "Süt, salep, şeker, tarçın",
+        en: "Milk, salep, sugar, cinnamon",
+        ar: "حليب، سحلب، سكر، قرفة",
+      },
+      allergens: ["milk"],
+      diets: ["vegetarian", "gluten_free"],
+      energyKcal: 220,
+      volumeMl: 200,
+      prices: [{ amount: "110" }],
+      availability: { seasons: [{ from: 10, to: 3 }] },
+    },
+    {
+      slug: "esnaf-tabagi",
+      kind: "set",
+      name: { tr: "Esnaf tabağı", en: "Tradesman's plate", ar: "طبق الحرفيين" },
+      description: {
+        tr: "Zeytinyağlı kuru fasulye, pirinç pilavı ve bir çay.",
+        en: "White beans in olive oil, rice pilaf and a tea.",
+        ar: "فاصوليا بيضاء بزيت الزيتون وأرز وشاي.",
+      },
+      ingredients: {
+        tr: "Kuru fasulye, zeytinyağı, soğan, domates, pirinç, arpa şehriye, tereyağı, siyah çay",
+        en: "White beans, olive oil, onion, tomato, rice, orzo, butter, black tea",
+        ar: "فاصوليا بيضاء، زيت زيتون، بصل، طماطم، أرز، شعيرية، زبدة، شاي أسود",
+      },
+      allergens: ["gluten", "milk"],
+      energyKcal: 632,
+      prices: [{ amount: "330" }],
+      components: [
+        { item: "zeytinyagli-kuru-fasulye" },
+        { item: "pirinc-pilavi" },
+        { item: "cay" },
+      ],
+    },
+    {
+      slug: "lokanta-tadimi",
+      kind: "tasting",
+      name: { tr: "Lokanta tadımı", en: "Lokanta tasting", ar: "تذوق اللوكانتا" },
+      description: {
+        tr: "Üç tabakta günün lokantası: çorba, sulu yemek, tatlı.",
+        en: "The lokanta in three small plates: soup, stew, dessert.",
+      },
+      prices: [{ amount: "450" }],
+      courses: [
+        { title: { tr: "Çorba", en: "Soup", ar: "شوربة" }, item: "mercimek-corbasi" },
+        {
+          title: { tr: "Sulu yemek", en: "Stew", ar: "طبق مطبوخ" },
+          item: "zeytinyagli-kuru-fasulye",
+        },
+        {
+          title: { tr: "Tatlı", en: "Dessert", ar: "حلوى" },
+          item: "sutlac",
+          description: { tr: "Fırından yeni çıkmış, ılık.", en: "Warm, fresh from the oven." },
+        },
+      ],
+    },
+    {
       slug: "gunun-tatlisi-taslak",
       status: "draft",
       name: { tr: "Günün tatlısı (taslak)" },
@@ -293,7 +367,28 @@ export default defineMenuContent({
             },
           ],
         },
+        {
+          name: { tr: "Tabaklar", en: "Plates", ar: "أطباق" },
+          items: ["esnaf-tabagi", "lokanta-tadimi"],
+        },
       ],
+    },
+    {
+      slug: "gunun-menusu",
+      kind: "daily",
+      name: { tr: "Günün menüsü", en: "Menu of the day", ar: "قائمة اليوم" },
+      // Sunday has no list: the lokanta is closed (an empty daily menu, BR-MST-005).
+      daily: {
+        weekdays: {
+          "1": ["mercimek-corbasi", "zeytinyagli-kuru-fasulye", "pirinc-pilavi", "sutlac"],
+          "2": ["ezogelin-corbasi", "etli-nohut", "pirinc-pilavi", "irmik-helvasi"],
+          "3": ["mercimek-corbasi", "zeytinyagli-kuru-fasulye", "pirinc-pilavi", "irmik-helvasi"],
+          "4": ["ezogelin-corbasi", "etli-nohut", "pirinc-pilavi", "sutlac"],
+          "5": ["mercimek-corbasi", "zeytinyagli-kuru-fasulye", "pirinc-pilavi", "sutlac"],
+          "6": ["ezogelin-corbasi", "menemen", "irmik-helvasi"],
+        },
+        days: 14,
+      },
     },
     {
       slug: "kahvalti",
@@ -307,7 +402,7 @@ export default defineMenuContent({
         },
         {
           name: { tr: "İçecekler", en: "Drinks", ar: "مشروبات" },
-          items: ["cay", "turk-kahvesi", "cortado"],
+          items: ["cay", "turk-kahvesi", "cortado", "salep"],
         },
       ],
     },

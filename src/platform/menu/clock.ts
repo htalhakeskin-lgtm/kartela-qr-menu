@@ -10,6 +10,7 @@ export type LocalTime = {
   weekday: IsoWeekday;
   /** Minutes since local midnight, 0–1439. */
   minutes: number;
+  year: number;
   month: number; // 1–12
   day: number; // 1–31
 };
@@ -32,6 +33,7 @@ function formatterFor(timeZone: string): Intl.DateTimeFormat {
     formatter = new Intl.DateTimeFormat("en-US", {
       timeZone,
       weekday: "short",
+      year: "numeric",
       month: "numeric",
       day: "numeric",
       hour: "numeric",
@@ -54,6 +56,7 @@ export function localTime(now: Date, timeZone: string): LocalTime {
   return {
     weekday,
     minutes: Number(parts.hour) * 60 + Number(parts.minute),
+    year: Number(parts.year),
     month: Number(parts.month),
     day: Number(parts.day),
   };

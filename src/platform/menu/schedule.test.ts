@@ -16,6 +16,7 @@ describe("BR-MNU-001: menu windows in Istanbul time", () => {
     expect(localTime(new Date("2026-11-06T05:00:00Z"), TZ)).toEqual({
       weekday: 5,
       minutes: 8 * 60,
+      year: 2026,
       month: 11,
       day: 6,
     });

@@ -176,6 +176,33 @@ const nutritionSchema = z
   .partial()
   .strict();
 
+const clock = z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/, "HH:MM");
+const monthDay = z.string().regex(/^(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/, "MM-DD");
+
+const month = z.number().int().min(1).max(12);
+
+/** BR-MST-001…004; the seed turns "today" and remainingToday into instants and dates. */
+const availabilitySchema = z
+  .object({
+    /** "today": until the next 04:00 (P-01); "indefinite": until the panel clears it. */
+    soldOut: z.enum(["today", "indefinite"]).optional(),
+    dailyLimit: z.number().int().min(1).optional(),
+    remainingToday: z.number().int().min(0).optional(),
+    releaseTimes: z.array(clock).min(1).optional(),
+    seasons: z
+      .array(z.object({ from: month, to: month }).strict())
+      .min(1)
+      .optional(),
+    outsideSeason: z.enum(["dim", "hide"]).default("dim"),
+  })
+  .strict()
+  .refine(
+    (value) =>
+      value.remainingToday === undefined ||
+      (value.dailyLimit !== undefined && value.remainingToday <= value.dailyLimit),
+    { message: "remainingToday için dailyLimit gerekir ve onu aşamaz", path: ["remainingToday"] },
+  );
+
 const itemSchema = z
   .object({
     slug,
@@ -205,6 +232,28 @@ const itemSchema = z
     prices: z.array(priceSchema).min(1),
     /** Configurator groups of this product, in order (D-05). */
     options: z.array(itemOptionSchema).default([]),
+    availability: availabilitySchema.optional(),
+    /** "Yanına" pairings and suggestions (D-06, BR-ILS-001). */
+    pairings: z
+      .array(z.object({ item: slug, note: translatedSchema.optional() }).strict())
+      .default([]),
+    suggestions: z.array(slug).default([]),
+    /** Kind "set": what it contains. */
+    components: z
+      .array(z.object({ item: slug, qty: z.number().int().min(1).default(1) }).strict())
+      .default([]),
+    /** Kind "tasting": the ordered courses; a course may point at a product. */
+    courses: z
+      .array(
+        z
+          .object({
+            title: translatedSchema,
+            item: slug.optional(),
+            description: translatedSchema.optional(),
+          })
+          .strict(),
+      )
+      .default([]),
   })
   .strict()
   .transform((item) => ({
@@ -230,9 +279,6 @@ const itemSchema = z
 const placementSchema = z
   .union([slug, z.object({ item: slug, featured: z.boolean().default(false) }).strict()])
   .transform((value) => (typeof value === "string" ? { item: value, featured: false } : value));
-
-const clock = z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/, "HH:MM");
-const monthDay = z.string().regex(/^(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/, "MM-DD");
 
 const scheduleSchema = z
   .object({
@@ -276,9 +322,38 @@ const menuSchema = z
     name: translatedSchema,
     schedule: scheduleSchema.optional(),
     outsideWindow: z.enum(["dim", "hide"]).default("dim"),
-    sections: z.array(sectionSchema).min(1),
+    sections: z.array(sectionSchema).default([]),
+    /**
+     * Kind "daily" (BR-MST-005): products per ISO weekday ("1" = Monday); the seed writes entries
+     * for the next `days` business dates. A weekday without a list is a closed day.
+     */
+    daily: z
+      .object({
+        weekdays: z.partialRecord(
+          z.enum(["1", "2", "3", "4", "5", "6", "7"]),
+          z.array(slug).min(1),
+        ),
+        days: z.number().int().min(1).max(31).default(14),
+      })
+      .strict()
+      .optional(),
   })
-  .strict();
+  .strict()
+  .superRefine((menu, ctx) => {
+    if (menu.kind === "daily" && !menu.daily) {
+      ctx.addIssue({ code: "custom", path: ["daily"], message: "Günün menüsü daily deseni ister" });
+    }
+    if (menu.kind !== "daily" && menu.daily) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["daily"],
+        message: "daily yalnızca kind: daily menüde",
+      });
+    }
+    if (menu.kind !== "daily" && menu.sections.length === 0) {
+      ctx.addIssue({ code: "custom", path: ["sections"], message: "Menü en az bir bölüm ister" });
+    }
+  });
 
 export const menuContentSchema = z
   .object({
@@ -323,6 +398,61 @@ export const menuContentSchema = z
         }
       });
     });
+    const kinds = new Map(content.items.map((item) => [item.slug, item.kind]));
+    const known = (slugRef: string) => kinds.has(slugRef);
+    content.items.forEach((item, index) => {
+      const refs: [string, string][] = [
+        ...item.pairings.map((p, i): [string, string] => [`pairings.${String(i)}`, p.item]),
+        ...item.suggestions.map((ref, i): [string, string] => [`suggestions.${String(i)}`, ref]),
+        ...item.components.map((c, i): [string, string] => [`components.${String(i)}`, c.item]),
+        ...item.courses.flatMap((c, i): [string, string][] =>
+          c.item ? [[`courses.${String(i)}`, c.item]] : [],
+        ),
+      ];
+      for (const [field, ref] of refs) {
+        if (!known(ref))
+          ctx.addIssue({
+            code: "custom",
+            path: ["items", index, field],
+            message: `Kayıtsız ürün: ${ref}`,
+          });
+        if (ref === item.slug) {
+          ctx.addIssue({
+            code: "custom",
+            path: ["items", index, field],
+            message: "Ürün kendisine bağlanamaz (BR-ILS-001)",
+          });
+        }
+      }
+      if ((item.kind === "set") !== item.components.length > 0) {
+        ctx.addIssue({
+          code: "custom",
+          path: ["items", index, "components"],
+          message: "Bileşenler yalnızca ve her zaman kind: set üründe",
+        });
+      }
+      if ((item.kind === "tasting") !== item.courses.length > 0) {
+        ctx.addIssue({
+          code: "custom",
+          path: ["items", index, "courses"],
+          message: "Tadım sırası yalnızca ve her zaman kind: tasting üründe",
+        });
+      }
+    });
+    content.menus.forEach((menu, index) => {
+      for (const [weekday, slugs] of Object.entries(menu.daily?.weekdays ?? {})) {
+        for (const ref of slugs) {
+          if (!known(ref)) {
+            ctx.addIssue({
+              code: "custom",
+              path: ["menus", index, "daily", "weekdays", weekday],
+              message: `Kayıtsız ürün: ${ref}`,
+            });
+          }
+        }
+      }
+    });
+
     content.rules.forEach((rule, index) => {
       for (const field of ["when", "excludes", "requires"] as const) {
         const ref = rule[field];

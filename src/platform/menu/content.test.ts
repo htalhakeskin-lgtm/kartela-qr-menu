@@ -75,7 +75,7 @@ describe("menu content file (D-04)", () => {
   it("refuses links to unknown products and images, and duplicates", () => {
     const input = minimal();
     input.items.push({ ...input.items[0]!, image: "yok" });
-    input.menus[0]!.sections[0]!.items = ["cay", "cay", "kahve"];
+    input.menus[0]!.sections![0]!.items = ["cay", "cay", "kahve"];
     const found = problems(input).join("\n");
     expect(found).toContain("Tekrarlanan ürün: cay");
     expect(found).toContain("Kayıtsız görsel: yok");
@@ -85,7 +85,7 @@ describe("menu content file (D-04)", () => {
 
   it("allows two levels of sections and no deeper", () => {
     const input = minimal();
-    input.menus[0]!.sections[0]!.children = [
+    input.menus[0]!.sections![0]!.children = [
       { name: { tr: "Sıcak" }, items: ["cay"], children: [] } as never,
     ];
     expect(problems(input).join()).toContain("children");
@@ -209,5 +209,60 @@ describe("option groups in the content file (D-05)", () => {
     const input = withOptions();
     input.optionGroups!.sut!.options[1]!.default = true;
     expect(problems(input).join()).toContain("Varsayılan seçenek sayısı max'ı aşıyor");
+  });
+});
+
+describe("availability and relations in the content file (D-06)", () => {
+  const two = (): MenuContentInput => ({
+    items: [
+      { slug: "corba", name: { tr: "Çorba" }, prices: [{ amount: "120" }] },
+      { slug: "pilav", name: { tr: "Pilav" }, prices: [{ amount: "90" }] },
+    ],
+    menus: [
+      {
+        slug: "gun",
+        name: { tr: "Gün" },
+        sections: [{ name: { tr: "Yemek" }, items: ["corba", "pilav"] }],
+      },
+    ],
+  });
+
+  it("BR-ILS-001: a product never pairs with or suggests itself; links must exist", () => {
+    const input = two();
+    input.items[0]!.pairings = [{ item: "corba" }, { item: "kofte" }];
+    input.items[0]!.suggestions = ["corba"];
+    const found = problems(input).join("\n");
+    expect(found).toContain("Ürün kendisine bağlanamaz (BR-ILS-001)");
+    expect(found).toContain("Kayıtsız ürün: kofte");
+  });
+
+  it("components belong to sets and courses to tasting menus only", () => {
+    const input = two();
+    input.items[0]!.components = [{ item: "pilav" }];
+    input.items[1]!.kind = "tasting";
+    const found = problems(input).join("\n");
+    expect(found).toContain("Bileşenler yalnızca ve her zaman kind: set üründe");
+    expect(found).toContain("Tadım sırası yalnızca ve her zaman kind: tasting üründe");
+  });
+
+  it("BR-MST-002: today's remaining count needs a daily limit and stays within it", () => {
+    const input = two();
+    input.items[0]!.availability = { remainingToday: 3 };
+    expect(problems(input).join()).toContain("remainingToday için dailyLimit gerekir");
+    input.items[0]!.availability = { dailyLimit: 2, remainingToday: 3 };
+    expect(problems(input).join()).toContain("remainingToday için dailyLimit gerekir");
+    input.items[0]!.availability = { dailyLimit: 12, remainingToday: 0, releaseTimes: ["07:00"] };
+    expect(problems(input)).toEqual([]);
+  });
+
+  it("BR-MST-005: a daily menu needs its weekday pattern, and only a daily menu has one", () => {
+    const input = two();
+    input.menus.push({ slug: "gunluk", kind: "daily", name: { tr: "Günün menüsü" } });
+    expect(problems(input).join()).toContain("Günün menüsü daily deseni ister");
+    input.menus[1]!.daily = { weekdays: { "1": ["corba", "kofte"] } };
+    expect(problems(input).join()).toContain("Kayıtsız ürün: kofte");
+    input.menus[1]!.daily = { weekdays: { "1": ["corba"] } };
+    input.menus[0]!.daily = { weekdays: { "2": ["pilav"] } };
+    expect(problems(input).join()).toContain("daily yalnızca kind: daily menüde");
   });
 });

@@ -2,12 +2,17 @@ import "server-only";
 
 import { count, eq } from "drizzle-orm";
 
+import { DISPLAY_TIME_ZONE } from "@/lib/format";
+import { businessDate, nextDayEnd } from "@/platform/menu/availability";
 import type { MenuContent } from "@/platform/menu/content";
 
 import { withVenue } from "./scope";
 import {
+  dailyMenuEntries,
+  itemAvailability,
   itemOptionGroups,
   itemPrices,
+  itemRelations,
   items,
   mediaAssets,
   menus,
@@ -16,6 +21,8 @@ import {
   optionRules,
   options as optionsTable,
   sectionItems,
+  setComponents,
+  tastingCourses,
 } from "./tables";
 
 export type SeedContentResult =
@@ -28,12 +35,17 @@ export type SeedContentResult =
  * `replace` deletes the venue's menu data first (db:reset, content development).
  *
  * Sort orders follow the file: the order of menus, sections, placements and price lines.
+ * Time-relative content (a sold-out mark "today", today's remaining count, the daily menu's next
+ * `days` business dates) is anchored at `now` in the venue's time zone (P-01: day ends at 04:00).
  */
 export async function seedVenueContent(
   venueId: string,
   content: MenuContent,
-  options: { replace?: boolean } = {},
+  options: { replace?: boolean; now?: Date; timeZone?: string } = {},
 ): Promise<SeedContentResult> {
+  const now = options.now ?? new Date();
+  const timeZone = options.timeZone ?? DISPLAY_TIME_ZONE;
+  const today = businessDate(now, timeZone);
   return withVenue(venueId, async (tx) => {
     if (options.replace) {
       // Children cascade: sections → placements, items → prices. Items before images (FK).
@@ -136,6 +148,7 @@ export async function seedVenueContent(
     }
 
     await writeOptions();
+    await writeAvailabilityAndRelations();
 
     for (const [menuSort, menu] of content.menus.entries()) {
       const [menuRow] = await tx
@@ -152,6 +165,22 @@ export async function seedVenueContent(
         .returning({ id: menus.id });
       if (!menuRow) throw new Error(`Menü yazılamadı: ${menu.slug}`);
 
+      if (menu.daily) {
+        const entries = Array.from({ length: menu.daily.days }, (_, offset) => {
+          const date = addDays(today, offset);
+          return { date, slugs: menu.daily?.weekdays[String(isoWeekday(date)) as "1"] ?? [] };
+        }).flatMap(({ date, slugs }) =>
+          slugs.map((slug, sort) => ({
+            venueId,
+            menuId: menuRow.id,
+            onDate: date,
+            itemId: itemId(slug),
+            sort,
+          })),
+        );
+        if (entries.length > 0) await tx.insert(dailyMenuEntries).values(entries);
+      }
+
       for (const [sectionSort, section] of menu.sections.entries()) {
         const sectionId = await insertSection(menuRow.id, null, section, sectionSort);
         for (const [childSort, child] of section.children.entries()) {
@@ -167,6 +196,72 @@ export async function seedVenueContent(
       items: content.items.length,
       menus: content.menus.length,
     };
+
+    /** Availability rows and the relations between products (D-06). */
+    async function writeAvailabilityAndRelations(): Promise<void> {
+      const availability = content.items.flatMap((item) => {
+        const a = item.availability;
+        if (!a) return [];
+        return [
+          {
+            venueId,
+            itemId: itemId(item.slug),
+            soldOutUntil: a.soldOut === "today" ? nextDayEnd(now, timeZone) : null,
+            soldOutIndefinitely: a.soldOut === "indefinite",
+            dailyLimit: a.dailyLimit ?? null,
+            remaining: a.remainingToday ?? null,
+            remainingOn: a.remainingToday === undefined ? null : today,
+            releaseTimes: a.releaseTimes ?? [],
+            seasons: a.seasons ?? null,
+            outsideSeason: a.outsideSeason,
+          },
+        ];
+      });
+      if (availability.length > 0) await tx.insert(itemAvailability).values(availability);
+
+      const relations = content.items.flatMap((item) => [
+        ...item.pairings.map((pairing, sort) => ({
+          venueId,
+          fromItemId: itemId(item.slug),
+          toItemId: itemId(pairing.item),
+          kind: "pairing",
+          note: pairing.note ?? null,
+          sort,
+        })),
+        ...item.suggestions.map((slug, sort) => ({
+          venueId,
+          fromItemId: itemId(item.slug),
+          toItemId: itemId(slug),
+          kind: "suggestion",
+          note: null,
+          sort,
+        })),
+      ]);
+      if (relations.length > 0) await tx.insert(itemRelations).values(relations);
+
+      const components = content.items.flatMap((item) =>
+        item.components.map((component, sort) => ({
+          venueId,
+          setItemId: itemId(item.slug),
+          componentItemId: itemId(component.item),
+          qty: component.qty,
+          sort,
+        })),
+      );
+      if (components.length > 0) await tx.insert(setComponents).values(components);
+
+      const courses = content.items.flatMap((item) =>
+        item.courses.map((course, index) => ({
+          venueId,
+          tastingItemId: itemId(item.slug),
+          courseNo: index + 1,
+          title: course.title,
+          itemId: course.item ? itemId(course.item) : null,
+          description: course.description ?? null,
+        })),
+      );
+      if (courses.length > 0) await tx.insert(tastingCourses).values(courses);
+    }
 
     /** Option groups and options (venue-wide), product links, compatibility rules (D-05). */
     async function writeOptions(): Promise<void> {
@@ -278,4 +373,17 @@ function lookup(map: Map<string, string>, key: string): string {
   const found = map.get(key);
   if (!found) throw new Error(`Kimlik bulunamadı: ${key}`);
   return found;
+}
+
+/** "2026-11-06" + 3 days → "2026-11-09" (calendar dates; no time zone involved). */
+function addDays(date: string, days: number): string {
+  const at = new Date(`${date}T12:00:00Z`);
+  at.setUTCDate(at.getUTCDate() + days);
+  return at.toISOString().slice(0, 10);
+}
+
+/** ISO weekday of a calendar date: 1 = Monday … 7 = Sunday. */
+function isoWeekday(date: string): number {
+  const day = new Date(`${date}T12:00:00Z`).getUTCDay();
+  return day === 0 ? 7 : day;
 }
