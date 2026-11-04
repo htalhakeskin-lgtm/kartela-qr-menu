@@ -93,6 +93,19 @@ test.describe("tenant routing", () => {
     expect(await (await request.get("/manifest.webmanifest")).text()).toContain("Kartela");
   });
 
+  test("the venue page's icon loads from its own host", async ({ page, request }) => {
+    // Regression: the /tema-* block answered 404 for the theme tree's icon (Lighthouse console error).
+    await page.goto(venueUrl("rakim"));
+    const hrefs = await page
+      .locator('link[rel="icon"]')
+      .evaluateAll((links) => links.map((link) => link.getAttribute("href") ?? ""));
+    expect(hrefs.length).toBeGreaterThan(0);
+    for (const href of hrefs) {
+      const response = await request.get(href, { headers: { host: venueHost("rakim") } });
+      expect(response.status(), href).toBe(200);
+    }
+  });
+
   test("a venue host still serves the shared API", async ({ request }) => {
     const response = await request.get("/api/health", { headers: { host: venueHost("rakim") } });
     expect(response.status()).toBe(200);

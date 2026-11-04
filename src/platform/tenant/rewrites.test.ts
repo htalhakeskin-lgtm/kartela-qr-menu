@@ -67,6 +67,18 @@ describe("tenant routing by host (ADR-0002 v2)", () => {
     expect(await route("http://localhost:3020/tema-rakim/rakim/tr")).toBe("/bilinmeyen-alan-adi");
   });
 
+  it("the theme's metadata images (icon, share image) stay reachable under /tema-*", async () => {
+    // Next.js serves a theme tree's icon.svg at /tema-rakim/-/-/icon.svg?…: the page links it, so
+    // the internal-path block must let it through (found by Lighthouse: favicon 404 in console).
+    for (const url of [
+      "http://rakim.localhost:3020/tema-rakim/-/-/icon.svg?icon.01jdqqmj2tlg7.svg",
+      "https://rakim-kahve.vercel.app/tema-rakim/rakim/tr/opengraph-image-1a2b3c",
+      "http://localhost:3020/tema-sade/-/-/apple-icon.png",
+    ]) {
+      expect(await route(url), url).toBeNull();
+    }
+  });
+
   it("the platform host keeps its own pages", async () => {
     expect(await route("http://localhost:3020/")).toBeNull();
     expect(await route("https://kartela-platform.vercel.app/kvkk")).toBeNull();
