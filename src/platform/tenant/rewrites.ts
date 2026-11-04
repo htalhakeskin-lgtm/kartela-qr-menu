@@ -16,10 +16,15 @@ import type { VenueRecord } from "./registry-schema";
  *   3. /m/{slug}/… on any other host       → same tree (path-prefixed preview, noindex header)
  *   4. ?mekan={slug} on any other host     → /api/onizleme (sets the cookie; ?mekan=platform clears)
  *   5. kartela_onizleme cookie              → same tree as 2 (panel stays reachable)
+ *   (2, 3, 5 each start with the view cookie rule: kartela_gorunum=kesfet → the locale's Keşfet)
  *   6. unknown host                         → 404
  */
 
 export const PREVIEW_COOKIE = "kartela_onizleme";
+
+/** Hızlı ↔ Keşfet memory (D-08): "kesfet" sends the venue's home to its Keşfet page. */
+export const VIEW_COOKIE = "kartela_gorunum";
+export const EXPLORE_SEGMENT = "kesfet";
 
 /** Internal destination with no route: renders the global 404 (app/global-not-found.tsx). */
 export const NOT_FOUND_PATH = "/bilinmeyen-alan-adi";
@@ -70,6 +75,18 @@ function venuePathRules(
   const tree = `/tema-${venue.theme}/${venue.slug}`;
   const prefix = options.prefix ?? "";
   const rules: TenantRewrite[] = [];
+  // The view cookie only changes a locale's home page; search engines carry no cookie and always
+  // get the quick menu (ADR-0002 v2). These rules come first: the plain home rules would match too.
+  const explore: HasCondition = { type: "cookie", key: VIEW_COOKIE, value: EXPLORE_SEGMENT };
+  for (const locale of venue.locales) {
+    const home = locale === venue.defaultLocale ? prefix || "/" : `${prefix}/${locale}`;
+    rules.push({
+      source: home,
+      destination: `${tree}/${locale}/${EXPLORE_SEGMENT}`,
+      ...conditions,
+      has: [...(conditions.has ?? []), explore],
+    });
+  }
   for (const locale of venue.locales) {
     if (locale === venue.defaultLocale) continue;
     rules.push(

@@ -45,6 +45,33 @@ const platformScopeImport = {
     "The platform scope sees every venue: only src/server/platform/, scripts/ and tests/ may use it (ADR-0004).",
 };
 
+/** BR-TMA-001 (ADR-0003): a theme never imports another theme, nor the server layer. */
+const THEMES = ["rakim", "sade"]; // pnpm tema:yeni appends (D-21)
+const themeBoundaries = THEMES.map((theme) => ({
+  files: [`src/themes/${theme}/**/*.{ts,tsx}`],
+  rules: {
+    "no-restricted-imports": [
+      "error",
+      {
+        paths: [platformScopeImport],
+        patterns: [
+          featureImports,
+          tenantTableImports,
+          {
+            group: ["@/themes/*", `!@/themes/${theme}`, `!@/themes/${theme}/**`],
+            message: "A theme imports only itself, @/platform/* and @/components/* (ADR-0003).",
+          },
+          {
+            group: ["@/server/*", "@/server/**"],
+            message:
+              "Themes render data; the theme routes in src/platform/routes load it (ADR-0003).",
+          },
+        ],
+      },
+    ],
+  },
+}));
+
 export default defineConfig([
   globalIgnores([
     ".next/**",
@@ -120,6 +147,7 @@ export default defineConfig([
       "no-restricted-imports": ["error", { patterns: [featureImports, tenantTableImports] }],
     },
   },
+  ...themeBoundaries,
   {
     // Pure domain code receives "now" as a parameter (02-mimari §3).
     files: ["src/features/*/domain/**/*.{ts,tsx}"],

@@ -144,4 +144,23 @@ describe("tenant routing by host (ADR-0002 v2)", () => {
     expect(await route("http://bilinmeyen.localhost:3020/")).toBe("/bilinmeyen-alan-adi");
     expect(await route("https://example.com/menu")).toBe("/bilinmeyen-alan-adi");
   });
+
+  it("D-08: the view cookie sends a locale's home to its Keşfet page, and only the home", async () => {
+    const kesfet = { cookies: { kartela_gorunum: "kesfet" } };
+    expect(await route("https://rakim-kahve.vercel.app/", kesfet)).toBe(
+      "/tema-rakim/rakim/tr/kesfet",
+    );
+    expect(await route("http://ornek.localhost:3020/ar", kesfet)).toBe(
+      "/tema-sade/ornek/ar/kesfet",
+    );
+    expect(await route("http://localhost:3020/m/ornek/en", kesfet)).toBe(
+      "/tema-sade/ornek/en/kesfet",
+    );
+    expect(await route("http://ornek.localhost:3020/urun/menemen", kesfet)).toBe(
+      "/tema-sade/ornek/tr/urun/menemen",
+    );
+    expect(
+      await route("https://rakim-kahve.vercel.app/", { cookies: { kartela_gorunum: "hizli" } }),
+    ).toBe("/tema-rakim/rakim/tr");
+  });
 });

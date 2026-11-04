@@ -4,6 +4,7 @@ import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
 
 import { isRtl, themeLocaleParams } from "@/platform/tenant/registry";
+import { PrePaint } from "@/platform/theme/pre-paint";
 
 /**
  * Root layout of the Sade theme tree (ADR-0003), shared by every venue on the ready-made theme.
@@ -30,6 +31,9 @@ export default async function SadeRootLayout({
   const { dil } = await params;
   return (
     <html lang={dil} dir={isRtl(dil) ? "rtl" : "ltr"}>
+      <head>
+        <PrePaint />
+      </head>
       <body className="antialiased">{children}</body>
     </html>
   );
