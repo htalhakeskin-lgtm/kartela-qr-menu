@@ -146,6 +146,15 @@ export const tenantFixtures: Record<string, Fixture> = {
     unit: "half",
     amountMinor: 14000,
   })),
+  media_assets: fixture(tables.mediaAssets, (venueId) => ({
+    venueId,
+    key: `fixture-${newId()}`,
+    source: "unsplash",
+    url: "https://images.unsplash.com/photo-1610889556528-9a770e32642f",
+    width: 7170,
+    height: 4100,
+    alt: { tr: "Test görseli" },
+  })),
   demo_outbox: fixture(tables.demoOutbox, (venueId) => ({
     venueId,
     channel: "email",
