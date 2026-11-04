@@ -1,7 +1,15 @@
 import { describe, expect, it } from "vitest";
 
-import { themeLocaleParams, venueOrigin, venues } from "./registry";
-import { parseRegistry, type VenueRecordInput } from "./registry-schema";
+import {
+  EMPTY_THEME_SLUG,
+  isVenueRoute,
+  localeParamsOf,
+  themeLocaleParams,
+  venueOrigin,
+  venueParamsOf,
+  venues,
+} from "./registry";
+import { parseRegistry, THEMES, type VenueRecordInput } from "./registry-schema";
 
 const base: VenueRecordInput = {
   slug: "deneme",
@@ -23,6 +31,18 @@ describe("venue registry (ADR-0002 v2)", () => {
   it("static params follow the registry: one entry per venue × locale of the theme", () => {
     expect(themeLocaleParams("rakim")).toEqual([{ mekan: "rakim", dil: "tr" }]);
     expect(themeLocaleParams("sade").map((p) => p.dil)).toEqual(["tr", "en", "ar"]);
+  });
+
+  it("every theme tree keeps at least one static param when fixtures are left out (production)", () => {
+    // Regression: Sade has only the fixture venue; in the production build its
+    // generateStaticParams returned [] and Cache Components stopped the deploy.
+    const production = venues.filter((venue) => !venue.fixture);
+    for (const theme of THEMES) {
+      expect(localeParamsOf(production, theme).length, theme).toBeGreaterThan(0);
+      expect(venueParamsOf(production, theme).length, theme).toBeGreaterThan(0);
+    }
+    expect(localeParamsOf(production, "sade")).toEqual([{ mekan: EMPTY_THEME_SLUG, dil: "tr" }]);
+    expect(isVenueRoute("sade", EMPTY_THEME_SLUG, "tr")).toBe(false); // the placeholder 404s
   });
 
   it("rejects a default locale the venue does not serve", () => {
