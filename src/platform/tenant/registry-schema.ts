@@ -38,8 +38,20 @@ export const VENUE_KINDS = [
 ] as const;
 export type VenueKind = (typeof VENUE_KINDS)[number];
 
-/** Words the routing itself uses (?mekan=platform leaves the preview; /panel, /api, /m/ …). */
-const RESERVED_SLUGS: readonly string[] = ["platform", "panel", "api", "tema", "kartela", "www"];
+/**
+ * Words the routing itself uses (?mekan=platform leaves the preview; /panel, /api, /m/ …) and the
+ * panel's own pages beside /panel/{mekan} (D-18): a venue with such a slug would be shadowed.
+ */
+const RESERVED_SLUGS: readonly string[] = [
+  "platform",
+  "panel",
+  "api",
+  "tema",
+  "kartela",
+  "www",
+  "giris",
+  "hesap",
+];
 
 const hostname = z
   .string()

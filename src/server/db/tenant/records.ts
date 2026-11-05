@@ -21,3 +21,13 @@ export async function saveToDemoOutbox(entry: DemoOutboxEntry): Promise<void> {
 export async function recordAudit(tx: TenantTx, entry: AuditEntry): Promise<void> {
   await tx.insert(auditLogs).values(entry);
 }
+
+/**
+ * A platform-level event outside any venue action (sign-in, second step, password; 11-guvenlik
+ * §4): venue_id null, written in the platform scope on its own.
+ */
+export async function recordPlatformAudit(entry: Omit<AuditEntry, "venueId">): Promise<void> {
+  await withPlatform(async (tx) => {
+    await tx.insert(auditLogs).values({ ...entry, venueId: null });
+  });
+}

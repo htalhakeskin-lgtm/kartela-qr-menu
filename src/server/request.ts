@@ -21,5 +21,10 @@ export async function clientIp(): Promise<string> {
 
 /** Salted hash: consent and audit records never store a raw IP (10-yasal-ve-kvkk §4). */
 export function hashIp(ip: string): string {
-  return createHash("sha256").update(`${env.IP_HASH_SALT}:${ip}`).digest("hex").slice(0, 32);
+  return hashKey(ip);
+}
+
+/** The same salted hash for any personal value used as a key (a rate limit per e-mail address). */
+export function hashKey(value: string): string {
+  return createHash("sha256").update(`${env.IP_HASH_SALT}:${value}`).digest("hex").slice(0, 32);
 }

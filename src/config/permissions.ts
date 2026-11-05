@@ -24,6 +24,14 @@ export type Permission = VenuePermission | PlatformPermission;
 export const VENUE_ROLES = ["owner", "manager", "staff"] as const;
 export type VenueRole = (typeof VENUE_ROLES)[number];
 
+/** Panel labels (plan §3); "platform" is a platform admin acting without a membership. */
+export const ROLE_LABELS: Record<VenueRole | "platform", string> = {
+  owner: "Sahip",
+  manager: "Yönetici",
+  staff: "Personel",
+  platform: "Platform yöneticisi",
+};
+
 const matrix: Record<VenueRole, readonly VenuePermission[]> = {
   owner: VENUE_PERMISSIONS,
   manager: ["availability.edit", "content.edit", "prices.edit", "contexts.edit", "stats.view"],
@@ -40,4 +48,16 @@ export function hasVenuePermission(
 
 export function isPlatformAdmin(platformRole: string | null | undefined): boolean {
   return platformRole === "admin";
+}
+
+/**
+ * BR-YTK-002: on the live platform (PLATFORM_DEMO=false) a platform admin and a venue owner must
+ * use a second step (TOTP) before the panel lets them work. The demo platform's accounts are
+ * exempt — they are shared and cannot set one up.
+ */
+export function secondStepRequired(
+  user: { platformAdmin: boolean; ownsVenue: boolean },
+  livePlatform: boolean,
+): boolean {
+  return livePlatform && (user.platformAdmin || user.ownsVenue);
 }

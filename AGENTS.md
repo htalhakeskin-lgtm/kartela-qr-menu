@@ -43,13 +43,14 @@ Kafe, restoran ve bar gibi mekânlar için QR ile açılan dijital menü. Tek Ne
 ## Klasörler
 
 ```
-src/app/(platform)/                 platform kök düzeni: tanıtım, yasal, /stil (panel D-18'de kendi kök düzeninde)
+src/app/(platform)/                 platform kök düzeni: tanıtım, yasal, /stil
+src/app/(panel)/panel/              panelin kendi kök düzeni; her istekte üretilir (nonce'lu CSP, K-48)
 src/app/tema-{tema}/[mekan]/        tema rota ağacı: [dil]/ kök düzen + sayfalar, robots/sitemap/manifest (ADR-0003); D-21'den sonra ÜRETİLİR
 src/app/global-not-found.tsx        eşleşmeyen adres; kendi kendine yeter, CSS / next/font içe AKTARMAZ (K-35)
 src/app/og/platform/                platformun paylaşım görseli (sabit adres)
 src/themes/{tema}/                  tema modülü: token CSS'i, yazı tipleri, yuvalar, imza bileşenleri
 src/platform/                       görünümsüz çekirdek: menu/ theme/ routes/ i18n/ tenant/ (D-01…D-08)
-src/server/                         db/ · auth.config.ts + auth.ts · action.ts · channels/ · content/
+src/server/                         db/ · auth.config.ts + auth.ts · action.ts · panel/ (oturum, giriş, pano) · channels/ · content/
 src/lib/ · src/config/              env, format, money, text, seo, image-loader · limits (P-), rules (BR), permissions
 content/                            yasal/ · mekanlar/{ad}/ (D-04)
 tests/e2e/ · tests/integration/     Playwright · Vitest + PostgreSQL (kiracı test takımı D-02)

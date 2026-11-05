@@ -2,9 +2,10 @@
  * Demo data (04-veri §11, 17-icerik-ve-demo-verisi). Deterministic and idempotent: running it
  * twice gives the same result. Run with: pnpm db:seed   (tsx --conditions=react-server)
  *
- * Seeds the platform row, the demo platform admin, the registry's venues (D-02: venue row,
- * settings, domains) and their menu content files (D-04: content/mekanlar/{ad}/menu.ts, written
- * only into a venue without a menu). Stories follow with D-07.
+ * Seeds the platform row, the registry's venues (D-02: venue row, settings, domains), their menu
+ * content files (D-04: content/mekanlar/{ad}/menu.ts, written only into a venue without a menu)
+ * and — while PLATFORM_DEMO=true — the demo panel accounts, one per role (D-18,
+ * config/demo-accounts.ts), all with DEMO_ADMIN_PASSWORD.
  */
 import { loadEnvConfig } from "@next/env";
 
@@ -18,9 +19,12 @@ async function main() {
   const { newId } = await import("@/server/db/columns");
   const { platformDefaults } = await import("@/config/platform-defaults");
   const { hashPassword } = await import("better-auth/crypto");
+  const { eq } = await import("drizzle-orm");
   const { venues: registry } = await import("@/platform/tenant/registry");
   const { seedVenues } = await import("@/server/db/tenant/seed-venues");
   const { seedVenueContent } = await import("@/server/db/tenant/seed-content");
+  const { addMember } = await import("@/server/db/tenant");
+  const { DEMO_PLATFORM_ACCOUNT, DEMO_VENUE_ACCOUNTS } = await import("@/config/demo-accounts");
   const { loadVenueContent } = await import("@/server/content/venue-content");
 
   async function seedPlatform() {
@@ -30,34 +34,55 @@ async function main() {
       .onConflictDoNothing();
   }
 
-  async function seedDemoAdmin() {
-    if (!env.PLATFORM_DEMO || !env.DEMO_ADMIN_EMAIL || !env.DEMO_ADMIN_PASSWORD) return;
+  /** A demo user with a password account; returns its id (existing or new). */
+  async function seedDemoUser(
+    email: string,
+    name: string,
+    password: string,
+    platformRole: "admin" | null,
+  ): Promise<string> {
     const userId = newId();
-    const inserted = await db
+    const [inserted] = await db
       .insert(users)
-      .values({
-        id: userId,
-        name: "Demo Platform Yöneticisi",
-        email: env.DEMO_ADMIN_EMAIL,
-        emailVerified: true,
-        platformRole: "admin",
-      })
+      .values({ id: userId, name, email, emailVerified: true, platformRole })
       .onConflictDoNothing()
       .returning({ id: users.id });
-    if (inserted.length === 0) return; // already there
-    await db.insert(accounts).values({
-      id: newId(),
-      userId,
-      accountId: userId,
-      providerId: "credential",
-      password: await hashPassword(env.DEMO_ADMIN_PASSWORD),
-    });
+    if (inserted) {
+      await db.insert(accounts).values({
+        id: newId(),
+        userId,
+        accountId: userId,
+        providerId: "credential",
+        password: await hashPassword(password),
+      });
+      return userId;
+    }
+    const [existing] = await db.select({ id: users.id }).from(users).where(eq(users.email, email));
+    if (!existing) throw new Error(`Demo kullanıcısı okunamadı: ${email}`);
+    return existing.id;
+  }
+
+  async function seedDemoAccounts(venueIds: Map<string, string>) {
+    if (!env.PLATFORM_DEMO || !env.DEMO_ADMIN_EMAIL || !env.DEMO_ADMIN_PASSWORD) return;
+    await seedDemoUser(
+      env.DEMO_ADMIN_EMAIL,
+      DEMO_PLATFORM_ACCOUNT.name,
+      env.DEMO_ADMIN_PASSWORD,
+      "admin",
+    );
+    for (const account of DEMO_VENUE_ACCOUNTS) {
+      const venueId = venueIds.get(account.venue);
+      if (!venueId) continue;
+      const userId = await seedDemoUser(account.email, account.name, env.DEMO_ADMIN_PASSWORD, null);
+      await addMember(venueId, userId, account.role);
+    }
+    console.log(`✓ Demo hesapları: ${String(DEMO_VENUE_ACCOUNTS.length + 1)}`);
   }
 
   await seedPlatform();
-  await seedDemoAdmin();
   const venueIds = await seedVenues(registry);
   console.log(`✓ Mekânlar: ${[...venueIds.keys()].join(", ")}`);
+  await seedDemoAccounts(venueIds);
 
   // Content goes only into a venue without a menu (panel edits survive a deploy);
   // --icerik-yenile rewrites it from the files (local content work; db:reset starts empty anyway).
