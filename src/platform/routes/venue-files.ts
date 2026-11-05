@@ -1,18 +1,26 @@
 import "server-only";
 
-import { getVenue, venueOrigin, venueParamsOf, venues } from "@/platform/tenant/registry";
+import { env } from "@/lib/env";
+import {
+  getVenue,
+  localeHomePath,
+  venueOrigin,
+  venueParamsOf,
+  venues,
+} from "@/platform/tenant/registry";
 import type { ThemeId, VenueRecord } from "@/platform/tenant/registry-schema";
 import { themeMeta } from "@/themes/meta";
 
 import { type VenuePage, venuePath } from "./venue-seo";
+import { venueServiceWorker } from "./venue-sw";
 
 /**
  * robots.txt, sitemap.xml and manifest.webmanifest of a venue, served from its own theme tree
  * (ADR-0003) at its own domain: the host rewrites map /robots.txt etc. on a venue host here
  * (ADR-0002 v2). Venues never list or link each other (plan §15).
  *
- * D-11 lists the venue's pages with their language alternates; D-13 adds the offline icons and
- * scope details of the manifest.
+ * D-11 lists the venue's pages with their language alternates; D-13 adds the service worker
+ * (sw.js, venue-sw.ts).
  */
 
 /** Static params of a theme tree's [mekan] segment (file routes). */
@@ -87,5 +95,29 @@ export function venueManifest(theme: ThemeId, slug: string): Response {
   };
   return Response.json(manifest, {
     headers: { "Content-Type": "application/manifest+json; charset=utf-8" },
+  });
+}
+
+/**
+ * The venue's service worker (D-13). Its version follows the deployed commit, so every deploy
+ * installs a new worker that drops the old caches; local builds share one version.
+ */
+export function venueServiceWorkerScript(theme: ThemeId, slug: string): Response {
+  const venue = venueOf(theme, slug);
+  if (!venue) return notFound();
+  const offlinePages = Object.fromEntries(
+    venue.locales.map((locale) => {
+      const home = localeHomePath(venue, locale);
+      return [locale, `${home === "/" ? "" : home}/cevrimdisi`];
+    }),
+  );
+  const script = venueServiceWorker({
+    slug: venue.slug,
+    version: (env.VERCEL_GIT_COMMIT_SHA ?? "yerel").slice(0, 12),
+    offlinePages,
+    defaultLocale: venue.defaultLocale,
+  });
+  return new Response(script, {
+    headers: { "Content-Type": "application/javascript; charset=utf-8" },
   });
 }

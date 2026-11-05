@@ -146,6 +146,8 @@ export type VenueView = {
   locales: Locale[];
   dir: "ltr" | "rtl";
   timeZone: string;
+  /** Host names the venue answers on: its service worker registers only there (D-13). */
+  hosts: string[];
   menus: MenuView[];
   /** Every published product once, menu order first. */
   items: ItemView[];
@@ -161,6 +163,7 @@ export type VenueFacts = {
   defaultLocale: Locale;
   locales: Locale[];
   timeZone: string;
+  hosts?: string[];
 };
 
 export type VenueViewInput = {
@@ -281,6 +284,7 @@ export function buildVenueView(
     locales: venue.locales,
     dir: options.rtl ? "rtl" : "ltr",
     timeZone: venue.timeZone,
+    hosts: venue.hosts ?? [],
     menus: input.menu.menus.map((menu) => ({
       id: menu.id,
       slug: menu.slug,

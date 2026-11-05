@@ -41,6 +41,11 @@ const publicCsp = [
   "upgrade-insecure-requests",
 ].join("; ");
 
+const workerCsp = [
+  "default-src 'none'",
+  "connect-src 'self' https://images.unsplash.com https://images.pexels.com",
+].join("; ");
+
 const securityHeaders = [
   { key: "Strict-Transport-Security", value: "max-age=63072000; includeSubDomains" },
   { key: "X-Content-Type-Options", value: "nosniff" },
@@ -86,8 +91,19 @@ const nextConfig: NextConfig = {
     return Promise.resolve([
       { source: "/:path*", headers: securityHeaders },
       {
-        source: "/((?!panel|api).*)",
+        source: "/((?!panel|api|sw\\.js).*)",
         headers: [{ key: "Content-Security-Policy", value: publicCsp }],
+      },
+      // The venue service worker (D-13) is bound by its own response's CSP: it may fetch the
+      // venue's own files and the stock photo CDNs (K-16), nothing else. no-cache keeps a new
+      // deploy's worker from waiting on the HTTP cache.
+      {
+        source: "/sw.js",
+        headers: [
+          { key: "Content-Security-Policy", value: workerCsp },
+          { key: "Cache-Control", value: "no-cache" },
+          { key: "Service-Worker-Allowed", value: "/" },
+        ],
       },
       ...buildTenantHeaders(),
     ]);

@@ -30,6 +30,8 @@ const schema = z
     // Set by Vercel: host names of this deployment.
     VERCEL_URL: z.string().optional(),
     VERCEL_BRANCH_URL: z.string().optional(),
+    // Set by Vercel at build time: the deployed commit (service worker version, D-13).
+    VERCEL_GIT_COMMIT_SHA: z.string().optional(),
   })
   .superRefine((value, ctx) => {
     if (value.PLATFORM_DEMO) return;

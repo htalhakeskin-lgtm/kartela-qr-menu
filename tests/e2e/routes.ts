@@ -44,6 +44,7 @@ export const venueRoutes = [
   venueUrl("ornek", "/ar/bilgi"),
   venueUrl("ornek", "/stil"),
   venueUrl("ornek", "/en/yok-boyle"), // the venue's own 404 (D-11)
+  venueUrl("ornek", "/cevrimdisi"), // the offline page (D-13)
 ] as const;
 
 /** The 404 check route: excluded from SEO and image checks. */

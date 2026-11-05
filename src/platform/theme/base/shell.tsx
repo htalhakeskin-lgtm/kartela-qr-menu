@@ -5,6 +5,7 @@ import { useSyncExternalStore } from "react";
 import { uiText } from "../../i18n/ui";
 import { rememberView } from "../../menu/hooks";
 import type { ShellProps } from "../contract";
+import { OfflineSupport } from "../offline";
 
 const LANGUAGE_NAMES: Record<string, string> = {
   tr: "TR",
@@ -37,6 +38,10 @@ export function pageHref(home: string, segment: string): string {
 /**
  * Shell slot (SCR-001): a 56 px top bar — the venue's name, the menu being served, the language
  * links — above the page. The bottom action bar belongs to the page (it drives the sheets).
+ *
+ * The shell also carries the venue's offline support (D-13): service worker registration and the
+ * "Çevrimdışı" note. A theme that replaces the shell renders <OfflineSupport> itself; here it
+ * shares the shell's chunk instead of adding a request to the first load.
  */
 export function BaseShell({ venue, view, children, headerCenter }: ShellProps) {
   const base = useVenueBase(venue.slug);
@@ -74,6 +79,10 @@ export function BaseShell({ venue, view, children, headerCenter }: ShellProps) {
       : null;
   return (
     <div className="min-h-dvh bg-background text-foreground">
+      <OfflineSupport
+        hosts={venue.hosts}
+        labels={{ offline: ui.offline, lastUpdate: ui.lastUpdate }}
+      />
       <header className="sticky top-0 z-30 flex h-14 items-center gap-3 border-b border-border bg-background px-4">
         <a
           href={localeHome(base, venue.locale, venue.defaultLocale)}
