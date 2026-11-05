@@ -1,7 +1,8 @@
 import { baseSlots, type QuickMenuSlots } from "@/platform/theme/base/slots";
 import { lazySlot } from "@/platform/theme/lazy-slot";
 
-import { RakimImageFallback, RakimItemCard, RakimPrice } from "./item-card";
+import { RakimImageFallback, RakimItemCard } from "./item-card";
+import { RakimPrice } from "./price";
 import { RakimShell } from "./shell";
 
 /**

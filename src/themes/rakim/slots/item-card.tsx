@@ -3,9 +3,11 @@ import Image from "next/image";
 import { uiText } from "@/platform/i18n/ui";
 import { AvailabilityNote, BaseItemCard } from "@/platform/theme/base/item-card";
 import { DIMMED, T } from "@/platform/theme/base/text";
-import type { ImageFallbackProps, ItemCardProps, PriceProps } from "@/platform/theme/contract";
+import type { ImageFallbackProps, ItemCardProps } from "@/platform/theme/contract";
 
+import { RakimBeanCard } from "./bean-card";
 import { RakimDataLine } from "./data-line";
+import { RakimPrice } from "./price";
 
 /**
  * Rakım's ledger (plan §11.5): rows separated by a 1 px rule, no cards; the name in Schibsted
@@ -14,16 +16,6 @@ import { RakimDataLine } from "./data-line";
  * 4:3 photo (the page's LCP). A product without a photo gets the "veri kartı" (K-23): its kind and
  * its data on paper, never a letter avatar.
  */
-
-/** Price slot: Plex Mono, tabular, the unit label in the text face before it. */
-export function RakimPrice({ price }: PriceProps) {
-  return (
-    <span className="inline-flex shrink-0 items-baseline gap-1.5" dir="ltr">
-      {price.label ? <span className="text-sm text-muted-foreground">{price.label}</span> : null}
-      <span className="font-mono text-base text-foreground tabular-nums">{price.amount}</span>
-    </span>
-  );
-}
 
 const KIND_LABEL = {
   tr: { dish: "Tabak", drink: "İçecek", bean: "Çekirdek", set: "Takım", tasting: "Tadım" },
@@ -52,6 +44,7 @@ export function RakimImageFallback({ item, venue }: ImageFallbackProps) {
 export function RakimItemCard(props: ItemCardProps) {
   const { item, variant, venue, status, onOpen } = props;
   if (variant !== "satir" && variant !== "one-cikan") return <BaseItemCard {...props} />;
+  if (item.kind === "bean" && variant === "satir") return <RakimBeanCard {...props} />;
   const unavailable =
     Boolean(status?.soldOut) || (status?.season ? !status.season.inSeason : false);
   const price = item.defaultPrice ? <RakimPrice price={item.defaultPrice} /> : null;

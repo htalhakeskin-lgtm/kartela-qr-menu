@@ -971,9 +971,18 @@ export default defineMenuContent({
   ],
 
   menus: [
-    // Gün boyu first: the clock moves open menus before closed ones (useActiveMenus); with the
-    // all-day menu first, that order never changes after hydration (no layout shift, CLS 0).
-    // Bringing Sabah forward in the morning before the first paint is D-17's signature.
+    {
+      slug: "sabah",
+      kind: "breakfast",
+      name: { tr: "Sabah", en: "Morning" },
+      schedule: { windows: [{ start: "08:00", end: "12:00" }] },
+      sections: [
+        {
+          name: { tr: "Sabah tabakları", en: "Morning plates" },
+          items: ["eksi-maya-yumurta", "avokadolu-ekmek", "domatesli-ekmek", "yogurt-granola"],
+        },
+      ],
+    },
     {
       slug: "gun-boyu",
       name: { tr: "Gün boyu", en: "All day" },
@@ -1003,18 +1012,6 @@ export default defineMenuContent({
         {
           name: { tr: "Çekirdekler", en: "Beans" },
           items: ["etiyopya-guji", "kolombiya-huila", "kenya-nyeri", "rakim-harmani"],
-        },
-      ],
-    },
-    {
-      slug: "sabah",
-      kind: "breakfast",
-      name: { tr: "Sabah", en: "Morning" },
-      schedule: { windows: [{ start: "08:00", end: "12:00" }] },
-      sections: [
-        {
-          name: { tr: "Sabah tabakları", en: "Morning plates" },
-          items: ["eksi-maya-yumurta", "avokadolu-ekmek", "domatesli-ekmek", "yogurt-granola"],
         },
       ],
     },

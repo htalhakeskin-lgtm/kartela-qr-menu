@@ -237,7 +237,12 @@ export function QuickMenu({
       ({ menu, status }) => !(status && status.state !== "open" && menu.outsideWindow === "hide"),
     )
     .filter(({ menu }) => menu.access === "public");
-  const serving = active?.find((entry) => entry.status.state === "open")?.menu;
+  const servingEntry = active?.find((entry) => entry.status.state === "open");
+  const serving = servingEntry?.menu;
+  // "Sabah · bitiş 12:00" (REQ-020): the menu being served and when its window ends. No Turkish
+  // suffix on the time ("12:00'ye" would be one): the label comes before it (KURALLAR C).
+  const servingUntil =
+    servingEntry?.status.state === "open" ? (servingEntry.status.until ?? null) : null;
   const today = now ? businessDate(now, venue.timeZone) : null;
 
   const card = (item: ItemView, variant: ItemCardVariant) => (
@@ -368,7 +373,19 @@ export function QuickMenu({
     <slots.Shell
       venue={venue}
       view="hizli"
-      headerCenter={serving ? <T text={serving.name} page={venue.locale} /> : null}
+      headerCenter={
+        serving ? (
+          <>
+            <T text={serving.name} page={venue.locale} />
+            {servingUntil ? (
+              <>
+                {" · "}
+                {ui.until} <span className="kt-saat tabular-nums">{servingUntil}</span>
+              </>
+            ) : null}
+          </>
+        ) : null
+      }
     >
       {/* Phone: the category bar sticks under the top bar; desktop (plan §11.4): a 240 px sticky
           index on the left, the menu in a 720 px column. */}

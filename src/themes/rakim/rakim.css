@@ -75,6 +75,14 @@
   --font-mono: var(--font-rakim-mono), ui-monospace, Menlo, Consolas, monospace;
 }
 
+@layer components {
+  /* The serving menu's end time in the top bar (REQ-020): mono, the accent (plan §11.1). */
+  .kt-saat {
+    font-family: var(--font-rakim-mono), ui-monospace, monospace;
+    color: var(--accent);
+  }
+}
+
 @layer base {
   html {
     -webkit-text-size-adjust: 100%;

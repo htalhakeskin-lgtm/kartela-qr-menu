@@ -4,9 +4,9 @@
 
 ## Şu an
 
-- **Etkin dilim:** D-17 — İmza: saate göre menü, çekirdek kartı, Keşfet rehberi ve köken · ⏳
-- **Son yapılan:** D-16: Rakım'ın kahve özelleştiricisi tarif kartı olarak (her seçim defter satırı: grup solda, seçilen ve farkı sağda Plex Mono'da; seçenekler altında çip; özet satırı "12 oz · Çift · Yulaf sütü · Vanilya"); imza hareketi 1: toplamın her rakamı kendi sütununda kayar; imza hareketi 2: satırdaki küçük görsel panelin görseline büyür (aynı belge görünüm geçişi, panelin kodu önce yüklenir). Ürün paneli artık parçalarını alan bir düzen (`ItemSheetLayout`): tema kopyalamadan değiştirir. D-15 incelemede.
-- **Sıradaki adım:** D-17 — saate göre menü sırası ilk boyamadan önce (CLS'siz), üst çubukta etkin menü ve bitiş saati; çekirdek kartı (rakım çizgisi, tadım notu çipleri); Keşfet'te demleme rehberi ve köken düzeni.
+- **Etkin dilim:** D-18 — Panel temeli · ⏳
+- **Son yapılan:** D-17: Rakım'ın imzaları tamam. Saate göre menü: sıra sunucuda, sayfa bir sonraki pencere sınırında yeniden üretilir; sabah menüsü sabah önde, öğleden sonra arkada, ilk boyamadan sonra kayma yok (K-47); üst çubukta "Sabah · bitiş 12:00". Çekirdek kartı: bölge, rakım çizgisi (0–2.500 m ölçeğinde vurgu renkli aralık), tadım notları çip, kavruma göre önerilen demleme. Keşfet dergi düzeni: açılış görseli ve altında büyük başlık, kökenler iki sütunda sırayla yer değiştirerek, demleme rehberi büyük mono adım numaralarıyla, fırın ortağı geniş bant, barista notu metin sütunu. D-16 canlıda.
+- **Sıradaki adım:** D-18 — panel: kendi kök düzeni, Better Auth oturumu, 2FA, roller ve izinler, mekân seçici, pano iskeleti, ayarlar, ekip, işlem geçmişi.
 
 ## Gözetimsiz çalışma notları
 
@@ -67,7 +67,7 @@ Faz 1'in son dilimi (D-22) bitip Rakım yayına çıkınca durulur; teslim: yay�
 | D-14 | Rakım konsepti: görsel havuzu (3 kat aday + temas sayfası), `docs/gorsel-kaynaklari.md`, token'lar ve yazı tipleri (Türkçe alt küme, RSK-01 payı), `/stil`, içerik (menü + hikâyeler) | QR-18 · REQ-018 · SCR-007 | M | P0 | ✅ | ✅ 390 / 1440 (`/stil`; 360–1536 taşma ve axe) | 3 birim (çekirdek / demleme okuyucu) + 4 birim (tür alanları, tek görsel tek rol) + içerik dosyaları her mekân için (geçerli, bileşen ve enerji tam) |
 | D-15 | Rakım teması: kabuk, ürün satırı ve öne çıkan ürün, ürün paneli, Keşfet (dergi), veri kartı yedeği, akşam takımı; imza hareketleri 2 ve 3 (K-28); Faz 3 ölçüm sayfasının yerini alır | QR-18 · REQ-018 · SCR-001…003 | M | P0 | ✅ | ✅ 390 / 1440 (TR + EN, Bilgi; 360–1536 taşma ve axe) | 3 birim (satır içi betikler ayrıştırılır) + 5 e2e (defter ve veri satırı, İngilizce, Keşfet, betik hatası yok, 404) + bütçe ve önbellek testleri Rakım sayfalarında; imza hareketi 2 D-16'ya |
 | D-16 | İmza: kahve özelleştirici (tarif kartı, canlı fiyat, uyumluluk); imza hareketi 1 (fiyat rakamı kayması) | QR-19 · REQ-019 · SCR-003 | M | P0 | ✅ | ✅ 390 (tarif kartı, seçimden önce ve sonra) | 2 e2e × 2 proje (toplam içerik dosyasından hesaplanır; hareket açıkken görsel geçişi başlar ve panel açılır); imza hareketi 2 de bu dilimde |
-| D-17 | İmza: saate göre menü (üst çubuk), çekirdek kartları (rakım çizgisi), Keşfet demleme rehberi ve köken | QR-20 · REQ-020 · SCR-001…003 | M | P0 | ⏳ | — | — |
+| D-17 | İmza: saate göre menü (üst çubuk), çekirdek kartları (rakım çizgisi), Keşfet demleme rehberi ve köken | QR-20 · REQ-020 · SCR-001…003 | M | P0 | ✅ | ✅ 390 / 1440 (çekirdek kartı, Keşfet) | 3 birim (açık pencerenin bitişi, sunum sırası, sonraki sınır) + 3 e2e × 2 proje (çekirdek kartı; sunucu HTML'i saate göre sıralı ve üst çubuk; ilk boyamadan sonra CLS < 0,1) |
 | D-18 | Panel temeli: kendi kök düzeni, Better Auth, 2FA, roller ve izinler, mekân seçici, pano iskeleti, ayarlar, ekip, işlem geçmişi; önizleme ortamında oturum | QR-21 · REQ-021 · SCR-100…102, SCR-117…119 | M | P0 | ⏳ | — | — |
 | D-19 | Platform yöneticisi: mekân oluştur, alan adı bağla (Vercel API + Deploy Hook), tema ve kip seçimi, kullanıcılar | QR-21 · REQ-021 · SCR-130…132 | M | P0 | ⏳ | — | — |
 | D-20 | Panel müsaitlik: tek dokunuş tükendi, günlük adet ±, fırından çıkış, günün menüsü (telefon öncelikli) | QR-08, QR-22 · REQ-008, REQ-022 · SCR-108, SCR-109 | M | P0 | ⏳ | — | — |
@@ -194,6 +194,8 @@ Faz 1'in son dilimi (D-22) bitip Rakım yayına çıkınca durulur; teslim: yay�
 | 2026-11-05 | D-15 / Rakım hızlı menü 390, 1440 (TR, EN) | GK-01, GK-08, plan §11.5 | Üst çubukta kelime işareti, etkin menü, mono dil bağlantıları; telefonda Hızlı / Keşfet sekmeleri çubuğun altında (yapışkan değil, kategori çubuğu 56 px altında kalır); öne çıkan V60 telefonda kenardan kenara 4:3, masaüstünde 16:9 (ilk ekranı doldurmasın); satırlarda mono veri satırı ve fiyat | ✅ |
 | 2026-11-05 | D-15 / saat değişince menü sırası | GK-18, Lighthouse | Öğleden sonra sabah menüsü sona taşınınca bütün liste kayıyordu (CLS 0,64, performans 0,69) → gün boyu menüsü içerikte önde | ✅ düzeltildi |
 | 2026-11-05 | D-16 / tarif kartı 390 | REQ-019, plan §11.1 | Defter satırları, seçili çip vurgu zemininde kâğıt metin (§11.2), mono özet satırı ve toplam; alerjen seçime göre (yulaf sütüyle süt düşer, gluten gelir) | ✅ |
+| 2026-11-05 | D-17 / çekirdek kartı 390 | plan §11.5, REQ-020 | Mono veri satırı, rakım çizgisi (vurgu yalnız aralıkta), not çipleri soluk yüzeyde, önerilen demleme mono; köken bayrağı yok | ✅ |
+| 2026-11-05 | D-17 / Keşfet 1440, 390 | GK-11, plan §11.5 | Tek sütun büyük görsel dizisi yerine türe göre düzen (açılış, iki sütunlu kökenler, numaralı rehber, geniş bant, metin sütunu); açılış görseli telefonda kenardan kenara değildi (genişlik çakışması) → düzeltildi; köken görselleri 4:5 kırpımda bulanıktı (GK-04) → telefonda 4:3, geniş ekranda yeterli `sizes` | ✅ düzeltildi |
 | 2026-11-05 | D-15 / 768 px dokunma hedefi (CI) | 07-mobil | "Hızlı" bağlantısı CI'ın yazı tipleriyle 44 px'in biraz altında ölçüldü → en az 44 px genişlik | ✅ düzeltildi |
 
 ## Kalite kapısı raporu
@@ -204,7 +206,7 @@ Faz 1'in son dilimi (D-22) bitip Rakım yayına çıkınca durulur; teslim: yay�
 
 - `kepce-lokanta.vercel.app` projeye bağlı ama mekân kaydında yok (Kepçe D-39'da kaydedilir); o zamana kadar `*.vercel.app` kuralıyla platform ana sayfasını gösterir.
 - Mekânın 404'ü istemcide çiziliyor: Next.js 16.4 Cache Components'ta ön oluşturma sırasındaki `notFound()` için gövdesi boş bir "kurtarma kabuğu" üretir, 404 içeriği aynı HTML'deki Flight verisinden tarayıcıda çizilir (ek istek yok, durum kodu 404). JavaScript kapalıyken sayfa boş kalır. Next.js düzeltirse yeniden denenir.
-- Saate göre menü sırası istemcide değişince sayfa kayar (D-15'te Rakım'da CLS 0,64 ölçüldü). Şimdilik içerikte her zaman açık olan menü önde (sıra hiç değişmez); REQ-020'nin "sabah menüsü saatle öne gelir" kısmı, sıranın ilk boyamadan önce belirlenmesiyle D-17'de.
+- Saate göre menü sırası sunucuda (K-47): bir pencere sınırından sonraki ilk ziyaretçi sayfanın eski sırasını görür ve tarayıcı sırayı düzeltir (o ziyarette bir kayma), sayfa arkada yenilenir.
 - Rakım ölçüm sayfasındaki "TR · EN" yalnızca metin (dil seçici değil); EN içerikle D-14, dil seçici D-15.
 - Önizleme veritabanı ayrımı (K-42 → K-43): 2026-11-05'te Neon önizleme dallanması açıldı. Önizleme derlemesi kendi dalında migration ve tohum çalıştırır; koşul `PREVIEW_DB_BRANCH=true` ve veritabanı parmak izinin üretiminkinden farklı olması. Neon ücretsiz planında en çok 10 dal var: birleştirilen PR'ların önizleme yayınları silinir (`vercel remove`), dalları da onlarla gider.
 - Neon sahip rolünün `BYPASSRLS` özelliği doğrulanmadı (üretim veritabanını okuma izni yok). Tasarım buna bağlı değil: kiracı erişimi her zaman `app_rw` ile (K-41); yalnızca ESLint dışı, sahip rolle kiracı tablosuna giden bir kod RLS'ye takılmayabilir.
