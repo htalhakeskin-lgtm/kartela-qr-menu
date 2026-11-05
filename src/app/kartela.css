@@ -1,9 +1,10 @@
 @import "tailwindcss";
 
 /*
- * Kartela platform tokens (plan §11.8): the introduction page, legal texts, style tile and — from
- * D-18 — the panel. Venue sites never load this file; each theme has its own stylesheet in its
- * own root layout (ADR-0003). Contrast measured 2026-11-04 (WCAG relative luminance).
+ * Kartela's own tokens (plan §11.8), shared by the platform root layout (introduction page, legal
+ * texts, style tile) and the panel's root layout (D-18). Venue sites never load this file; each
+ * theme has its own stylesheet in its own root layout (ADR-0003). Contrast measured 2026-11-04
+ * (WCAG relative luminance).
  */
 :root {
   --background: #f7f7f5;
@@ -36,6 +37,10 @@
   --color-primary-foreground: var(--primary-foreground);
   --color-accent: var(--accent);
   --color-accent-foreground: var(--accent-foreground);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-danger: var(--danger);
+  --color-info: var(--info);
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
   --font-mono: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
 }

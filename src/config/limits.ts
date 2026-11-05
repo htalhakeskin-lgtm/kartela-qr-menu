@@ -15,6 +15,11 @@ export const rateLimits = {
   statsBeacon: { key: "stats-beacon", limit: 120, windowSeconds: 60 },
   /** Panel uploads (P-08) */
   upload: { key: "upload", limit: 30, windowSeconds: 600 },
+  /** P-09 Panel sign-in: per IP and per account (11-guvenlik §4: no lock-out, a rising wait) */
+  signInIp: { key: "sign-in-ip", limit: 20, windowSeconds: 900 },
+  signInAccount: { key: "sign-in-account", limit: 8, windowSeconds: 900 },
+  /** P-09 Second step (TOTP / backup code), per IP; Better Auth also caps tries per challenge */
+  twoFactor: { key: "two-factor", limit: 10, windowSeconds: 900 },
 } as const satisfies Record<string, RateLimitRule>;
 
 /** P-03 How long the "Seçtiklerim" list is kept in the browser (BR-SEC-001). */

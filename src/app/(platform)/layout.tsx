@@ -1,7 +1,6 @@
-import "./platform.css";
+import "../kartela.css";
 
 import type { Metadata, Viewport } from "next";
-import { Inter } from "next/font/google";
 import Link from "next/link";
 import type { ReactNode } from "react";
 
@@ -10,15 +9,12 @@ import { PlatformFooter } from "@/components/platform/platform-footer";
 import { platformDefaults } from "@/config/platform-defaults";
 import { publicEnv } from "@/lib/public-env";
 
+import { inter } from "../fonts";
+
 /**
- * Root layout of the platform host (ADR-0003: one root layout per theme tree + this one). Venue
- * sites never render it. The panel gets its own root layout in D-18.
+ * Root layout of the platform host (ADR-0003: one root layout per theme tree, this one and the
+ * panel's). Venue sites never render it.
  */
-const inter = Inter({
-  subsets: ["latin", "latin-ext"], // Turkish needs latin-ext (ğ ş ı İ)
-  variable: "--font-inter",
-  display: "swap",
-});
 
 export const metadata: Metadata = {
   metadataBase: new URL(publicEnv.NEXT_PUBLIC_PLATFORM_URL),

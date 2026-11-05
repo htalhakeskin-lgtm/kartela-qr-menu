@@ -8,9 +8,11 @@ import {
   hasVenuePermission,
   isPlatformAdmin,
   type PlatformPermission,
+  secondStepRequired,
   type VenuePermission,
   type VenueRole,
 } from "@/config/permissions";
+import { env } from "@/lib/env";
 import { fail, type Result } from "@/lib/result";
 import type { CacheKind } from "@/platform/tenant/cache-tags";
 import { getSession, type Session } from "@/server/auth";
@@ -24,8 +26,9 @@ import { clientIp } from "@/server/request";
  * Server action wrappers (05-sunucu-ve-api §3). Order: validate → session and permission →
  * rate limit → handler → catch. Handlers return Result and never throw to the client.
  *
- * - publicAction: venue visitors (e.g. the secret section password, D-37). No honeypot: there is
- *   no visitor form with personal data (K-15); the rate limit is the protection.
+ * - publicAction: venue visitors (e.g. the secret section password, D-37) and the panel sign-in.
+ *   No honeypot: there is no visitor form with personal data (K-15); the rate limit protects.
+ * - userAction: any signed-in panel user acting on their own account (password, second step).
  * - platformAction: platform admin only (venues, domains, users; D-19).
  * - venueAction: panel member of the venue (or platform admin) with a venue permission; the handler
  *   runs inside withVenue (ADR-0004) and a failed Result rolls its writes back.
@@ -89,10 +92,42 @@ async function execute<S extends z.ZodType, T, C extends BaseContext>(
   }
 }
 
-/** Anyone can call it (venue visitors). Always pass a rate limit. */
+/** Anyone can call it (venue visitors, the panel sign-in). Always pass a rate limit. */
 export function publicAction<S extends z.ZodType, T>(options: CommonOptions<S, T, BaseContext>) {
   return async (raw: z.input<S>): Promise<Result<T>> =>
     execute(raw, options, (base) => Promise.resolve(base));
+}
+
+type SessionFlags = { platformRole?: string | null; twoFactorEnabled?: boolean | null };
+const flags = (session: Session) => session.user as Session["user"] & SessionFlags;
+
+/**
+ * BR-YTK-002 on the server: on the live platform a platform admin, and an owner acting on their
+ * venue, cannot work before their second step is set up (the panel pages redirect them first).
+ */
+function missingSecondStep(session: Session, role: VenueRole | "platform" | null): boolean {
+  const user = flags(session);
+  if (user.twoFactorEnabled === true) return false;
+  return secondStepRequired(
+    {
+      platformAdmin: role === "platform" || isPlatformAdmin(user.platformRole),
+      ownsVenue: role === "owner",
+    },
+    !env.PLATFORM_DEMO,
+  );
+}
+
+const secondStepFailure = () =>
+  fail("forbidden", { message: "Devam etmek için önce iki adımlı doğrulamayı açın (Hesabım)." });
+
+/** A signed-in panel user acting on their own account; no venue, no permission. */
+export function userAction<S extends z.ZodType, T>(options: CommonOptions<S, T, UserContext>) {
+  return async (raw: z.input<S>): Promise<Result<T>> =>
+    execute(raw, options, async (base) => {
+      const session = await getSession();
+      if (!session) return fail("unauthorized");
+      return { ...base, session };
+    });
 }
 
 /** Platform admin with an explicit platform permission. Write audit_logs inside the handler. */
@@ -103,14 +138,14 @@ export function platformAction<S extends z.ZodType, T>(
     execute(raw, options, async (base) => {
       const session = await getSession();
       if (!session) return fail("unauthorized");
-      const platformRole = (session.user as { platformRole?: string | null }).platformRole;
-      if (!isPlatformAdmin(platformRole)) {
+      if (!isPlatformAdmin(flags(session).platformRole)) {
         logger.warn("action.forbidden", {
           userId: session.user.id,
           permission: options.permission,
         });
         return fail("forbidden");
       }
+      if (missingSecondStep(session, "platform")) return secondStepFailure();
       return { ...base, session };
     });
 }
@@ -158,10 +193,10 @@ export function venueAction<S extends z.ZodType<{ venueId: string }>, T>(
     execute(raw, { ...options, handler }, async (base, input) => {
       const session = await getSession();
       if (!session) return fail("unauthorized");
-      const platformRole = (session.user as { platformRole?: string | null }).platformRole;
       const access = await venueAccess(input.venueId, session.user.id);
-      if (isPlatformAdmin(platformRole)) {
+      if (isPlatformAdmin(flags(session).platformRole)) {
         if (!access.exists || !access.slug) return fail("notFound");
+        if (missingSecondStep(session, "platform")) return secondStepFailure();
         return {
           ...base,
           session,
@@ -178,6 +213,7 @@ export function venueAction<S extends z.ZodType<{ venueId: string }>, T>(
         });
         return fail("forbidden");
       }
+      if (missingSecondStep(session, access.role)) return secondStepFailure();
       return { ...base, session, venueId: input.venueId, slug: access.slug, role: access.role };
     });
 }
