@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import { isVenueRoute } from "@/platform/tenant/registry";
 import type { Locale } from "@/platform/tenant/registry-schema";
 import { getVenueView } from "@/server/menu/venue-view";
-import { RakimStyleTile } from "@/themes/rakim/client";
+import { RakimStyleTile } from "@/themes/rakim/style-tile";
 
 /** Rakım's style tile (SCR-007, D-14): a review page, never indexed. */
 export const metadata: Metadata = {

@@ -14,7 +14,7 @@ test.describe("tenant routing", () => {
 
   test("each venue host opens its own theme tree", async ({ page }) => {
     await page.goto(venueUrl("rakim"));
-    await expect(page.getByRole("heading", { level: 1 })).toHaveText("Rakım Kahve Kavurma menüsü");
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText("Rakım Kahve Kavurma · Menü");
     await expect(page.locator("html")).toHaveAttribute("lang", "tr");
 
     await page.goto(venueUrl("ornek"));
@@ -51,7 +51,7 @@ test.describe("tenant routing", () => {
   });
 
   test("a locale the venue does not serve answers 404", async ({ request }) => {
-    const response = await request.get("/en", { headers: { host: venueHost("rakim") } });
+    const response = await request.get("/de", { headers: { host: venueHost("rakim") } });
     expect(response.status()).toBe(404);
   });
 
