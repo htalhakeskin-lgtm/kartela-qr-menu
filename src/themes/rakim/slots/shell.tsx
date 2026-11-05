@@ -58,7 +58,7 @@ export function RakimShell({ venue, view, children, headerCenter }: ShellProps) 
                   onClick={() => {
                     rememberView(key);
                   }}
-                  className="flex min-h-11 items-center border-b-2 border-transparent px-2 text-sm text-muted-foreground aria-[current=page]:border-accent aria-[current=page]:text-foreground"
+                  className="flex min-h-11 min-w-11 items-center justify-center border-b-2 border-transparent px-2 text-sm text-muted-foreground aria-[current=page]:border-accent aria-[current=page]:text-foreground"
                 >
                   {label}
                 </a>
