@@ -1,9 +1,9 @@
 import { formatPhone } from "../../../lib/format";
 import { uiText } from "../../i18n/ui";
 import type { VenueView } from "../../menu/view";
+import type { ThemeSlots } from "../contract";
 import { OpeningHoursTable } from "./opening-hours";
 import { SiteFooter } from "./site-footer";
-import type { QuickMenuSlots } from "./slots";
 import { T } from "./text";
 
 /**
@@ -12,7 +12,10 @@ import { T } from "./text";
  * service, table or cover charge", which belongs here and on printed lists, not in the menu
  * (BR-YSL-001, K-21). A server component inside the theme's shell.
  */
-export function InfoPage({ venue, slots }: { venue: VenueView; slots: QuickMenuSlots }) {
+/** Only the slots the page renders (see info-slots.ts). */
+export type InfoSlots = Pick<ThemeSlots, "Shell" | "LegalNote">;
+
+export function InfoPage({ venue, slots }: { venue: VenueView; slots: InfoSlots }) {
   const ui = uiText(venue.locale);
   const info = venue.info;
   const section = "border-t border-border py-8";

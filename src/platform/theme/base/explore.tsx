@@ -2,14 +2,14 @@ import { uiText } from "../../i18n/ui";
 import type { StoryView, VenueView } from "../../menu/view";
 import type { ExploreLayout, ThemeSlots } from "../contract";
 import { SiteFooter } from "./site-footer";
-import type { QuickMenuSlots } from "./slots";
 
 /**
  * Keşfet (SCR-002, REQ-010, D-10): the same venue told as stories. A server component: the
  * Markdown is rendered here and no story code reaches the browser (K-34). Stops of a collection
  * (a guide's steps, a story's chapters) are gathered under the collection's first stop, numbered.
  */
-export type ExploreSlots = QuickMenuSlots & Pick<ThemeSlots, "Story">;
+/** Only the slots the page renders: a page bundles every client component its slots import. */
+export type ExploreSlots = Pick<ThemeSlots, "Shell" | "EmptyState" | "LegalNote" | "Story">;
 
 type Block = { kind: "story"; story: StoryView } | { kind: "collection"; stops: StoryView[] };
 

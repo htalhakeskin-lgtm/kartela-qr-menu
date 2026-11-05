@@ -4,9 +4,9 @@
 
 ## Şu an
 
-- **Etkin dilim:** D-12 — Statik üretim, `updateTag`, günlük cron ve ölçüm matrisi · ⏳
-- **Son yapılan:** D-11: mekân kabuğu. Her mekân sayfasında `{Sayfa} · {Mekân}` başlığı, mekânın kendi açıklaması, alan adına göre `metadataBase` + canonical, her dil için `hreflang` + `x-default`, temanın token'larıyla çizilen paylaşım görseli ve simge (derlemede üretilir), demo kipte `noindex`; JSON-LD (hızlı menüde işletme + herkese açık menüler, `/bilgi`'de adres + saatler); `/bilgi` sayfası (adres, betiksiz harita bağlantısı, İstanbul saatine göre bugün işaretli saat tablosu, tıkla-ara ve WhatsApp, Wi-Fi, SSS, yasal notlar); alt çubuktaki "Bilgi" bu sayfaya gider, dil bağlantıları sayfada kalır; bilinmeyen yol mekânın düzeninde ve dilinde 404; site haritası her sayfayı her dilde alternatifleriyle listeler. `venue_settings`'e `faq` ve `wifi` (migration 0014). D-10 canlıda.
-- **Sıradaki adım:** D-12 — menü sayfalarının statik üretimi ve panel yazımında `updateTag`, 04:00 günlük cron (günün menüsü), mekân başına `olcum:js` ve Lighthouse CI matrisi.
+- **Etkin dilim:** D-13 — Çevrimdışı · ⏳
+- **Son yapılan:** D-12: menü sayfalarının statik üretimi doğrulandı (her mekân sayfası derlemede üretiliyor, `x-nextjs-prerender`); panel yazımları için `venueAction({ refresh: [...] })` → işlem başarıyla bitince yalnız o mekânın etiketleri `updateTag` ile yenilenir; 04:00 gün sonu işi (`/api/cron/gun-sonu`, Vercel Cron 01:00 UTC, `CRON_SECRET`): biten tükendi işaretlerini temizler, her etkin mekânın `menu:{ad}` etiketini bayat işaretler (ilk ziyaret eskiyi alır, yenisi arkada üretilir). Mekân başına JS bütçesi CI'da (227 KB); ölçüm fikstür hızlı menüsünü 243 KB'ta yakaladı → şema istemciden çıktı, sayfalar yalnız çizdikleri yuvaları alıyor, paneller ilk kullanımda yükleniyor (K-44): 205 / 194 / 189 KB, Lighthouse 0,92–0,94. D-11 canlıda.
+- **Sıradaki adım:** D-13 — mekân kapsamlı servis çalışanı, `/cevrimdisi` sayfası, "son güncelleme" notu.
 
 ## Gözetimsiz çalışma notları
 
@@ -62,7 +62,7 @@ Faz 1'in son dilimi (D-22) bitip Rakım yayına çıkınca durulur; teslim: yay�
 | D-09 | Sade I: kabuk, hızlı menü (liste / kart / ızgara), yapışkan kategori çubuğu, arama, filtre paneli, alttan ürün paneli, alt çubuk | QR-12, QR-14 · REQ-012, REQ-014 · SCR-001, SCR-003 | M | P0 | ✅ | ✅ 360 / 390 / 768 / 1280 (taşma, 44 px, axe) | 8 e2e × 2 proje (`sade.spec.ts`) + Sade sayfaları taşma / a11y / görsel takımında |
 | D-10 | Sade II: Keşfet (akış / dergi), Seçtiklerim + garsona göster, RTL, koyu mod, fotoğrafsız ürün (birinci sınıf, K-23), baskı yuvaları, `/stil`, tema konformans takımı | QR-06, QR-13, QR-14 · REQ-006, REQ-013, REQ-014 · SCR-002, SCR-004, SCR-007 | M | P0 | ✅ | ✅ 360 / 390 / 768 / 1280 (Keşfet, `/stil` dahil) | 16 uygunluk (2 tema × uç durum) + 6 kontrast + 5 e2e × 2 proje (Keşfet, görünüm çerezi, garson görünümü, koyu mod, `/stil`) |
 | D-11 | Mekân kabuğu: alan adı başına `metadataBase`, canonical, `hreflang`, JSON-LD, OG görseli, favicon; kip (demo notu, `noindex`); yasal blok; `/bilgi`; 404 | QR-15 · REQ-015 · SCR-005, SCR-008 | M | P0 | ✅ | ✅ 360 / 390 / 768 / 1280 (`/bilgi` TR + AR, mekân 404'ü dahil) | 8 birim (adres, başlık, metadata, JSON-LD) + 1 entegrasyon (bilgi yaz / oku) + 8 e2e (3 masaüstü + 5 × 2 proje) |
-| D-12 | Statik üretim + `updateTag` + günlük cron (04:00) + mekân başına `olcum:js` ve Lighthouse CI matrisi | QR-16 · REQ-016 | M | P0 | ⏳ | — | — |
+| D-12 | Statik üretim + `updateTag` + günlük cron (04:00) + mekân başına `olcum:js` ve Lighthouse CI matrisi | QR-16 · REQ-016 | M | P0 | ✅ | ✅ 390 (tembel ürün paneli ve süzgeç açılıyor) | 2 entegrasyon (`refresh` yalnız kendi mekânı, başarısızlıkta yenileme yok) + 3 entegrasyon (gün sonu) + 4 e2e (her mekân: ön oluşturma + 227 KB + şemasız; cron 401 / bayat → yeni) |
 | D-13 | Çevrimdışı: mekân kapsamlı servis çalışanı, `/cevrimdisi`, "son güncelleme" notu | QR-17 · REQ-017 · SCR-009 | M | P0 | ⏳ | — | — |
 | D-14 | Rakım konsepti: görsel havuzu (3 kat aday + temas sayfası), `docs/gorsel-kaynaklari.md`, token'lar ve yazı tipleri (Türkçe alt küme, RSK-01 payı), `/stil`, içerik (menü + hikâyeler) | QR-18 · REQ-018 · SCR-007 | M | P0 | ⏳ | — | — |
 | D-15 | Rakım teması: kabuk, ürün satırı ve öne çıkan ürün, ürün paneli, Keşfet (dergi), veri kartı yedeği, akşam takımı; imza hareketleri 2 ve 3 (K-28); Faz 3 ölçüm sayfasının yerini alır | QR-18 · REQ-018 · SCR-001…003 | M | P0 | ⏳ | — | — |
@@ -153,7 +153,7 @@ Faz 1'in son dilimi (D-22) bitip Rakım yayına çıkınca durulur; teslim: yay�
 
 ## Etkin dilim planı
 
-— D-12'nin planı dilimin başında buraya yazılır.
+— D-13'ün planı dilimin başında buraya yazılır.
 
 ## Görsel inceleme
 
@@ -185,6 +185,7 @@ Faz 1'in son dilimi (D-22) bitip Rakım yayına çıkınca durulur; teslim: yay�
 | 2026-11-05 | D-11 / bugünün satırı | GK-08 | Gün adı `th`'nin `font-normal`'ı yüzünden kalın değildi, yalnız saat kalındı → ikisi birlikte | ✅ düzeltildi |
 | 2026-11-05 | D-11 / mekân 404'ü 390, 1440 | SCR-008 | Mekânın yazı tipi ve rengi, sayfanın dili; tek ana eylem "Menüye dön" o dilin ana sayfasına | ✅ |
 | 2026-11-05 | D-11 / paylaşım görseli 1200 × 630 | SEO-06 | Sade token'ları: beyaz zemin, mürekkep ad, alt kenarda tek yeşil şerit; Arapça sayfalarda da yalnız Latin harfli ad ve alan adı (yerleşik yazı tipinde Arapça yok) | ✅ |
+| 2026-11-05 | D-12 / tembel ürün paneli ve süzgeç 390 | GK-08, REQ-007 | Kod ilk dokunuşta geliyor; panel boş açılmıyor (Suspense yedeği yok, içerik gelince açılıyor); görünüm D-09 ile aynı | ✅ |
 
 ## Kalite kapısı raporu
 
@@ -221,3 +222,4 @@ Faz 1'in son dilimi (D-22) bitip Rakım yayına çıkınca durulur; teslim: yay�
 - 2026-11-05 · D-09 · "Soluk" durumları (tükendi, saat dışı menü) `opacity` ile yapmak metnin kontrastını düşürür; axe bunu "color-contrast" olarak yakaladı (13 düğüm). Çözüm: metin soluk token renginde (≥ 4,5:1), saydamlık yalnız görsellerde. Ayrıca statik sayfada istemci bileşeni ön oluşturma sırasında `new Date()` çağırırsa Next.js 16 derlemeyi durdurur; tarayıcı durumu (saat, depolama, adres) `useSyncExternalStore` ile okunur, sunucu anlık görüntüsü null. **Sisteme taşı:** 08-erisilebilirlik (pasif / soluk durum kuralı), 06-arayuz, 12-performans (Cache Components + istemci saati).
 - 2026-11-05 · D-11 · Alt sayfanın `generateMetadata`'sındaki `openGraph` nesnesi üst bölümün dosya tabanlı `opengraph-image`'ını da siliyor (Next.js meta veriyi sığ birleştiriyor): kök sayfada görsel vardı, `/bilgi` ve `/kesfet`'te yoktu. Çözüm: her sayfa tema ağacındaki görselin adresini kendisi yazar (`venueShareImagePath`), e2e her sayfa türünde `og:image`'ın 200 döndüğünü denetler. Aynı dilimde: dinamik bölümdeki meta görsel rotaları (`icon.tsx`, `opengraph-image.tsx`) `generateStaticParams` dışa aktarılmadıkça her istekte fonksiyon olarak çalışıyor; dışa aktarınca derlemede dosya olarak üretiliyor (derleme çıktısında ƒ → ●). **Sisteme taşı:** 09-seo (alt sayfada OG görseli açıkça yazılır), 12-performans (meta görsel rotası statik olmalı; derleme çıktısında denetlenir).
 - 2026-11-05 · D-11 · Cache Components'ta `[...yol]` gibi yakala-hepsi rotası, listelenmemiş yol için Next.js 16.3+ boş "uygulama kabuğu"nu sunup sayfayı arka planda üretiyor; 404 sayfası ilk istekte boş geldi. `export const ensureStatic = "navigation"` ilk isteğin tam sonucu beklemesini sağladı. Ayrıca yerelde 3020'de önceki oturumdan kalmış bir `next start` yeni rotaları 404 gösterdi; ölçümden önce portu kimin tuttuğuna bakılır. **Sisteme taşı:** 12-performans / 02-mimari (Cache Components + yakala-hepsi rota: `ensureStatic`), 14-test (yerel sunucu süreci denetimi; `site.spec.ts` derleme kimliğini de doğrulasın).
+- 2026-11-05 · D-12 · Bütçe ölçümü iki sızıntı buldu: (1) bir istemci bileşeni yalnız `RTL_LOCALES` sabiti için kayıt şemasını içe aktarıyordu; Zod ve bütün şema her Sade sayfasına 44 KB ekledi. (2) Next.js, bir rotanın sunucu modüllerinin içe aktardığı **her** istemci bileşenini o rotanın JS'ine koyuyor, çizilip çizilmediğine bakmadan; `/bilgi` ve `/kesfet` `baseSlots` nesnesini aldığı için hızlı menünün panelleri oralarda da yüklendi. Ayrıca mobil Lighthouse'un benzetimli LCP'si, gözlenen LCP'den önce istenen bütün betikleri sayıyor (yerelde ilk boyama `load`'dan sonra geliyor): menü sayfasında puanı belirleyen betik baytı. Çözüm K-44 (şemasız sabit modülü, sayfa başına yuva nesnesi, paneller tembel); CI'da her mekân sayfası 227 KB'a ve şema kodunun yokluğuna karşı denetleniyor. **Sisteme taşı:** 12-performans (sayfa başına bütçe testi; istemciye şema / doğrulama kodu sızmasın; tembel paneller), 02-mimari (bileşen nesnesi içe aktarmanın paket etkisi).

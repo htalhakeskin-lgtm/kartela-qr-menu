@@ -11,10 +11,16 @@ const demo = process.env.PLATFORM_DEMO !== "false";
 const port = process.env.LHCI_PORT ?? "3020";
 const base = `http://localhost:${port}`;
 
-// Platform home + legal text template + the Rakım quick menu on its own host (ADR-0002 v2;
-// Chrome resolves *.localhost). D-22 turns this into the venue matrix: every venue's quick menu,
-// Keşfet and an item page.
-const urls = [`${base}/`, `${base}/kvkk`, `http://rakim.localhost:${port}/`];
+// Platform home + legal text template + each theme's quick menu on its venue's own host
+// (ADR-0002 v2; Chrome resolves *.localhost): Rakım, and Sade on the fixture venue — the first
+// page running the full menu engine in the browser (D-12; the e2e job seeds it). D-22 turns this
+// into the venue matrix: every venue's quick menu, Keşfet and an item page.
+const urls = [
+  `${base}/`,
+  `${base}/kvkk`,
+  `http://rakim.localhost:${port}/`,
+  `http://ornek.localhost:${port}/`,
+];
 
 // Category scores are judged on the median run of the three ("median-run"); the default would
 // take the best run, which hid a 0.93 performance run behind a 0.99 one (D-01 CI).

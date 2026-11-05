@@ -7,7 +7,7 @@ import { venueJsonLd } from "@/platform/routes/venue-seo";
 import { getVenue, isVenueRoute } from "@/platform/tenant/registry";
 import type { Locale } from "@/platform/tenant/registry-schema";
 import { InfoPage } from "@/platform/theme/base/info";
-import { baseSlots } from "@/platform/theme/base/slots";
+import { baseInfoSlots } from "@/platform/theme/base/info-slots";
 import { venuePageMetadata } from "@/server/menu/venue-page";
 import { getVenueView } from "@/server/menu/venue-view";
 
@@ -31,7 +31,7 @@ export default async function SadeInfoPage({ params }: Params) {
   return (
     <>
       <JsonLd json={jsonLd(venueJsonLd(view, venue, "bilgi"))} />
-      <InfoPage venue={view} slots={baseSlots} />
+      <InfoPage venue={view} slots={baseInfoSlots} />
     </>
   );
 }

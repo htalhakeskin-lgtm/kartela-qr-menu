@@ -8,17 +8,17 @@ import { venues } from "../schema/venues";
 import { withVenue } from "./scope";
 import { venueMembers } from "./tables";
 
-export type VenueAccess = { exists: boolean; role: VenueRole | null };
+export type VenueAccess = { exists: boolean; slug: string | null; role: VenueRole | null };
 
 /** Does the venue exist, and which role does the user hold in it (BR-KRC-003)? */
 export async function venueAccess(venueId: string, userId: string): Promise<VenueAccess> {
   return withVenue(venueId, async (tx) => {
     const [venue] = await tx
-      .select({ id: venues.id })
+      .select({ id: venues.id, slug: venues.slug })
       .from(venues)
       .where(eq(venues.id, venueId))
       .limit(1);
-    if (!venue) return { exists: false, role: null };
+    if (!venue) return { exists: false, slug: null, role: null };
     const [member] = await tx
       .select({ role: venueMembers.role })
       .from(venueMembers)
@@ -27,6 +27,6 @@ export async function venueAccess(venueId: string, userId: string): Promise<Venu
     const role = (VENUE_ROLES as readonly string[]).includes(member?.role ?? "")
       ? (member?.role as VenueRole)
       : null;
-    return { exists: true, role };
+    return { exists: true, slug: venue.slug, role };
   });
 }
