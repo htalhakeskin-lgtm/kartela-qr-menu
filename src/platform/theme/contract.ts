@@ -2,8 +2,8 @@ import type { ComponentType, ReactNode } from "react";
 
 import type { AvailabilityStatus } from "../menu/availability";
 import type { MenuFilters } from "../menu/filters";
-import type { useConfigurator } from "../menu/hooks";
 import type { MenuStatus } from "../menu/schedule";
+import type { useConfigurator } from "../menu/use-configurator";
 import type {
   ItemView,
   MenuView,

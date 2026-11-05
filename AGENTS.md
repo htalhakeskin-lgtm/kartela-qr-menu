@@ -35,7 +35,7 @@ Kafe, restoran ve bar gibi mekânlar için QR ile açılan dijital menü. Tek Ne
 | `pnpm test` | Birim + entegrasyon (Vitest) |
 | `pnpm test:e2e` | Uçtan uca (Playwright: mobil + masaüstü, a11y, taşma, görsel keskinliği, SEO, başlıklar) |
 | `pnpm lighthouse` | Lighthouse CI (build sonrası; menü sayfalarında performans ≥ 0,95 hata, K-17) |
-| `pnpm olcum:js <adres> <yol…>` | Rota başına ilk yük JS (Git Bash'te `MSYS_NO_PATHCONV=1`) |
+| `pnpm olcum:js <adres> <yol…>` · `--mekan <ad…>` | Rota başına ilk yük JS; `--mekan` her mekânın sayfalarını 227 KB bütçesiyle (Git Bash'te `MSYS_NO_PATHCONV=1`) |
 | `pnpm gorsel:kontrol <klasör>` | Görsel boyut raporu + temas sayfası; seçim yaparken görüntüye bak |
 | `pnpm check` | CI'daki denetimlerin e2e dışındaki tamamı |
 | `pnpm screenshots` · `pnpm mockup` | Portfolyo / inceleme ekran görüntüleri · cihaz mockup'ları |

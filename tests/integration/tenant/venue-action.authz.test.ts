@@ -1,4 +1,5 @@
 import { eq } from "drizzle-orm";
+import { updateTag } from "next/cache";
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { z } from "zod";
 
@@ -19,6 +20,8 @@ import { createUser, createVenue, removeUsers, removeVenues, type TestVenue } fr
  */
 vi.mock("@/server/auth", () => ({ getSession: vi.fn() }));
 vi.mock("@/server/request", () => ({ clientIp: () => Promise.resolve("203.0.113.7") }));
+// updateTag works only inside a Next.js Server Action; here it records which tags were refreshed.
+vi.mock("next/cache", () => ({ updateTag: vi.fn(), revalidateTag: vi.fn() }));
 
 const signIn = (userId: string | null, platformRole: string | null = null) => {
   vi.mocked(getSession).mockResolvedValue(
@@ -40,9 +43,21 @@ const readDomain = venueAction({
   },
 });
 
+/** Writes and succeeds: the venue's menu pages are refreshed (REQ-016). */
+const addDomain = venueAction({
+  permission: "settings.edit",
+  refresh: ["menu", "venue"],
+  schema: z.object({ venueId: z.uuid(), host: z.string() }),
+  handler: async ({ venueId, host }, { tx }) => {
+    await tx.insert(venueDomains).values({ venueId, host });
+    return ok(host);
+  },
+});
+
 /** Writes, then fails: the write must not survive. */
 const addDomainThenFail = venueAction({
   permission: "settings.edit",
+  refresh: ["menu"],
   schema: z.object({ venueId: z.uuid(), host: z.string() }),
   handler: async ({ venueId, host }, { tx }) => {
     await tx.insert(venueDomains).values({ venueId, host });
@@ -86,6 +101,7 @@ describe("BR-KRC-003: venueAction (session → membership → permission → ven
 
   beforeEach(() => {
     signIn(null);
+    vi.mocked(updateTag).mockClear();
   });
 
   it("without a session the action answers unauthorized", async () => {
@@ -157,6 +173,21 @@ describe("BR-KRC-003: venueAction (session → membership → permission → ven
       tx.select().from(venueDomains).where(eq(venueDomains.host, host)),
     );
     expect(rows).toHaveLength(0);
+  });
+
+  it("REQ-016 / BR-KRC-005: a write refreshes this venue's tags and no other venue's", async () => {
+    signIn(user.owner);
+    const host = `refresh-${newId()}.test.example.com`;
+    expect(await addDomain({ venueId: a.id, host })).toMatchObject({ ok: true });
+    expect(vi.mocked(updateTag).mock.calls).toEqual([[`menu:${a.slug}`], [`venue:${a.slug}`]]);
+  });
+
+  it("a failed or refused action refreshes nothing", async () => {
+    signIn(user.owner);
+    const host = `norefresh-${newId()}.test.example.com`;
+    expect(await addDomainThenFail({ venueId: a.id, host })).toMatchObject({ code: "conflict" });
+    expect(await addDomain({ venueId: b.id, host })).toMatchObject({ code: "forbidden" });
+    expect(updateTag).not.toHaveBeenCalled();
   });
 
   it("an id that is not a UUID is a validation error before any lookup", async () => {

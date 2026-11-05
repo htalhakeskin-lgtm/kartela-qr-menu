@@ -5,7 +5,8 @@ import { useState } from "react";
 
 import { formatMoney } from "../../../lib/format";
 import { uiText } from "../../i18n/ui";
-import { useConfigurator, usePicks } from "../../menu/hooks";
+import { usePicks } from "../../menu/hooks";
+import { useConfigurator } from "../../menu/use-configurator";
 import { itemIndex, type Text } from "../../menu/view";
 import type { ItemSheetProps } from "../contract";
 import { AvailabilityNote, BaseImageFallback } from "./item-card";

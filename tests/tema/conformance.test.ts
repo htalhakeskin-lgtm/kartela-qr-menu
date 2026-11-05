@@ -8,7 +8,9 @@ import { buildVenueView, itemIndex, type VenueView } from "@/platform/menu/view"
 import type { Locale } from "@/platform/tenant/registry-schema";
 import { THEMES } from "@/platform/tenant/registry-schema";
 import { baseExploreSlots } from "@/platform/theme/base/explore-slots";
+import { baseSlots } from "@/platform/theme/base/slots";
 import type { ItemCardVariant, StoryProps, ThemeSlots } from "@/platform/theme/contract";
+import { resolveSlot } from "@/platform/theme/lazy-slot";
 import rakim from "@/themes/rakim";
 import sade from "@/themes/sade";
 
@@ -207,9 +209,19 @@ const soldOut: AvailabilityStatus = {
 };
 const VARIANTS: ItemCardVariant[] = ["satir", "kart", "izgara", "one-cikan"];
 
+/** Lazy slots (the sheets, D-12) resolved first: renderToStaticMarkup cannot wait for them. */
+async function loaded(slots: ThemeSlots): Promise<ThemeSlots> {
+  const entries = await Promise.all(
+    Object.entries(slots as unknown as Record<string, ComponentType<object>>).map(
+      async ([name, slot]) => [name, await resolveSlot(slot)] as const,
+    ),
+  );
+  return Object.fromEntries(entries) as unknown as ThemeSlots;
+}
+
 const themes: Record<string, ThemeSlots> = {
-  sade: { ...baseExploreSlots, ...sade.slots },
-  rakim: { ...baseExploreSlots, ...rakim.slots },
+  sade: await loaded({ ...baseSlots, ...baseExploreSlots, ...sade.slots }),
+  rakim: await loaded({ ...baseSlots, ...baseExploreSlots, ...rakim.slots }),
 };
 
 describe.each(THEMES)("BR-TMA-002: theme %s on the edge-case fixture", (id) => {

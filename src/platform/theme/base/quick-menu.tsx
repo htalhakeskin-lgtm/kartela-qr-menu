@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useMemo, useState, useSyncExternalStore } from "react";
+import { Suspense, useCallback, useEffect, useMemo, useState, useSyncExternalStore } from "react";
 
 import { uiText } from "../../i18n/ui";
 import { availabilityStatus, businessDate, dailyEntries } from "../../menu/availability";
@@ -10,6 +10,7 @@ import type { MenuStatus } from "../../menu/schedule";
 import type { ItemView, MenuView, SectionView, VenueView } from "../../menu/view";
 import { itemIndex } from "../../menu/view";
 import type { ItemCardVariant, QuickLayout } from "../contract";
+import { preloadSlots } from "../lazy-slot";
 import { Sheet } from "./sheet";
 import { localeHome, pageHref, useVenueBase } from "./shell";
 import { SiteFooter } from "./site-footer";
@@ -99,6 +100,37 @@ function Icon({ path }: { path: string }) {
   );
 }
 
+/**
+ * Fetches the lazy sheets' code once the page is up: on the first touch, key or scroll, or two
+ * seconds after hydration, whichever comes first. Late enough not to compete with the first
+ * paint, early enough that the first tap rarely waits.
+ */
+function usePreloadedSheets(slots: QuickMenuSlots) {
+  useEffect(() => {
+    const sheets = [
+      slots.ItemSheet,
+      slots.OptionPicker,
+      slots.ItemFacts,
+      slots.Picks,
+      slots.FilterPanel,
+    ];
+    let done = false;
+    const preload = () => {
+      if (done) return;
+      done = true;
+      preloadSlots(sheets);
+    };
+    const events = ["pointerdown", "keydown", "scroll"] as const;
+    for (const event of events)
+      window.addEventListener(event, preload, { once: true, passive: true });
+    const timer = window.setTimeout(preload, 2000);
+    return () => {
+      window.clearTimeout(timer);
+      for (const event of events) window.removeEventListener(event, preload);
+    };
+  }, [slots]);
+}
+
 export function QuickMenu({
   venue,
   slots,
@@ -120,6 +152,7 @@ export function QuickMenu({
   const picksOpen = usePicksOpen();
   const [panel, setPanel] = useState<Panel>(null);
   const items = useMemo(() => itemIndex(venue), [venue]);
+  usePreloadedSheets(slots);
   const bySlug = useMemo(() => new Map(venue.items.map((item) => [item.slug, item])), [venue]);
 
   const statusOf = useCallback(
@@ -367,80 +400,83 @@ export function QuickMenu({
         </div>
       </nav>
 
-      {panel === "search" ? (
-        <Sheet
-          label={ui.search}
-          closeLabel={ui.close}
-          onClose={() => {
-            setPanel(null);
-          }}
-        >
-          <slots.SearchField value={search.query} onChange={search.setQuery} venue={venue} />
-          {search.results === null ? null : search.results.length === 0 ? (
-            <slots.EmptyState reason="search" venue={venue} />
-          ) : (
-            <ul className="mt-2 divide-y divide-border">
-              {search.results.map((item) => (
-                <li key={item.id}>{card(item, "satir")}</li>
-              ))}
-            </ul>
-          )}
-        </Sheet>
-      ) : null}
-      {panel === "filter" ? (
-        <Sheet
-          label={ui.filter}
-          closeLabel={ui.close}
-          onClose={() => {
-            setPanel(null);
-          }}
-          footer={
-            <div className="flex gap-3">
-              <button
-                type="button"
-                onClick={() => {
-                  setFilters({ diets: [], excludeAllergens: [], maxSpice: null });
-                }}
-                className="min-h-12 flex-1 rounded-md border border-border text-sm"
-              >
-                {ui.clearFilters}
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setPanel(null);
-                }}
-                className="min-h-12 flex-1 rounded-md bg-primary text-sm font-semibold text-primary-foreground"
-              >
-                {ui.showResults(venue.items.filter(shown).length)}
-              </button>
-            </div>
-          }
-        >
-          <slots.FilterPanel filters={filters} onChange={setFilters} venue={venue} />
-        </Sheet>
-      ) : null}
-      {picksOpen ? (
-        <Sheet
-          label={ui.picks}
-          closeLabel={ui.close}
-          onClose={() => {
-            if (window.location.hash === PICKS_HASH) setHash(null, "replace");
-          }}
-        >
-          <slots.Picks venue={venue} />
-        </Sheet>
-      ) : null}
-      {openItemView ? (
-        <slots.ItemSheet
-          key={openItemView.id}
-          item={openItemView}
-          venue={venue}
-          status={statusOf(openItemView)}
-          onClose={closeItem}
-          onOpenItem={switchItem}
-        />
-      ) : null}
+      {/* Sheets load on first use (lazy slots); nothing shows until their code is in. */}
+      <Suspense fallback={null}>
+        {panel === "search" ? (
+          <Sheet
+            label={ui.search}
+            closeLabel={ui.close}
+            onClose={() => {
+              setPanel(null);
+            }}
+          >
+            <slots.SearchField value={search.query} onChange={search.setQuery} venue={venue} />
+            {search.results === null ? null : search.results.length === 0 ? (
+              <slots.EmptyState reason="search" venue={venue} />
+            ) : (
+              <ul className="mt-2 divide-y divide-border">
+                {search.results.map((item) => (
+                  <li key={item.id}>{card(item, "satir")}</li>
+                ))}
+              </ul>
+            )}
+          </Sheet>
+        ) : null}
+        {panel === "filter" ? (
+          <Sheet
+            label={ui.filter}
+            closeLabel={ui.close}
+            onClose={() => {
+              setPanel(null);
+            }}
+            footer={
+              <div className="flex gap-3">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setFilters({ diets: [], excludeAllergens: [], maxSpice: null });
+                  }}
+                  className="min-h-12 flex-1 rounded-md border border-border text-sm"
+                >
+                  {ui.clearFilters}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setPanel(null);
+                  }}
+                  className="min-h-12 flex-1 rounded-md bg-primary text-sm font-semibold text-primary-foreground"
+                >
+                  {ui.showResults(venue.items.filter(shown).length)}
+                </button>
+              </div>
+            }
+          >
+            <slots.FilterPanel filters={filters} onChange={setFilters} venue={venue} />
+          </Sheet>
+        ) : null}
+        {picksOpen ? (
+          <Sheet
+            label={ui.picks}
+            closeLabel={ui.close}
+            onClose={() => {
+              if (window.location.hash === PICKS_HASH) setHash(null, "replace");
+            }}
+          >
+            <slots.Picks venue={venue} />
+          </Sheet>
+        ) : null}
+        {openItemView ? (
+          <slots.ItemSheet
+            key={openItemView.id}
+            item={openItemView}
+            venue={venue}
+            status={statusOf(openItemView)}
+            onClose={closeItem}
+            onOpenItem={switchItem}
+          />
+        ) : null}
+      </Suspense>
     </slots.Shell>
   );
 }

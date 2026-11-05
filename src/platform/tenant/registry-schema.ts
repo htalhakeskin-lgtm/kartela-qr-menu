@@ -8,12 +8,10 @@ import { z } from "zod";
  *
  * Plain module on purpose: no "server-only", no env.ts — next.config.ts imports it.
  */
+// Client components import these from ./locales directly (no zod in their bundle).
+import { type Locale, LOCALES, RTL_LOCALES } from "./locales";
 
-export const LOCALES = ["tr", "en", "ar", "ru", "de"] as const;
-export type Locale = (typeof LOCALES)[number];
-
-/** Right-to-left locales: the theme root layout sets dir="rtl" (REQ-006). */
-export const RTL_LOCALES: readonly Locale[] = ["ar"];
+export { type Locale, LOCALES, RTL_LOCALES };
 
 /** One entry per theme tree under src/app/tema-{theme}/ (ADR-0003). */
 export const THEMES = ["rakim", "sade"] as const;

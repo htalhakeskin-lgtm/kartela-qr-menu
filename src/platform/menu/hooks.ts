@@ -2,15 +2,6 @@ import { useCallback, useMemo, useState, useSyncExternalStore } from "react";
 
 import { SEARCH_MIN_CHARS } from "../../config/limits";
 import { EXPLORE_SEGMENT, VIEW_COOKIE } from "../tenant/rewrites";
-import {
-  choosePrice,
-  type ConfigPrice,
-  type Configurable,
-  evaluate,
-  initialSelection,
-  type Selection,
-  toggle,
-} from "./configurator";
 import { decodeFilters, encodeFilters, type MenuFilters } from "./filters";
 import {
   addPick,
@@ -128,25 +119,6 @@ export function useMenuSearch(items: readonly ItemView[]) {
   const [query, setQuery] = useState("");
   const results = useMemo(() => searchItems(items, query, SEARCH_MIN_CHARS), [items, query]);
   return { query, setQuery, results };
-}
-
-/** REQ-007: the configurator's state for one product; evaluation recomputed on every change. */
-export function useConfigurator<P extends ConfigPrice>(item: Configurable<P>) {
-  const [selection, setSelection] = useState<Selection>(() => initialSelection(item));
-  const evaluation = useMemo(() => evaluate(item, selection), [item, selection]);
-  return {
-    selection,
-    evaluation,
-    toggleOption: (optionId: string) => {
-      setSelection((current) => toggle(item, current, optionId));
-    },
-    choosePrice: (priceId: string) => {
-      setSelection((current) => choosePrice(item, current, priceId));
-    },
-    reset: () => {
-      setSelection(initialSelection(item));
-    },
-  };
 }
 
 // ── Seçtiklerim (browser storage) ───────────────────────────────────────────────────────────

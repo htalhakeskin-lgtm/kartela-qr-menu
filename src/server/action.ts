@@ -12,9 +12,11 @@ import {
   type VenueRole,
 } from "@/config/permissions";
 import { fail, type Result } from "@/lib/result";
+import type { CacheKind } from "@/platform/tenant/cache-tags";
 import { getSession, type Session } from "@/server/auth";
 import { type TenantTx, venueAccess, withVenue } from "@/server/db/tenant";
 import { logger } from "@/server/logger";
+import { refreshAfterWrite } from "@/server/menu/cache";
 import { consumeRateLimit, type RateLimitRule } from "@/server/rate-limit";
 import { clientIp } from "@/server/request";
 
@@ -33,6 +35,8 @@ export type BaseContext = { requestId: string; ip: string; now: Date };
 export type UserContext = BaseContext & { session: Session };
 export type VenueContext = UserContext & {
   venueId: string;
+  /** The venue's slug: its cache tags carry it (BR-KRC-005). */
+  slug: string;
   /** "platform": a platform admin acting on the venue without a membership. */
   role: VenueRole | "platform";
   /** The venue-scoped transaction: tenant queries see only this venue's rows. */
@@ -124,17 +128,26 @@ class RollbackWith extends Error {
  * withVenue. A non-member gets `forbidden` whether or not the venue exists; another venue's record
  * is invisible under row level security, so the handler answers `notFound` without leaking it.
  * Write audit_logs inside the handler with recordAudit(ctx.tx, …).
+ *
+ * `refresh` names the venue's cached data the action changes ("menu", "stories", …): after the
+ * transaction commits, only this venue's tags are updated (REQ-016, BR-KRC-005); a failed or
+ * rolled back action refreshes nothing.
  */
 export function venueAction<S extends z.ZodType<{ venueId: string }>, T>(
-  options: CommonOptions<S, T, VenueContext> & { permission: VenuePermission },
+  options: CommonOptions<S, T, VenueContext> & {
+    permission: VenuePermission;
+    refresh?: readonly CacheKind[];
+  },
 ) {
   const handler: Handler<S, T, Omit<VenueContext, "tx">> = async (input, ctx) => {
     try {
-      return await withVenue(ctx.venueId, async (tx) => {
-        const result = await options.handler(input, { ...ctx, tx });
-        if (!result.ok) throw new RollbackWith(result);
-        return result;
+      const result = await withVenue(ctx.venueId, async (tx) => {
+        const outcome = await options.handler(input, { ...ctx, tx });
+        if (!outcome.ok) throw new RollbackWith(outcome);
+        return outcome;
       });
+      if (options.refresh) refreshAfterWrite(ctx.slug, options.refresh);
+      return result;
     } catch (error) {
       if (error instanceof RollbackWith) return error.result;
       throw error;
@@ -148,10 +161,16 @@ export function venueAction<S extends z.ZodType<{ venueId: string }>, T>(
       const platformRole = (session.user as { platformRole?: string | null }).platformRole;
       const access = await venueAccess(input.venueId, session.user.id);
       if (isPlatformAdmin(platformRole)) {
-        if (!access.exists) return fail("notFound");
-        return { ...base, session, venueId: input.venueId, role: "platform" as const };
+        if (!access.exists || !access.slug) return fail("notFound");
+        return {
+          ...base,
+          session,
+          venueId: input.venueId,
+          slug: access.slug,
+          role: "platform" as const,
+        };
       }
-      if (!access.role || !hasVenuePermission(access.role, options.permission)) {
+      if (!access.slug || !access.role || !hasVenuePermission(access.role, options.permission)) {
         logger.warn("action.forbidden", {
           userId: session.user.id,
           venueId: input.venueId,
@@ -159,6 +178,6 @@ export function venueAction<S extends z.ZodType<{ venueId: string }>, T>(
         });
         return fail("forbidden");
       }
-      return { ...base, session, venueId: input.venueId, role: access.role };
+      return { ...base, session, venueId: input.venueId, slug: access.slug, role: access.role };
     });
 }

@@ -9,7 +9,7 @@ import { usePicks } from "../../menu/hooks";
 import { resolvePicks, type StoredPick } from "../../menu/picks";
 import type { ItemView, VenueView } from "../../menu/view";
 import { itemIndex, t } from "../../menu/view";
-import { RTL_LOCALES } from "../../tenant/registry-schema";
+import { RTL_LOCALES } from "../../tenant/locales";
 import type { PicksProps } from "../contract";
 import { T } from "./text";
 
