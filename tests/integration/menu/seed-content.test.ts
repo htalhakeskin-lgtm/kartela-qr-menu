@@ -7,7 +7,13 @@ import { evaluate, initialSelection, toggle } from "@/platform/menu/configurator
 import type { MenuContent } from "@/platform/menu/content";
 import type { VenueMenu } from "@/platform/menu/types";
 import { loadVenueContent } from "@/server/content/venue-content";
-import { loadVenueMedia, loadVenueMenu, loadVenueStories, withVenue } from "@/server/db/tenant";
+import {
+  loadVenueInfo,
+  loadVenueMedia,
+  loadVenueMenu,
+  loadVenueStories,
+  withVenue,
+} from "@/server/db/tenant";
 import { seedVenueContent } from "@/server/db/tenant/seed-content";
 import { items, mediaAssets } from "@/server/db/tenant/tables";
 
@@ -231,6 +237,24 @@ describe("seedVenueContent: content file → database → read model", () => {
   it("BR-MNU-003: the Arabic page shows the missing description in Turkish, marked", () => {
     const ezogelin = menu.items.find((item) => item.slug === "ezogelin-corbasi")!;
     expect(localize(ezogelin.description!, "ar")).toMatchObject({ lang: "tr", fallback: true });
+  });
+
+  it("D-11: the information page's data comes back as written, hours keyed by weekday", async () => {
+    const info = await withVenue(venue.id, (tx) => loadVenueInfo(tx, venue.id));
+    const source = content.info!;
+    expect(info).toMatchObject({
+      address: source.address,
+      mapUrl: source.mapUrl,
+      phone: source.phone,
+      whatsapp: source.whatsapp,
+      wifi: source.wifi,
+      faq: source.faq,
+      description: source.description,
+    });
+    // Content files key the days "1"…"7"; the read model hands out ISO weekday numbers.
+    expect(Object.keys(info!.hours).sort()).toEqual(Object.keys(source.hours).sort());
+    expect(info!.hours[1]).toEqual(source.hours["1"]);
+    expect(info!.hours[7]).toBeUndefined();
   });
 
   it("a second run leaves a venue with a menu alone; replace rebuilds it", async () => {

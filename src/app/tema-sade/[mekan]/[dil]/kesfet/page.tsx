@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
-import { uiText } from "@/platform/i18n/ui";
-import { getVenue, isVenueRoute } from "@/platform/tenant/registry";
+import { isVenueRoute } from "@/platform/tenant/registry";
 import type { Locale } from "@/platform/tenant/registry-schema";
 import { ExplorePage } from "@/platform/theme/base/explore";
 import { baseExploreSlots } from "@/platform/theme/base/explore-slots";
+import { venuePageMetadata } from "@/server/menu/venue-page";
 import { getVenueView } from "@/server/menu/venue-view";
 
 /**
@@ -16,9 +16,7 @@ type Params = { params: Promise<{ mekan: string; dil: string }> };
 
 export async function generateMetadata({ params }: Params): Promise<Metadata> {
   const { mekan, dil } = await params;
-  const venue = getVenue(mekan);
-  if (!venue) return {};
-  return { title: `${venue.name} · ${uiText(dil as Locale).explore}` };
+  return venuePageMetadata("sade", mekan, dil, "kesfet");
 }
 
 export default async function SadeExplorePage({ params }: Params) {

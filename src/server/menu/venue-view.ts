@@ -10,7 +10,13 @@ import { isRtl } from "@/platform/tenant/registry";
 import type { Locale, VenueKind } from "@/platform/tenant/registry-schema";
 import { db } from "@/server/db/client";
 import { venues } from "@/server/db/schema";
-import { loadVenueMedia, loadVenueMenu, loadVenueStories, withVenue } from "@/server/db/tenant";
+import {
+  loadVenueInfo,
+  loadVenueMedia,
+  loadVenueMenu,
+  loadVenueStories,
+  withVenue,
+} from "@/server/db/tenant";
 
 /**
  * A venue's menu as its theme renders it (ADR-0003, ADR-0005, D-08): read once at build time for
@@ -35,6 +41,7 @@ export async function getVenueView(slug: string, locale: Locale): Promise<VenueV
     menu: await loadVenueMenu(tx, venue.id, { dailyFrom }),
     stories: await loadVenueStories(tx, venue.id),
     media: await loadVenueMedia(tx, venue.id),
+    info: await loadVenueInfo(tx, venue.id),
   }));
 
   return buildVenueView(

@@ -40,7 +40,10 @@ export const venueRoutes = [
   venueUrl("ornek", "/ar"),
   venueUrl("ornek", "/kesfet"),
   venueUrl("ornek", "/ar/kesfet"),
+  venueUrl("ornek", "/bilgi"),
+  venueUrl("ornek", "/ar/bilgi"),
   venueUrl("ornek", "/stil"),
+  venueUrl("ornek", "/en/yok-boyle"), // the venue's own 404 (D-11)
 ] as const;
 
 /** The 404 check route: excluded from SEO and image checks. */

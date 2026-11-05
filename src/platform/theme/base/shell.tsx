@@ -29,6 +29,11 @@ export function localeHome(base: string, locale: string, defaultLocale: string):
   return `${base}/${locale}`;
 }
 
+/** A page under a locale home: ("/", "bilgi") → "/bilgi", ("/en", "bilgi") → "/en/bilgi". */
+export function pageHref(home: string, segment: string): string {
+  return `${home === "/" ? "" : home}/${segment}`;
+}
+
 /**
  * Shell slot (SCR-001): a 56 px top bar — the venue's name, the menu being served, the language
  * links — above the page. The bottom action bar belongs to the page (it drives the sheets).
@@ -37,10 +42,10 @@ export function BaseShell({ venue, view, children, headerCenter }: ShellProps) {
   const base = useVenueBase(venue.slug);
   const ui = uiText(venue.locale);
   const home = localeHome(base, venue.locale, venue.defaultLocale);
-  /** The same view in another language: Keşfet stays Keşfet. */
+  /** The same view in another language: Keşfet stays Keşfet, Bilgi stays Bilgi. */
   const viewHome = (locale: string) => {
     const target = localeHome(base, locale, venue.defaultLocale);
-    return view === "kesfet" ? `${target === "/" ? "" : target}/kesfet` : target;
+    return view === "hizli" ? target : pageHref(target, view);
   };
   const languageLinks = venue.locales.map((locale) => (
     <a
@@ -64,7 +69,7 @@ export function BaseShell({ venue, view, children, headerCenter }: ShellProps) {
     venue.stories.length > 0
       ? ([
           ["hizli", ui.quick, home],
-          ["kesfet", ui.explore, `${home === "/" ? "" : home}/kesfet`],
+          ["kesfet", ui.explore, pageHref(home, "kesfet")],
         ] as const)
       : null;
   return (

@@ -25,6 +25,7 @@ import {
   stories,
   storyItems,
   tastingCourses,
+  venueSettings,
 } from "./tables";
 
 export type SeedContentResult =
@@ -161,6 +162,7 @@ export async function seedVenueContent(
     await writeOptions();
     await writeAvailabilityAndRelations();
     await writeStories();
+    await writeInfo();
 
     for (const [menuSort, menu] of content.menus.entries()) {
       const [menuRow] = await tx
@@ -209,6 +211,34 @@ export async function seedVenueContent(
       items: content.items.length,
       menus: content.menus.length,
     };
+
+    /** The venue's information page (D-11): contact, hours, Wi-Fi, questions, statements. */
+    async function writeInfo(): Promise<void> {
+      const info = content.info;
+      if (!info) return;
+      const hours = Object.fromEntries(
+        Object.entries(info.hours).map(([day, windows]) => [Number(day), windows]),
+      );
+      const values = {
+        contact: {
+          phone: info.phone,
+          whatsapp: info.whatsapp,
+          email: info.email,
+          address: info.address,
+          mapUrl: info.mapUrl,
+        },
+        hours,
+        seo: { description: info.description },
+        legal: info.allergenStatement ? { allergenStatement: info.allergenStatement } : {},
+        faq: info.faq,
+        wifi: info.wifi ?? null,
+      };
+      // Upsert: seedVenues creates the row, but content may reach a venue made another way.
+      await tx
+        .insert(venueSettings)
+        .values({ venueId, ...values })
+        .onConflictDoUpdate({ target: venueSettings.venueId, set: values });
+    }
 
     /** Keşfet stories with their products (D-07); stops numbered in file order per collection. */
     async function writeStories(): Promise<void> {

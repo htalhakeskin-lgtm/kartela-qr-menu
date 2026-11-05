@@ -1,22 +1,18 @@
 import "server-only";
 
-import {
-  getVenue,
-  localeHomePath,
-  venueOrigin,
-  venueParamsOf,
-  venues,
-} from "@/platform/tenant/registry";
+import { getVenue, venueOrigin, venueParamsOf, venues } from "@/platform/tenant/registry";
 import type { ThemeId, VenueRecord } from "@/platform/tenant/registry-schema";
 import { themeMeta } from "@/themes/meta";
+
+import { type VenuePage, venuePath } from "./venue-seo";
 
 /**
  * robots.txt, sitemap.xml and manifest.webmanifest of a venue, served from its own theme tree
  * (ADR-0003) at its own domain: the host rewrites map /robots.txt etc. on a venue host here
  * (ADR-0002 v2). Venues never list or link each other (plan §15).
  *
- * Skeleton in D-01: D-11 adds the venue's pages to the sitemap and the canonical metadata,
- * D-13 the offline icons and scope details of the manifest.
+ * D-11 lists the venue's pages with their language alternates; D-13 adds the offline icons and
+ * scope details of the manifest.
  */
 
 /** Static params of a theme tree's [mekan] segment (file routes). */
@@ -53,10 +49,24 @@ export function venueSitemap(theme: ThemeId, slug: string): Response {
   const venue = venueOf(theme, slug);
   if (!venue) return notFound();
   const origin = venueOrigin(venue);
-  const urls = venue.locales
-    .map((locale) => `  <url><loc>${origin}${localeHomePath(venue, locale)}</loc></url>`)
-    .join("\n");
-  const xml = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls}\n</urlset>\n`;
+  // Every page in every language, each with its alternates (hreflang + x-default), as on the page.
+  const pages: VenuePage[] = ["menu", "kesfet", "bilgi"];
+  const urls = pages.flatMap((page) => {
+    const alternates = [
+      ...venue.locales.map((other) => [other, venuePath(venue, other, page)] as const),
+      ["x-default", venuePath(venue, venue.defaultLocale, page)] as const,
+    ]
+      .map(
+        ([lang, path]) =>
+          `    <xhtml:link rel="alternate" hreflang="${lang}" href="${origin}${path}"/>`,
+      )
+      .join("\n");
+    return venue.locales.map(
+      (locale) =>
+        `  <url>\n    <loc>${origin}${venuePath(venue, locale, page)}</loc>\n${alternates}\n  </url>`,
+    );
+  });
+  const xml = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">\n${urls.join("\n")}\n</urlset>\n`;
   return new Response(xml, { headers: { "Content-Type": "application/xml; charset=utf-8" } });
 }
 

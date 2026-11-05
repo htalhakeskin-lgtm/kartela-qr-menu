@@ -10,6 +10,8 @@ import {
   uuid,
 } from "drizzle-orm/pg-core";
 
+// Relative: drizzle-kit loads the schema without the tsconfig path alias.
+import type { Translated } from "../../../../platform/i18n/fallback";
 import { id, instant, timestamps, version } from "../../columns";
 import { users } from "../../schema/auth";
 import { venues } from "../../schema/venues";
@@ -68,19 +70,30 @@ export const venueMembers = pgTable(
 );
 
 export type VenueCompany = { legalName?: string; address?: string; taxOffice?: string };
-export type VenueContact = { phone?: string; whatsapp?: string; email?: string; mapUrl?: string };
+/** Phones in E.164 (+905423115888); the address as written on the door, one language. */
+export type VenueContact = {
+  phone?: string;
+  whatsapp?: string;
+  email?: string;
+  address?: string;
+  mapUrl?: string;
+};
 /** Opening hours per ISO weekday (1 = Monday); "HH:MM" in the venue's time zone. */
 export type VenueHours = Partial<
   Record<1 | 2 | 3 | 4 | 5 | 6 | 7, { open: string; close: string }[]>
 >;
 export type VenueLegal = {
-  allergenStatement?: string;
+  /** The venue's own allergen statement; without it the interface's general one is shown. */
+  allergenStatement?: Translated;
   /** Allowed surcharges only: service / table / cover charges are refused (BR-YSL-001, K-11). */
   extraCharges?: { kind: string; label: string; amountMinor: number }[];
   alcoholPairings?: boolean;
 };
 /** P2 switches (waiter call, ordering); off until their slices. */
 export type VenueFeatures = { waiterCall?: boolean; ordering?: boolean };
+/** /bilgi questions (Z-10: 4–6 short ones). */
+export type VenueFaq = { q: Translated; a: Translated }[];
+export type VenueWifi = { network: string; password: string | null };
 
 /** Venue information, one row per venue, edited in the panel (D-18) and versioned. */
 export const venueSettings = pgTable(
@@ -93,9 +106,11 @@ export const venueSettings = pgTable(
     contact: jsonb().$type<VenueContact>().notNull().default({}),
     hours: jsonb().$type<VenueHours>().notNull().default({}),
     social: jsonb().$type<Record<string, string>>().notNull().default({}),
-    seo: jsonb().$type<{ title?: string; description?: string }>().notNull().default({}),
+    seo: jsonb().$type<{ description?: Translated }>().notNull().default({}),
     legal: jsonb().$type<VenueLegal>().notNull().default({}),
     features: jsonb().$type<VenueFeatures>().notNull().default({}),
+    faq: jsonb().$type<VenueFaq>().notNull().default([]),
+    wifi: jsonb().$type<VenueWifi>(),
     ...version,
     ...timestamps,
   },
