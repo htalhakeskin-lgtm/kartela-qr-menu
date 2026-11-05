@@ -1,5 +1,6 @@
 import { expect, test } from "@playwright/test";
 
+import rakimMenu from "../../content/mekanlar/rakim/menu";
 import { venueHost } from "./routes";
 
 /**
@@ -36,11 +37,13 @@ test("the footer's last row carries the maker's credit", async ({ page }) => {
   await expect(page.locator("footer").getByText("Talha Keskin")).toBeVisible();
 });
 
-test("Rakım measurement page: first product and price are in the server HTML", async ({
+test("Rakım's quick menu: the featured product and its price are in the server HTML", async ({
   request,
 }) => {
+  // Read from the content file: the menu changes, the rule (first paint from the HTML) does not.
+  const featured = rakimMenu.items.find((item) => item.slug === "gunun-filtresi")!;
   const html = await (await request.get("/", { headers: { host: venueHost("rakim") } })).text();
-  expect(html).toContain("Etiyopya Guji · V60");
-  expect(html).toMatch(/240\s₺/);
+  expect(html).toContain(featured.name.tr);
+  expect(html).toContain(`${featured.prices[0]!.amount} ₺`);
   expect(html).toContain('lang="tr"');
 });

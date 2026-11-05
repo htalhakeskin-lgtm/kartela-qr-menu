@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import { isVenueRoute } from "@/platform/tenant/registry";
 import type { Locale } from "@/platform/tenant/registry-schema";
 import { getVenueView } from "@/server/menu/venue-view";
-import { SadeStyleTile } from "@/themes/sade/client";
+import { SadeStyleTile } from "@/themes/sade/style-tile";
 
 /** Sade's style tile on a venue (SCR-007, D-10): a review page, never indexed. */
 export const metadata: Metadata = {

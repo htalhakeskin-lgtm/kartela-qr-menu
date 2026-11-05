@@ -1,15 +1,11 @@
 "use client";
 
 import type { VenueView } from "@/platform/menu/view";
-import { baseSlots } from "@/platform/theme/base/slots";
-import { StyleTile } from "@/platform/theme/base/style-tile";
+import { QuickMenu } from "@/platform/theme/base/quick-menu";
 
-import meta from "./meta";
+import { rakimSlots } from "./slots";
 
-/**
- * Rakım's client entry (ADR-0003). D-14: the style tile shows Rakım's tokens, type and the
- * base slots on its own products; D-15 / D-16 replace the slots Rakım redesigns.
- */
-export function RakimStyleTile({ venue }: { venue: VenueView }) {
-  return <StyleTile venue={venue} meta={meta} slots={baseSlots} />;
+/** Rakım's client entry (ADR-0003): the quick menu as a ledger (plan §11.5). */
+export function RakimQuickMenu({ venue }: { venue: VenueView }) {
+  return <QuickMenu venue={venue} slots={rakimSlots} layout="liste" />;
 }

@@ -30,7 +30,10 @@ describe("venue registry (ADR-0002 v2)", () => {
   });
 
   it("static params follow the registry: one entry per venue × locale of the theme", () => {
-    expect(themeLocaleParams("rakim")).toEqual([{ mekan: "rakim", dil: "tr" }]);
+    expect(themeLocaleParams("rakim")).toEqual([
+      { mekan: "rakim", dil: "tr" },
+      { mekan: "rakim", dil: "en" },
+    ]);
     expect(themeLocaleParams("sade").map((p) => p.dil)).toEqual(["tr", "en", "ar"]);
   });
 

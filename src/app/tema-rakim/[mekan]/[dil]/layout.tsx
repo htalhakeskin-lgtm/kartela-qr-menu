@@ -6,11 +6,13 @@ import type { ReactNode } from "react";
 import { isRtl, themeLocaleParams } from "@/platform/tenant/registry";
 import { PrePaint } from "@/platform/theme/pre-paint";
 import { rakimFontClassName } from "@/themes/rakim/fonts";
+import { PageTransition } from "@/themes/rakim/page-transition";
 
 /**
  * Root layout of the Rakım theme tree (ADR-0003). Only this tree loads Rakım's fonts and
  * stylesheet. Static params come from the venue registry (D-01); the page 404s for a venue or
- * locale this theme does not serve. D-11 adds the venue's own metadata (canonical, OG, JSON-LD).
+ * locale this theme does not serve. Venue metadata comes from each page (D-11); the page transition
+ * script and its CSS are Rakım's signature motion 3 (D-15).
  */
 export function generateStaticParams() {
   return themeLocaleParams("rakim");
@@ -39,6 +41,7 @@ export default async function RakimRootLayout({
     <html lang={dil} dir={isRtl(dil) ? "rtl" : "ltr"} className={rakimFontClassName}>
       <head>
         <PrePaint />
+        <PageTransition />
       </head>
       <body className="antialiased">{children}</body>
     </html>

@@ -36,6 +36,9 @@ export function venueHost(slug: string): string {
  */
 export const venueRoutes = [
   venueUrl("rakim"),
+  venueUrl("rakim", "/en"),
+  venueUrl("rakim", "/kesfet"),
+  venueUrl("rakim", "/bilgi"),
   venueUrl("rakim", "/stil"),
   venueUrl("ornek"),
   venueUrl("ornek", "/ar"),
