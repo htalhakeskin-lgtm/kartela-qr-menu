@@ -34,6 +34,8 @@ export type PriceView = {
   unit: PriceUnit;
   amountMinor: number;
   label: string | null;
+  /** The label in the venue's default language ("show the waiter", REQ-013). */
+  defaultLabel: string | null;
   amount: string;
   isDefault: boolean;
 };
@@ -43,6 +45,8 @@ export type ItemView = {
   slug: string;
   kind: ItemKind;
   name: Text;
+  /** The name in the venue's default language: the waiter reads it (REQ-013, SCR-004). */
+  defaultName: string;
   description: Text | null;
   ingredients: Text | null;
   origin: Text | null;
@@ -179,6 +183,7 @@ export function buildVenueView(
         unit: line.unit,
         amountMinor: line.amountMinor,
         label: written.label,
+        defaultLabel: priceText(line, fallback, fallback).label,
         amount: written.amount,
         isDefault: line.isDefault,
       };
@@ -191,6 +196,7 @@ export function buildVenueView(
       slug: item.slug,
       kind: item.kind,
       name,
+      defaultName: localize(item.name, fallback, fallback).text,
       description,
       ingredients,
       origin: optional(item.origin),

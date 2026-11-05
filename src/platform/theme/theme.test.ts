@@ -50,6 +50,13 @@ describe("BR-TMA-002: theme conformance (contract ↔ CSS)", () => {
           cssBlock(css, new RegExp(`:root\\[data-gun-dilimi="${daypart}"\\]`)),
           `${id} ${daypart}`,
         );
+      } else if (meta.tokenVariants?.dark) {
+        // Dark by preference only: the guest's "koyu" choice declares the same set.
+        expectSame(
+          meta.tokenVariants.dark,
+          cssBlock(css, /:root\[data-renk="koyu"\]/),
+          `${id} koyu`,
+        );
       }
     },
   );

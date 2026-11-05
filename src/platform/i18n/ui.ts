@@ -56,6 +56,17 @@ export type UiText = {
   printedList: string;
   allergenStatement: string;
   demoNote: string;
+  stories: string;
+  goToItem: string;
+  showWaiter: string;
+  waiterTitle: string;
+  total: string;
+  backToList: string;
+  emptyPicks: string;
+  colour: string;
+  colourLight: string;
+  colourDark: string;
+  colourAuto: string;
   spiceLevels: [string, string, string, string];
   allergenNames: Record<Allergen, string>;
   dietNames: Record<Diet, string>;
@@ -114,6 +125,18 @@ const tr: UiText = {
   allergenStatement:
     "Ürünlerimiz alerjen içeren malzemelerle aynı mutfakta hazırlanır. Alerjiniz varsa sipariş vermeden önce personele bildirin.",
   demoNote: "Gösterim amaçlı kurgusal mekân.",
+  stories: "Hikâyeler",
+  goToItem: "Menüde gör",
+  showWaiter: "Garsona göster",
+  waiterTitle: "Sipariş",
+  total: "Toplam",
+  backToList: "Listeye dön",
+  emptyPicks:
+    'Henüz bir şey seçmediniz. Ürünün sayfasındaki "Seçtiklerime ekle" ile listenizi kurun.',
+  colour: "Görünüm",
+  colourLight: "Açık",
+  colourDark: "Koyu",
+  colourAuto: "Otomatik",
   spiceLevels: ["Acısız", "Az acılı", "Acılı", "Çok acılı"],
   allergenNames: {
     gluten: "Gluten",
@@ -206,6 +229,17 @@ const en: UiText = {
   allergenStatement:
     "Our dishes are prepared in a kitchen that handles allergens. Please tell our staff about any allergy before you order.",
   demoNote: "A fictional venue for demonstration.",
+  stories: "Stories",
+  goToItem: "See on the menu",
+  showWaiter: "Show the waiter",
+  waiterTitle: "Order",
+  total: "Total",
+  backToList: "Back to the list",
+  emptyPicks: 'Nothing picked yet. Use "Add to my picks" on a product to build your list.',
+  colour: "Appearance",
+  colourLight: "Light",
+  colourDark: "Dark",
+  colourAuto: "Automatic",
   spiceLevels: ["Not spicy", "Mild", "Spicy", "Very spicy"],
   allergenNames: {
     gluten: "Gluten",
@@ -298,6 +332,17 @@ const ar: UiText = {
   allergenStatement:
     "تُحضَّر أطباقنا في مطبخ يتعامل مع مسببات الحساسية. يرجى إبلاغ الموظفين بأي حساسية قبل الطلب.",
   demoNote: "مكان خيالي لأغراض العرض.",
+  stories: "قصص",
+  goToItem: "اعرضه في القائمة",
+  showWaiter: "أظهِر للنادل",
+  waiterTitle: "الطلب",
+  total: "المجموع",
+  backToList: "العودة إلى القائمة",
+  emptyPicks: "لم تختر شيئًا بعد. استخدم «أضف إلى اختياراتي» في صفحة الصنف لبناء قائمتك.",
+  colour: "المظهر",
+  colourLight: "فاتح",
+  colourDark: "داكن",
+  colourAuto: "تلقائي",
   spiceLevels: ["غير حار", "حار قليلًا", "حار", "حار جدًا"],
   allergenNames: {
     gluten: "الغلوتين",

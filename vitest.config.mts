@@ -26,7 +26,7 @@ export default defineConfig({
         test: {
           ...shared,
           name: "unit",
-          include: ["src/**/*.test.{ts,tsx}", "scripts/**/*.test.ts"],
+          include: ["src/**/*.test.{ts,tsx}", "scripts/**/*.test.ts", "tests/tema/**/*.test.ts"],
         },
       },
       {

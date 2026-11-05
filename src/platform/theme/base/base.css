@@ -29,6 +29,38 @@
   .kt-sheet[open]::backdrop {
     animation: kt-fade 220ms ease-out;
   }
+  .kt-fullscreen {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    max-width: none;
+    height: 100dvh;
+    max-height: none;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: var(--background);
+    color: var(--foreground);
+    overflow-y: auto;
+  }
+  /* Small menus opened with popovertarget (the language list on a phone). */
+  .kt-popover {
+    position: fixed;
+    inset: auto;
+    inset-block-start: 3.75rem;
+    inset-inline-end: 0.5rem;
+    margin: 0;
+    padding: 0.25rem;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: var(--background);
+    color: var(--foreground);
+    box-shadow: 0 8px 24px rgb(0 0 0 / 0.12);
+  }
+  .kt-popover:popover-open {
+    display: flex;
+    flex-direction: column;
+  }
   .kt-bottom-bar {
     padding-bottom: env(safe-area-inset-bottom);
   }
@@ -62,5 +94,30 @@
   .kt-sheet[open],
   .kt-sheet[open]::backdrop {
     animation: none;
+  }
+}
+
+/* Print (BR-YSL-002): the menu on paper — no bars, no sheets, every price visible, black on white. */
+@media print {
+  :root {
+    --background: #ffffff;
+    --foreground: #000000;
+    --muted-foreground: #333333;
+  }
+  header,
+  nav,
+  dialog,
+  .kt-bottom-bar,
+  [role="group"] {
+    display: none !important;
+  }
+  main {
+    padding-bottom: 0 !important;
+  }
+  button {
+    break-inside: avoid;
+  }
+  a {
+    text-decoration: none;
   }
 }
