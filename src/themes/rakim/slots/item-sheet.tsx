@@ -4,8 +4,9 @@ import { formatMoney } from "@/lib/format";
 import { ItemSheetLayout, type ItemSheetParts } from "@/platform/theme/base/item-sheet";
 import type { ItemSheetProps } from "@/platform/theme/contract";
 
-import { RakimImageFallback, RakimPrice } from "./item-card";
+import { RakimImageFallback } from "./item-card";
 import { RAKIM_ITEM_PHOTO } from "./names";
+import { RakimPrice } from "./price";
 import { RakimOptionPicker } from "./recipe-card";
 import { RollingNumber } from "./rolling-number";
 

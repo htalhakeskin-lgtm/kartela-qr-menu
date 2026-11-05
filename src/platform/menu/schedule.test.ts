@@ -1,7 +1,13 @@
 import { describe, expect, it } from "vitest";
 
 import { localTime } from "./clock";
-import { inSeason, type MenuSchedule, menuStatus } from "./schedule";
+import {
+  inSeason,
+  type MenuSchedule,
+  menuStatus,
+  orderMenus,
+  secondsToNextBoundary,
+} from "./schedule";
 
 const TZ = "Europe/Istanbul";
 /** Istanbul wall-clock time; Turkey keeps UTC+3 all year (no DST). */
@@ -129,5 +135,40 @@ describe("seasons", () => {
   it("no season means all year", () => {
     expect(inSeason(undefined, 7, 1)).toBe(true);
     expect(inSeason([], 7, 1)).toBe(true);
+  });
+});
+
+describe("REQ-020: serving order and the next boundary (D-17)", () => {
+  const menus = [
+    { slug: "sabah", schedule: breakfast, outsideWindow: "dim" as const },
+    { slug: "gun-boyu", schedule: null, outsideWindow: "dim" as const },
+  ];
+
+  it("an open window says until when it runs; an all-day menu does not", () => {
+    expect(menuStatus(breakfast, "dim", at("2026-11-06T09:30"), TZ)).toEqual({
+      state: "open",
+      until: "12:00",
+    });
+    expect(menuStatus(night, "dim", at("2026-11-07T01:00"), TZ)).toEqual({
+      state: "open",
+      until: "02:00",
+    });
+    expect(menuStatus(null, "dim", at("2026-11-06T09:30"), TZ)).toEqual({ state: "open" });
+  });
+
+  it("open menus come first, each group in the venue's order", () => {
+    const order = (local: string) =>
+      orderMenus(menus, at(local), TZ).map((entry) => entry.menu.slug);
+    expect(order("2026-11-06T09:00")).toEqual(["sabah", "gun-boyu"]);
+    expect(order("2026-11-06T13:00")).toEqual(["gun-boyu", "sabah"]);
+  });
+
+  it("the page is rebuilt when the next window starts or ends, in the venue's day", () => {
+    const schedules = menus.map((menu) => menu.schedule);
+    expect(secondsToNextBoundary(schedules, at("2026-11-06T09:30"), TZ)).toBe(150 * 60);
+    expect(secondsToNextBoundary(schedules, at("2026-11-06T07:00"), TZ)).toBe(60 * 60);
+    // After the last boundary of the day: tomorrow's first start.
+    expect(secondsToNextBoundary(schedules, at("2026-11-06T13:00"), TZ)).toBe(19 * 60 * 60);
+    expect(secondsToNextBoundary([null], at("2026-11-06T13:00"), TZ)).toBeNull();
   });
 });

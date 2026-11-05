@@ -1,9 +1,9 @@
 import type { ExploreSlots } from "@/platform/theme/base/explore";
 import type { InfoSlots } from "@/platform/theme/base/info";
 import { BaseEmptyState, BaseLegalNote } from "@/platform/theme/base/parts";
-import { BaseStory } from "@/platform/theme/base/story";
 
 import { RakimShell } from "./shell";
+import { RakimStory } from "./story";
 
 /**
  * The slots of Rakım's Keşfet and information pages, named one by one in a module of their own:
@@ -14,7 +14,7 @@ export const rakimExploreSlots: ExploreSlots = {
   Shell: RakimShell,
   EmptyState: BaseEmptyState,
   LegalNote: BaseLegalNote,
-  Story: BaseStory,
+  Story: RakimStory,
 };
 
 export const rakimInfoSlots: InfoSlots = { Shell: RakimShell, LegalNote: BaseLegalNote };

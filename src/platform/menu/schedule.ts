@@ -22,7 +22,8 @@ export type MenuSchedule = {
 export type OutsideWindow = "dim" | "hide";
 
 export type MenuStatus =
-  | { state: "open" }
+  /** `until`: the end of the window the menu is open in ("12:00"); absent for all-day menus. */
+  | { state: "open"; until?: string }
   /** Starts at `startsAt` in `inDays` days (0 = later today) on `weekday`. */
   | {
       state: "later";
@@ -73,13 +74,13 @@ export function menuStatus(
     return nextStart(closed, local.weekday, local.minutes, [{ start: "00:00", from: 0 }], startsOn);
   }
 
-  const open = windows.some(({ from, to }) =>
+  const current = windows.find(({ from, to }) =>
     from < to
       ? startsOn(local.weekday) && local.minutes >= from && local.minutes < to
       : (startsOn(local.weekday) && local.minutes >= from) ||
         (startsOn(previousWeekday(local.weekday)) && local.minutes < to),
   );
-  if (open) return { state: "open" };
+  if (current) return { state: "open", until: current.end };
   return nextStart(closed, local.weekday, local.minutes, windows, startsOn);
 }
 
@@ -99,4 +100,44 @@ function nextStart(
     }
   }
   return closed;
+}
+
+/**
+ * Menus in serving order (REQ-020): open ones first, the rest after, each group in the venue's
+ * own order. The server renders this order when it builds the page and the browser keeps it, so
+ * the list does not move after the first paint (D-17; D-15 measured CLS 0.64 when it did).
+ */
+export function orderMenus<
+  M extends { schedule: MenuSchedule | null; outsideWindow: OutsideWindow },
+>(menus: readonly M[], now: Date, timeZone: string): { menu: M; status: MenuStatus }[] {
+  const rated = menus.map((menu) => ({
+    menu,
+    status: menuStatus(menu.schedule, menu.outsideWindow, now, timeZone),
+  }));
+  return [
+    ...rated.filter((entry) => entry.status.state === "open"),
+    ...rated.filter((entry) => entry.status.state !== "open"),
+  ];
+}
+
+/**
+ * Seconds until the next window starts or ends in the venue's day, or null when no menu has a
+ * window. The menu page is rebuilt then, so its serving order matches the clock (D-17).
+ */
+export function secondsToNextBoundary(
+  schedules: readonly (MenuSchedule | null)[],
+  now: Date,
+  timeZone: string,
+): number | null {
+  const clocks = schedules.flatMap((schedule) =>
+    (schedule?.windows ?? []).flatMap((window) => [
+      parseClock(window.start),
+      parseClock(window.end),
+    ]),
+  );
+  if (clocks.length === 0) return null;
+  const local = localTime(now, timeZone);
+  const later = clocks.filter((minute) => minute > local.minutes);
+  const next = later.length > 0 ? Math.min(...later) : Math.min(...clocks) + 24 * 60;
+  return (next - local.minutes) * 60 - now.getUTCSeconds();
 }

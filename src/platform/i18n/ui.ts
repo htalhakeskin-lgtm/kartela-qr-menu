@@ -88,9 +88,11 @@ export type UiText = {
   lastUpdate: string;
   offlineTitle: string;
   offlineBody: string;
+  until: string;
 };
 
 const tr: UiText = {
+  until: "bitiş",
   offline: "Çevrimdışı",
   lastUpdate: "son güncelleme",
   offlineTitle: "Şu an çevrimdışısınız",
@@ -213,6 +215,7 @@ const tr: UiText = {
 };
 
 const en: UiText = {
+  until: "until",
   offline: "Offline",
   lastUpdate: "last updated",
   offlineTitle: "You are offline",
@@ -334,6 +337,7 @@ const en: UiText = {
 };
 
 const ar: UiText = {
+  until: "حتى",
   offline: "غير متصل",
   lastUpdate: "آخر تحديث",
   offlineTitle: "أنت غير متصل الآن",

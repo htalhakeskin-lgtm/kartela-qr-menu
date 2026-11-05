@@ -3,7 +3,8 @@ import { expect, test } from "@playwright/test";
 import rakimMenu from "../../content/mekanlar/rakim/menu";
 import { formatMoney } from "../../src/lib/format";
 import { parseMoney } from "../../src/lib/money";
-import { venueUrl } from "./routes";
+import { type MenuSchedule, orderMenus } from "../../src/platform/menu/schedule";
+import { venueHost, venueUrl } from "./routes";
 
 /**
  * Rakım on the menu engine (D-15, REQ-018, plan §11.5): the ledger with its mono data line, the
@@ -119,5 +120,62 @@ test.describe("Rakım signature motions (K-28)", () => {
       cortado.name.tr,
     );
     expect(errors).toEqual([]);
+  });
+});
+
+test.describe("Rakım signatures (D-17, REQ-020)", () => {
+  test("the bean card shows the altitude line and the tasting notes", async ({ page }) => {
+    await page.goto(venueUrl("rakim"));
+    const guji = page.getByRole("button", { name: new RegExp(item("etiyopya-guji").name.tr) });
+    await expect(guji.getByRole("img", { name: "Rakım: 1.950–2.200 m" })).toBeVisible();
+    await expect(guji.getByText("bergamot", { exact: true })).toBeVisible();
+    await expect(guji.getByText(/Önerilen demleme: V60/)).toBeVisible();
+  });
+
+  test("the server HTML is already in serving order, and the top bar names the menu", async ({
+    page,
+    request,
+  }) => {
+    // Expected from the content file's schedules at this moment, in Istanbul time.
+    const menus = rakimMenu.menus.map((menu) => ({
+      name: menu.name.tr,
+      // The content file's input type: weekdays are plain numbers there.
+      schedule: (menu.schedule ?? null) as MenuSchedule | null,
+      outsideWindow: "dim" as const,
+    }));
+    const order = orderMenus(menus, new Date(), "Europe/Istanbul");
+    const html = await (await request.get("/", { headers: { host: venueHost("rakim") } })).text();
+    const positions = order.map((entry) => html.indexOf(`>${entry.menu.name}</span></h2>`));
+    expect(positions.every((position) => position > 0)).toBe(true);
+    expect([...positions].sort((a, b) => a - b)).toEqual(positions);
+
+    await page.goto(venueUrl("rakim"));
+    const first = order[0]!;
+    const until = first.status.state === "open" ? first.status.until : undefined;
+    await expect(page.getByRole("banner")).toContainText(
+      until ? `${first.menu.name} · bitiş ${until}` : first.menu.name,
+    );
+  });
+
+  test("nothing moves after the first paint (CLS below 0.1)", async ({ page }) => {
+    await page.addInitScript(() => {
+      const shifts: number[] = [];
+      new PerformanceObserver((list) => {
+        for (const entry of list.getEntries() as (PerformanceEntry & {
+          value: number;
+          hadRecentInput: boolean;
+        })[]) {
+          if (!entry.hadRecentInput) shifts.push(entry.value);
+        }
+      }).observe({ type: "layout-shift", buffered: true });
+      (window as unknown as { __shifts: number[] }).__shifts = shifts;
+    });
+    await page.goto(venueUrl("rakim"));
+    await page.waitForLoadState("networkidle");
+    await page.waitForTimeout(500);
+    const total = await page.evaluate(() =>
+      (window as unknown as { __shifts: number[] }).__shifts.reduce((sum, v) => sum + v, 0),
+    );
+    expect(total).toBeLessThan(0.1);
   });
 });

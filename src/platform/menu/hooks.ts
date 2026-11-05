@@ -11,7 +11,7 @@ import {
   prunePicks,
   type StoredPick,
 } from "./picks";
-import { menuStatus } from "./schedule";
+import { orderMenus } from "./schedule";
 import { searchItems } from "./search";
 import type { ItemView, MenuView } from "./view";
 
@@ -56,17 +56,7 @@ export function useNow(): Date | null {
 /** BR-MNU-001/002: each menu's status now; open menus first, in their own order. Null before hydration. */
 export function useActiveMenus(menus: readonly MenuView[], timeZone: string) {
   const now = useNow();
-  return useMemo(() => {
-    if (!now) return null;
-    const rated = menus.map((menu) => ({
-      menu,
-      status: menuStatus(menu.schedule, menu.outsideWindow, now, timeZone),
-    }));
-    return [
-      ...rated.filter((entry) => entry.status.state === "open"),
-      ...rated.filter((entry) => entry.status.state !== "open"),
-    ];
-  }, [menus, now, timeZone]);
+  return useMemo(() => (now ? orderMenus(menus, now, timeZone) : null), [menus, now, timeZone]);
 }
 
 // ── Address bar ─────────────────────────────────────────────────────────────────────────────
