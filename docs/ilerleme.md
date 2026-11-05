@@ -4,9 +4,9 @@
 
 ## Şu an
 
-- **Etkin dilim:** D-16 — İmza: kahve özelleştirici (tarif kartı) · ⏳
-- **Son yapılan:** D-15: Rakım menü motorunda. Faz 3 ölçüm sayfasının yerine gerçek sayfalar: hızlı menü (defter satırları, Plex Mono fiyat ve veri satırı: demleme tarifi, çekirdeğin bölgesi / rakımı / işlemesi; öne çıkan ürün tam genişlik; fotoğrafsız ürüne veri kartı), Keşfet (dergi), Bilgi, mekânın 404'ü ve çevrimdışı açılış; İngilizce açık (`/en`); imza hareketi 3: Hızlı ↔ Keşfet sayfa geçişi (üst çubuk yerinde, içerik yönlü kayar). Ölçümde iki sızıntı daha: stil karosu ve hikâye (Markdown) kodu menü paketine biniyordu → modüller ayrıldı; Rakım hızlı menüsü 232 → 208 KB. Menü sırası saatle değiştiğinde sayfa kayıyordu (CLS 0,64) → içerikte gün boyu menüsü önde (CLS 0); sabahın öne gelmesi D-17'de boyamadan önce. D-14 canlıda.
-- **Sıradaki adım:** D-16 — ürün panelinde tarif kartı biçiminde kahve özelleştirici, canlı toplam (rakam kayması), uyumluluk kuralları; imza hareketi 2 (satırdaki küçük görselin panel görseline büyümesi).
+- **Etkin dilim:** D-17 — İmza: saate göre menü, çekirdek kartı, Keşfet rehberi ve köken · ⏳
+- **Son yapılan:** D-16: Rakım'ın kahve özelleştiricisi tarif kartı olarak (her seçim defter satırı: grup solda, seçilen ve farkı sağda Plex Mono'da; seçenekler altında çip; özet satırı "12 oz · Çift · Yulaf sütü · Vanilya"); imza hareketi 1: toplamın her rakamı kendi sütununda kayar; imza hareketi 2: satırdaki küçük görsel panelin görseline büyür (aynı belge görünüm geçişi, panelin kodu önce yüklenir). Ürün paneli artık parçalarını alan bir düzen (`ItemSheetLayout`): tema kopyalamadan değiştirir. D-15 incelemede.
+- **Sıradaki adım:** D-17 — saate göre menü sırası ilk boyamadan önce (CLS'siz), üst çubukta etkin menü ve bitiş saati; çekirdek kartı (rakım çizgisi, tadım notu çipleri); Keşfet'te demleme rehberi ve köken düzeni.
 
 ## Gözetimsiz çalışma notları
 
@@ -66,7 +66,7 @@ Faz 1'in son dilimi (D-22) bitip Rakım yayına çıkınca durulur; teslim: yay�
 | D-13 | Çevrimdışı: mekân kapsamlı servis çalışanı, `/cevrimdisi`, "son güncelleme" notu | QR-17 · REQ-017 · SCR-009 | M | P0 | ✅ | ✅ 390 / 1440 (çevrimdışı not, `/cevrimdisi`; 360–1536 taşma ve axe) | 4 birim (betik üretici) + 3 e2e × 2 proje (uçak kipinde yeniden açılış + not + açılmamış sayfa; saklananlar, API yok; `/m/`'de kayıt yok) |
 | D-14 | Rakım konsepti: görsel havuzu (3 kat aday + temas sayfası), `docs/gorsel-kaynaklari.md`, token'lar ve yazı tipleri (Türkçe alt küme, RSK-01 payı), `/stil`, içerik (menü + hikâyeler) | QR-18 · REQ-018 · SCR-007 | M | P0 | ✅ | ✅ 390 / 1440 (`/stil`; 360–1536 taşma ve axe) | 3 birim (çekirdek / demleme okuyucu) + 4 birim (tür alanları, tek görsel tek rol) + içerik dosyaları her mekân için (geçerli, bileşen ve enerji tam) |
 | D-15 | Rakım teması: kabuk, ürün satırı ve öne çıkan ürün, ürün paneli, Keşfet (dergi), veri kartı yedeği, akşam takımı; imza hareketleri 2 ve 3 (K-28); Faz 3 ölçüm sayfasının yerini alır | QR-18 · REQ-018 · SCR-001…003 | M | P0 | ✅ | ✅ 390 / 1440 (TR + EN, Bilgi; 360–1536 taşma ve axe) | 3 birim (satır içi betikler ayrıştırılır) + 5 e2e (defter ve veri satırı, İngilizce, Keşfet, betik hatası yok, 404) + bütçe ve önbellek testleri Rakım sayfalarında; imza hareketi 2 D-16'ya |
-| D-16 | İmza: kahve özelleştirici (tarif kartı, canlı fiyat, uyumluluk); imza hareketi 1 (fiyat rakamı kayması) | QR-19 · REQ-019 · SCR-003 | M | P0 | ⏳ | — | — |
+| D-16 | İmza: kahve özelleştirici (tarif kartı, canlı fiyat, uyumluluk); imza hareketi 1 (fiyat rakamı kayması) | QR-19 · REQ-019 · SCR-003 | M | P0 | ✅ | ✅ 390 (tarif kartı, seçimden önce ve sonra) | 2 e2e × 2 proje (toplam içerik dosyasından hesaplanır; hareket açıkken görsel geçişi başlar ve panel açılır); imza hareketi 2 de bu dilimde |
 | D-17 | İmza: saate göre menü (üst çubuk), çekirdek kartları (rakım çizgisi), Keşfet demleme rehberi ve köken | QR-20 · REQ-020 · SCR-001…003 | M | P0 | ⏳ | — | — |
 | D-18 | Panel temeli: kendi kök düzeni, Better Auth, 2FA, roller ve izinler, mekân seçici, pano iskeleti, ayarlar, ekip, işlem geçmişi; önizleme ortamında oturum | QR-21 · REQ-021 · SCR-100…102, SCR-117…119 | M | P0 | ⏳ | — | — |
 | D-19 | Platform yöneticisi: mekân oluştur, alan adı bağla (Vercel API + Deploy Hook), tema ve kip seçimi, kullanıcılar | QR-21 · REQ-021 · SCR-130…132 | M | P0 | ⏳ | — | — |
@@ -193,6 +193,8 @@ Faz 1'in son dilimi (D-22) bitip Rakım yayına çıkınca durulur; teslim: yay�
 | 2026-11-05 | D-14 / Rakım `/stil` 1440, 390 | SCR-007, GK-08 | Kâğıt zemin, mürekkep, tek vurgu (kavurma turuncusu); Türkçe harfler doğru; Grotesk'in `₺` glifi ₤ gibi çiziliyordu → alt kümeden çıkarıldı, fiyatlarda Plex Mono'nun doğru `₺`'si | ✅ düzeltildi |
 | 2026-11-05 | D-15 / Rakım hızlı menü 390, 1440 (TR, EN) | GK-01, GK-08, plan §11.5 | Üst çubukta kelime işareti, etkin menü, mono dil bağlantıları; telefonda Hızlı / Keşfet sekmeleri çubuğun altında (yapışkan değil, kategori çubuğu 56 px altında kalır); öne çıkan V60 telefonda kenardan kenara 4:3, masaüstünde 16:9 (ilk ekranı doldurmasın); satırlarda mono veri satırı ve fiyat | ✅ |
 | 2026-11-05 | D-15 / saat değişince menü sırası | GK-18, Lighthouse | Öğleden sonra sabah menüsü sona taşınınca bütün liste kayıyordu (CLS 0,64, performans 0,69) → gün boyu menüsü içerikte önde | ✅ düzeltildi |
+| 2026-11-05 | D-16 / tarif kartı 390 | REQ-019, plan §11.1 | Defter satırları, seçili çip vurgu zemininde kâğıt metin (§11.2), mono özet satırı ve toplam; alerjen seçime göre (yulaf sütüyle süt düşer, gluten gelir) | ✅ |
+| 2026-11-05 | D-15 / 768 px dokunma hedefi (CI) | 07-mobil | "Hızlı" bağlantısı CI'ın yazı tipleriyle 44 px'in biraz altında ölçüldü → en az 44 px genişlik | ✅ düzeltildi |
 
 ## Kalite kapısı raporu
 

@@ -1,6 +1,8 @@
 import { expect, test } from "@playwright/test";
 
 import rakimMenu from "../../content/mekanlar/rakim/menu";
+import { formatMoney } from "../../src/lib/format";
+import { parseMoney } from "../../src/lib/money";
 import { venueUrl } from "./routes";
 
 /**
@@ -23,6 +25,35 @@ test.describe("Rakım (D-15)", () => {
     await expect(page.getByText("15 g · 250 ml · 93 °C · 3:15")).toBeVisible();
     await expect(page.getByText("18 g → 36 g · 28 sn")).toBeVisible();
     await expect(page.getByText(/Guji, Oromia · 1\.950–2\.200 m · yıkanmış · 250 g/)).toBeVisible();
+  });
+
+  test("REQ-019: the recipe card adds up the choices and keeps them in one line", async ({
+    page,
+  }) => {
+    // Expected total from the content file: the 12 oz line, oat milk, vanilla and the default
+    // double shot.
+    const latte = item("latte");
+    const groups = rakimMenu.optionGroups!;
+    const option = (group: string, key: string) =>
+      groups[group]!.options.find((entry) => entry.key === key)!;
+    const minor = (amount: string | undefined) => (amount ? parseMoney(amount)! : 0);
+    const total =
+      minor(latte.prices.find((price) => price.key === "12oz")!.amount) +
+      minor(option("sut", "yulaf").delta) +
+      minor(option("surup", "vanilya").delta) +
+      minor(option("shot", "cift").delta);
+
+    await page.goto(venueUrl("rakim", "/#urun-latte"));
+    const panel = page.getByRole("dialog");
+    await panel.getByText("12 oz", { exact: true }).first().click();
+    await panel.getByText("Yulaf sütü", { exact: true }).click();
+    await panel.getByText("Vanilya", { exact: true }).click();
+    await expect(panel.getByText("12 oz · Çift · Yulaf sütü · Vanilya")).toBeVisible();
+    await expect(
+      panel.getByRole("button", {
+        name: `Seçtiklerime ekle ${formatMoney(total, { decimals: "auto" })}`,
+      }),
+    ).toBeVisible();
   });
 
   test("REQ-006: the English menu reads in English", async ({ page }) => {
@@ -54,5 +85,39 @@ test.describe("Rakım (D-15)", () => {
     const response = await page.goto(venueUrl("rakim", "/yok-boyle"));
     expect(response?.status()).toBe(404);
     await expect(page.getByRole("heading", { level: 1 })).toHaveText("Bu sayfa yok");
+  });
+});
+
+test.describe("Rakım signature motions (K-28)", () => {
+  test.use({ reducedMotion: "no-preference" });
+
+  test("motion 2: a tapped row's photo grows into the panel, which opens normally", async ({
+    page,
+  }) => {
+    const errors: string[] = [];
+    page.on("pageerror", (error) => errors.push(error.message));
+    await page.goto(venueUrl("rakim"));
+    await page.waitForLoadState("networkidle");
+    const cortado = item("cortado");
+    const started = page.evaluate(
+      () =>
+        new Promise<boolean>((resolve) => {
+          const original = document.startViewTransition.bind(document);
+          document.startViewTransition = ((update: () => Promise<void>) => {
+            resolve(true);
+            return original(update);
+          }) as typeof document.startViewTransition;
+          setTimeout(() => {
+            resolve(false);
+          }, 5000);
+        }),
+    );
+    await page.getByRole("button", { name: new RegExp(cortado.name.tr) }).click();
+    expect(await started).toBe(true);
+    await expect(page.getByRole("dialog")).toBeVisible();
+    await expect(page.getByRole("dialog").getByRole("heading", { level: 2 })).toHaveText(
+      cortado.name.tr,
+    );
+    expect(errors).toEqual([]);
   });
 });

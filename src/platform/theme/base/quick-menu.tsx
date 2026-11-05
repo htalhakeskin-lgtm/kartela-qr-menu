@@ -1,6 +1,7 @@
 "use client";
 
 import { Suspense, useCallback, useEffect, useMemo, useState, useSyncExternalStore } from "react";
+import { flushSync } from "react-dom";
 
 import { uiText } from "../../i18n/ui";
 import { availabilityStatus, businessDate, dailyEntries } from "../../menu/availability";
@@ -135,10 +136,16 @@ export function QuickMenu({
   venue,
   slots,
   layout: defaultLayout = "liste",
+  photoTransition,
 }: {
   venue: VenueView;
   slots: QuickMenuSlots;
   layout?: QuickLayout;
+  /**
+   * A theme's shared-element name for the product photo (K-28): the tapped row's thumbnail
+   * (data-urun-gorseli="{slug}") grows into the panel's photo through a view transition.
+   */
+  photoTransition?: string;
 }) {
   const ui = uiText(venue.locale);
   const base = useVenueBase(venue.slug);
@@ -168,12 +175,36 @@ export function QuickMenu({
   );
 
   const openItem = (item: ItemView) => {
-    window.history.pushState(
-      window.history.state,
-      "",
-      `${ITEM_HASH}${encodeURIComponent(item.slug)}`,
-    );
-    window.dispatchEvent(new HashChangeEvent("hashchange"));
+    const open = () => {
+      window.history.pushState(
+        window.history.state,
+        "",
+        `${ITEM_HASH}${encodeURIComponent(item.slug)}`,
+      );
+      window.dispatchEvent(new HashChangeEvent("hashchange"));
+    };
+    const thumb = photoTransition
+      ? document.querySelector<HTMLElement>(`[data-urun-gorseli="${CSS.escape(item.slug)}"]`)
+      : null;
+    if (
+      !photoTransition ||
+      !thumb ||
+      typeof document.startViewTransition !== "function" ||
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches
+    ) {
+      open();
+      return;
+    }
+    // The thumbnail holds the name in the old picture, the panel's photo in the new one; the
+    // panel's code is loaded first so the new picture is the open panel, not a blank sheet.
+    thumb.style.viewTransitionName = photoTransition;
+    document.startViewTransition(async () => {
+      thumb.style.viewTransitionName = "";
+      const sheet = slots.ItemSheet as { preload?: () => Promise<unknown> };
+      await sheet.preload?.();
+      flushSync(open);
+      await new Promise((resolve) => requestAnimationFrame(resolve));
+    });
   };
   const closeItem = () => {
     if (window.location.hash.startsWith(ITEM_HASH)) {

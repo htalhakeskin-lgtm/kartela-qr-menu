@@ -77,6 +77,7 @@ export function RakimItemCard(props: ItemCardProps) {
               alt={item.image.alt.text}
               fill
               priority
+              data-urun-gorseli={item.slug}
               sizes="(min-width: 768px) 720px, 100vw"
               quality={85}
               className="object-cover"
@@ -134,6 +135,7 @@ export function RakimItemCard(props: ItemCardProps) {
           width={72}
           height={72}
           sizes="72px"
+          data-urun-gorseli={item.slug}
           quality={75}
           className="size-18 shrink-0 rounded-[4px] object-cover"
           style={{

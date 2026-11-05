@@ -1,14 +1,19 @@
 "use client";
 
 import Image from "next/image";
-import { useState } from "react";
+import { type ComponentType, type ReactNode, useState } from "react";
 
 import { formatMoney } from "../../../lib/format";
 import { uiText } from "../../i18n/ui";
 import { usePicks } from "../../menu/hooks";
 import { useConfigurator } from "../../menu/use-configurator";
 import { itemIndex, type Text } from "../../menu/view";
-import type { ItemSheetProps } from "../contract";
+import type {
+  ImageFallbackProps,
+  ItemSheetProps,
+  OptionPickerProps,
+  PriceProps,
+} from "../contract";
 import { AvailabilityNote, BaseImageFallback } from "./item-card";
 import { BaseItemFacts } from "./item-facts";
 import { BaseOptionPicker } from "./option-picker";
@@ -20,8 +25,40 @@ import { T } from "./text";
  * Item sheet slot (SCR-003): photo (16:10) or the typographic data card → name, description →
  * prices or the configurator → availability → product information → contents / courses →
  * "goes well with" → a sticky "Add to my picks · total" button.
+ *
+ * The layout takes its parts, so a theme redesigns the panel by swapping them (Rakım's recipe
+ * card, D-16) instead of copying it: the configurator, the price, the data card, the total, and
+ * an optional view-transition name for the photo (signature motion 2).
  */
-export function BaseItemSheet({ item, venue, status, onClose, onOpenItem }: ItemSheetProps) {
+export type ItemSheetParts = {
+  OptionPicker: ComponentType<OptionPickerProps>;
+  Price: ComponentType<PriceProps>;
+  ImageFallback: ComponentType<ImageFallbackProps>;
+  /** The total on the add button; plain text by default. */
+  total?: (minor: number) => ReactNode;
+  /** view-transition-name of the photo, matched by the row's thumbnail (K-28). */
+  imageTransitionName?: string;
+};
+
+const baseParts: ItemSheetParts = {
+  OptionPicker: BaseOptionPicker,
+  Price: BasePrice,
+  ImageFallback: BaseImageFallback,
+};
+
+export function BaseItemSheet(props: ItemSheetProps) {
+  return <ItemSheetLayout {...props} parts={baseParts} />;
+}
+
+export function ItemSheetLayout({
+  item,
+  venue,
+  status,
+  onClose,
+  onOpenItem,
+  parts,
+}: ItemSheetProps & { parts: ItemSheetParts }) {
+  const { OptionPicker, Price, ImageFallback } = parts;
   const ui = uiText(venue.locale);
   const configurator = useConfigurator(item);
   const picks = usePicks(venue.slug);
@@ -49,7 +86,7 @@ export function BaseItemSheet({ item, venue, status, onClose, onOpenItem }: Item
                 className="flex min-h-11 w-full items-baseline justify-between gap-4 py-3 text-start"
               >
                 <T text={other.name} page={venue.locale} />
-                {other.defaultPrice ? <BasePrice price={other.defaultPrice} /> : null}
+                {other.defaultPrice ? <Price price={other.defaultPrice} /> : null}
               </button>
             </li>
           ))}
@@ -79,7 +116,9 @@ export function BaseItemSheet({ item, venue, status, onClose, onOpenItem }: Item
         >
           <span>{added ? ui.added : status?.soldOut ? ui.soldOut : ui.addToPicks}</span>
           <span className="tabular-nums" dir="ltr">
-            {formatMoney(configurator.evaluation.totalMinor, { decimals: "auto" })}
+            {parts.total
+              ? parts.total(configurator.evaluation.totalMinor)
+              : formatMoney(configurator.evaluation.totalMinor, { decimals: "auto" })}
           </span>
         </button>
       }
@@ -95,10 +134,11 @@ export function BaseItemSheet({ item, venue, status, onClose, onOpenItem }: Item
             className="size-full object-cover"
             style={{
               objectPosition: `${String(item.image.focalX)}% ${String(item.image.focalY)}%`,
+              viewTransitionName: parts.imageTransitionName,
             }}
           />
         ) : (
-          <BaseImageFallback item={item} venue={venue} />
+          <ImageFallback item={item} venue={venue} />
         )}
       </div>
 
@@ -116,10 +156,10 @@ export function BaseItemSheet({ item, venue, status, onClose, onOpenItem }: Item
 
       <div className="mt-6">
         {configurable ? (
-          <BaseOptionPicker item={item} venue={venue} configurator={configurator} />
+          <OptionPicker item={item} venue={venue} configurator={configurator} />
         ) : item.defaultPrice ? (
           <p className="text-lg">
-            <BasePrice price={item.defaultPrice} />
+            <Price price={item.defaultPrice} />
           </p>
         ) : null}
       </div>
