@@ -4,9 +4,9 @@
 
 ## Şu an
 
-- **Etkin dilim:** D-09 — Sade I: hızlı menü · ✅
-- **Son yapılan:** D-09: temel yuvalar (`src/platform/theme/base`: kabuk, bölüm çubuğu / masaüstü dizini, ürün kartı dört biçimde + fotoğrafsız tipografik kart, alttan `<dialog>` ürün paneli, ürün kurucu, ürün bilgisi, arama, filtre, Seçtiklerim listesi, yasal not); Sade hızlı menüsü veritabanından, liste / kart / ızgara, `#urun-` derin bağlantısı, adres çubuğunda filtre, RTL; arayüz sözlüğü TR / EN / AR. D-08 canlıda.
-- **Sıradaki adım:** D-10 — Sade II: Keşfet (akış / dergi), Seçtiklerim + garsona göster, koyu mod, baskı yuvaları, `/stil`, tema uygunluk takımı.
+- **Etkin dilim:** D-10 — Sade II · ✅
+- **Son yapılan:** D-10: Keşfet (sunucuda Markdown, akış / dergi, numaralı rehber durakları, hikâyeden ürün paneline), Hızlı ↔ Keşfet geçişi görünüm çereziyle, Seçtiklerim `#sectiklerim` + "Garsona göster" (mekânın dilinde, büyük yazı, ekran uyanık), Sade koyu takımı ve kalıcı Açık / Koyu / Otomatik seçimi, baskı CSS'i, `/stil` karosu (kontrast oranlarıyla), tema uygunluk takımı (BR-TMA-002), telefonda dil menüsü `popover` ile. D-09 canlıda.
+- **Sıradaki adım:** D-11 — mekân kabuğu: alan adı başına `metadataBase`, canonical, `hreflang`, JSON-LD, paylaşım görseli, favicon; kip (demo notu, `noindex`); yasal blok; `/bilgi`; mekânın 404'ü.
 
 ## Gözetimsiz çalışma notları
 
@@ -60,7 +60,7 @@ Faz 1'in son dilimi (D-22) bitip Rakım yayına çıkınca durulur; teslim: yay�
 | D-07 | Keşfet içerik modeli: hikâye türleri, koleksiyon ve durak, Markdown (sunucuda `react-markdown`, K-34), galeri, ürün bağları | QR-10 · REQ-010 | M | P0 | ✅ | — (arayüz yok) | 4 birim (güvenli Markdown) + 4 birim (hikâye şeması) + 2 entegrasyon (kısıtlar, içerik → okuma modeli; kiracı takımı 22 tablo) |
 | D-08 | Tema sözleşmesi + görünümsüz çekirdek: `ThemeModule`, yuvalar, `useActiveMenus`, `useMenuSearch`, `useMenuFilters`, `useConfigurator`, `usePicks`, `useView`, `useVenueContext`, `formatPrice`, `t()`; ön boyama betiği | QR-11, QR-13 · REQ-011, REQ-013 | M | P0 | ✅ | — (arayüz iskeleti) | 41 birim (görünüm modeli, filtre, arama, Seçtiklerim, önbellek etiketi, görünüm çerezi, ön boyama, tema uygunluğu) + 3 entegrasyon (`getVenueView`) + 2 e2e |
 | D-09 | Sade I: kabuk, hızlı menü (liste / kart / ızgara), yapışkan kategori çubuğu, arama, filtre paneli, alttan ürün paneli, alt çubuk | QR-12, QR-14 · REQ-012, REQ-014 · SCR-001, SCR-003 | M | P0 | ✅ | ✅ 360 / 390 / 768 / 1280 (taşma, 44 px, axe) | 8 e2e × 2 proje (`sade.spec.ts`) + Sade sayfaları taşma / a11y / görsel takımında |
-| D-10 | Sade II: Keşfet (akış / dergi), Seçtiklerim + garsona göster, RTL, koyu mod, fotoğrafsız ürün (birinci sınıf, K-23), baskı yuvaları, `/stil`, tema konformans takımı | QR-06, QR-13, QR-14 · REQ-006, REQ-013, REQ-014 · SCR-002, SCR-004, SCR-007 | M | P0 | ⏳ | — | — |
+| D-10 | Sade II: Keşfet (akış / dergi), Seçtiklerim + garsona göster, RTL, koyu mod, fotoğrafsız ürün (birinci sınıf, K-23), baskı yuvaları, `/stil`, tema konformans takımı | QR-06, QR-13, QR-14 · REQ-006, REQ-013, REQ-014 · SCR-002, SCR-004, SCR-007 | M | P0 | ✅ | ✅ 360 / 390 / 768 / 1280 (Keşfet, `/stil` dahil) | 16 uygunluk (2 tema × uç durum) + 6 kontrast + 5 e2e × 2 proje (Keşfet, görünüm çerezi, garson görünümü, koyu mod, `/stil`) |
 | D-11 | Mekân kabuğu: alan adı başına `metadataBase`, canonical, `hreflang`, JSON-LD, OG görseli, favicon; kip (demo notu, `noindex`); yasal blok; `/bilgi`; 404 | QR-15 · REQ-015 · SCR-005, SCR-008 | M | P0 | ⏳ | — | — |
 | D-12 | Statik üretim + `updateTag` + günlük cron (04:00) + mekân başına `olcum:js` ve Lighthouse CI matrisi | QR-16 · REQ-016 | M | P0 | ⏳ | — | — |
 | D-13 | Çevrimdışı: mekân kapsamlı servis çalışanı, `/cevrimdisi`, "son güncelleme" notu | QR-17 · REQ-017 · SCR-009 | M | P0 | ⏳ | — | — |
@@ -153,14 +153,14 @@ Faz 1'in son dilimi (D-22) bitip Rakım yayına çıkınca durulur; teslim: yay�
 
 ## Etkin dilim planı
 
-**D-09 — Sade I: hızlı menü** (dal `feat/d09-sade-quick-menu`)
-- Kabul kriterleri (REQ-003, REQ-007, REQ-008, REQ-012, REQ-014, SCR-001, SCR-003): Sade mekânı açıldığında üst çubuk (mekân adı, etkin menü, dil), yapışkan ve yatay kayan bölüm çubuğu (bulunulan bölüm işaretli, 44 px hedefler), menüler (servisteki önce; saat dışındaki "HH:MM'de başlar" notuyla soluk, `hide` olanlar gizli), bölümler ve ürünler üç yerleşimde (liste / kart / ızgara; `?yerlesim=`), öne çıkan ürün tam genişlik; fotoğrafsız ürün tipografik kart (K-23); tükenen ürün bölüm sonunda ve işaretli, mevsim dışı ürün ay aralığıyla; günün menüsü bugünün kayıtları, yoksa boş durum; alt çubuk (Ara · Filtre · Seçtiklerim (n) · Bilgi, güvenli alan payı); arama ve filtre alttan panelde, filtre adres çubuğunda; ürün paneli alttan açılır (yerel `<dialog>`, Esc ve arka plan kapatır, odak içeride), ürün kurucu radyo / onay kutularıyla, pasif seçenek gerekçesiyle, canlı toplamla "Seçtiklerime ekle"; `#urun-{slug}` paneli doğrudan açar, geri tuşu kapatır; yasal not her dilde sayfa sonunda; sağdan sola dilde mantıksal yönler. 360 px'te yatay kaydırma yok, axe temiz.
+**D-10 — Sade II: Keşfet, Seçtiklerim, koyu mod, `/stil`, uygunluk** (dal `feat/d10-sade-explore`)
+- Kabul kriterleri (REQ-010, REQ-013, REQ-014, BR-TMA-002, UC-04, SCR-002, SCR-004, SCR-007): Keşfet hikâyeleri akış / dergi yerleşiminde, Markdown sunucuda (istemci paketine girmez), rehber durakları numaralı, hikâyeden ürüne bağlantı ürün panelini açar; üst çubukta Hızlı ↔ Keşfet geçişi seçimi çereze yazar ve QR'ın bir sonraki açılışı aynı görünümü getirir; Seçtiklerim `#sectiklerim` adresiyle açılır, boşken yol gösterir; "Garsona göster" tam ekran, büyük yazı, mekânın varsayılan dilinde (AR sayfasında Türkçe ad), açıkken ekran uyanık; koyu mod sistem tercihine uyar, misafirin Açık / Koyu / Otomatik seçimi kalıcıdır ve ilk boyamadan önce uygulanır; baskıda çubuklar ve paneller gizlenir; `/stil` token'ları kontrast oranlarıyla, yazı ölçeğini ve bileşenleri gösterir (noindex); uygunluk takımı her temanın yuvalarını uç durum fikstürüyle çizer.
 - Tablolar / migration: yok.
-- Dosyalar: `src/platform/theme/base/*` (temel yuvalar: kabuk, bölüm çubuğu, bölüm başlığı, ürün kartı, ürün paneli, ürün kurucu, ürün bilgisi, fiyat, arama, filtre, menü notu, yasal not, boş durum, alt panel, hızlı menü kompozisyonu), `src/platform/theme/base/base.css`, `src/platform/i18n/ui.ts`, `src/themes/sade/{client.tsx,sade.css,fonts.ts,index.ts}`, `src/app/tema-sade/[mekan]/[dil]/{layout,page}.tsx`.
-- Kurallar: BR-MNU-001…003, BR-MST-001…005, BR-SCN-001…003, BR-YSL-001/002, BR-TMA-001.
-- Testler: e2e — `sade.spec.ts` (bölüm çubuğu, arama "corba", filtre adresi ve sonuç, ürün paneli açılış / Esc / `#urun-`, ürün kurucu zorunlu seçim ve toplam, Seçtiklerim sayacı, tükendi işareti, RTL), a11y ve taşma takımına Sade sayfaları; birim — sözlük bütünlüğü.
-- Görsel inceleme: 390 ve 1440 px ekran görüntüleri (liste / kart / ızgara, ürün paneli, AR) GK maddelerine göre.
-- Notlar: Seçtiklerim paneli ve "garsona göster" D-10'da (bu dilimde sayaç ve ekleme); Keşfet D-10; yazı çifti kataloğu ve mekân başına token D-39.
+- Dosyalar: `src/platform/theme/base/{story,explore,explore-slots,picks,colour-choice,site-footer,style-tile,shell,quick-menu}.tsx`, `src/platform/theme/base/base.css`, `src/platform/menu/view.ts` (varsayılan dilde ad ve etiket), `src/platform/i18n/ui.ts`, `src/lib/contrast.ts`, `src/themes/sade/{sade.css,meta.ts}`, `src/app/tema-sade/[mekan]/[dil]/{kesfet,stil}/page.tsx`, `tests/tema/conformance.test.ts`, `tests/e2e/{sade.spec.ts,routes.ts}`.
+- Kurallar: K-34, BR-TMA-002, BR-SEC-001, BR-MNU-003.
+- Testler: birim — kontrast oranı, Keşfet blokları; uygunluk — her tema × uç durum fikstürü (fotoğrafsız, 80 karakterlik ad, tükendi, yarım, 100 g, kadeh / şişe, zorunlu seçenek, AR düşmesi); e2e — Keşfet, görünüm çerezi, garson görünümü, koyu mod, `/stil`; taşma / a11y takımına Keşfet ve `/stil`.
+- Görsel inceleme: Keşfet 390 / 1440, garson görünümü, koyu mod 390, `/stil`.
+- Notlar: mekân başına yerleşim / yazı çifti / token D-39; Rakım'ın Keşfet'i D-15.
 
 ## Görsel inceleme
 
@@ -181,6 +181,12 @@ Faz 1'in son dilimi (D-22) bitip Rakım yayına çıkınca durulur; teslim: yay�
 | 2026-11-05 | D-09 / AR 390 | RTL | "300 g" iki yönlü metinde "g 300" görünüyordu → her veri parçası `<bdi>` | ✅ düzeltildi |
 | 2026-11-05 | D-09 / ürün paneli | REQ-005 | Cortado'da alerjen "—" (süt seçenekten geliyor) → bilgi bölümü seçime göre (yulafta gluten, inek sütünde süt) | ✅ düzeltildi |
 | 2026-11-05 | D-09 / tükendi, saat dışı menü | WCAG 1.4.3 | `opacity-60` soldurma metin kontrastını AA altına indirdi (axe, 13 düğüm) → metin soluk renkte (6,6:1), yalnız görsel saydam | ✅ düzeltildi |
+| 2026-11-05 | D-10 / Keşfet 390, 1440 | GK-08, GK-11 | 640 px metin sütunu, Markdown başlıkları hikâyenin altında (h3), numaralı rehber durakları, ürün çipleri; görselsiz hikâye birinci sınıf | ✅ |
+| 2026-11-05 | D-10 / üst çubuk 390 | GK-11, 07-mobil | Hızlı / Keşfet + üç dil yan yana sığmıyor, mekân adı kesiliyordu → telefonda dil menüsü `popover` (JS'siz), ≥ 640 px'te yan yana; RTL'de menü solda | ✅ düzeltildi |
+| 2026-11-05 | D-10 / hikâye metni bağlantısı | WCAG 1.4.1 | Metin içi bağlantı alt çizgisizdi, düz metinden ayırt edilmiyordu → alt çizgi; fikstür bağlantısı ürün paneline (`./#urun-…`) | ✅ düzeltildi |
+| 2026-11-05 | D-10 / koyu mod 390 | GK-05, AA | Koyu takımda mürekkep 16,4:1, soluk 8:1, vurgu 9,9:1; tek vurgu (yeşil) korunuyor | ✅ |
+| 2026-11-05 | D-10 / garson görünümü (AR sayfasından) | REQ-013 | Türkçe adlar, 30 px yazı, toplam; geri düğmesi misafirin dilinde | ✅ |
+| 2026-11-05 | D-10 / `/stil` 1440 | SCR-007 | Gündüz / koyu token'ları kontrastla, yazı ölçeği (Türkçe karakterler), bileşenler mekânın ürünleriyle | ✅ |
 
 ## Kalite kapısı raporu
 

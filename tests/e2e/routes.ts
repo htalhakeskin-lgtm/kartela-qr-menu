@@ -38,13 +38,19 @@ export const venueRoutes = [
   venueUrl("rakim"),
   venueUrl("ornek"),
   venueUrl("ornek", "/ar"),
+  venueUrl("ornek", "/kesfet"),
+  venueUrl("ornek", "/ar/kesfet"),
+  venueUrl("ornek", "/stil"),
 ] as const;
 
 /** The 404 check route: excluded from SEO and image checks. */
 export const notFoundRoute = "/bu-sayfa-yok";
 
 /** Routes whose job is to show many images; the same file may appear twice (thumbnail + large). */
-export const galleryRoutes: readonly string[] = [];
+export const galleryRoutes: readonly string[] = [
+  // The style tile shows one photo in each card variant on purpose (SCR-007, noindex).
+  venueUrl("ornek", "/stil"),
+];
 
 /** Where tests/e2e/auth.setup.ts stores the demo session (panel specs, screenshots; from D-18). */
 export const PANEL_STATE = "playwright/.auth/admin.json";

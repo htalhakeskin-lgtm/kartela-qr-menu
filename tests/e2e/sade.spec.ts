@@ -113,4 +113,72 @@ test.describe("Sade quick menu", () => {
     await expect(page.getByRole("navigation", { name: "الأقسام" })).toBeVisible();
     await expect(page.getByRole("main").getByText("300 g").first()).toBeVisible();
   });
+
+  test("REQ-010: Keşfet tells the stories, numbers the guide, links back to the product", async ({
+    page,
+  }) => {
+    await page.goto(venueUrl("ornek", "/kesfet"));
+    await expect(page.getByRole("heading", { level: 1, name: "Keşfet" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Fasulyenin yolu" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Neden aynı köy?" })).toBeVisible();
+    await expect(page.getByText("01", { exact: true })).toBeVisible();
+    await page.getByRole("link", { name: "Zeytinyağlı kuru fasulye" }).click();
+    await expect(
+      sheet(page).getByRole("heading", { name: "Zeytinyağlı kuru fasulye" }),
+    ).toBeVisible();
+  });
+
+  test("UC-04: the chosen view is remembered for the next visit", async ({ page }) => {
+    await page.goto(venueUrl("ornek"));
+    await page.getByRole("link", { name: "Keşfet", exact: true }).click();
+    await expect(page.getByRole("heading", { level: 1, name: "Keşfet" })).toBeVisible();
+    await page.goto(venueUrl("ornek")); // the QR again: the home page opens Keşfet
+    await expect(page.getByRole("heading", { level: 1, name: "Keşfet" })).toBeVisible();
+    await page.getByRole("link", { name: "Hızlı", exact: true }).click();
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText("Örnek Mekân · Menü");
+    await page.goto(venueUrl("ornek"));
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText("Örnek Mekân · Menü");
+  });
+
+  test("REQ-013: the waiter sees the order in the venue's language, in large type", async ({
+    page,
+  }) => {
+    await page.goto(venueUrl("ornek", "/ar#urun-menemen"));
+    await sheet(page)
+      .getByRole("button", { name: /أضف إلى اختياراتي/ })
+      .click();
+    await page.keyboard.press("Escape");
+    // The bottom bar is named in the page language: "القائمة" on the Arabic page.
+    await page
+      .getByRole("navigation", { name: "القائمة" })
+      .getByRole("button", { name: /اختياراتي/ })
+      .click();
+    await expect(page).toHaveURL(/#sectiklerim$/);
+    await page.getByRole("button", { name: "أظهِر للنادل" }).click();
+    const waiter = page.getByRole("dialog", { name: "Sipariş" });
+    await expect(waiter.getByText("Menemen", { exact: true })).toBeVisible();
+    await expect(waiter.locator('[lang="tr"]').first()).toBeVisible();
+    await expect(waiter).toContainText(/180\s₺/);
+  });
+
+  test("REQ-014: the dark choice is kept and applied before the first paint", async ({ page }) => {
+    await page.goto(venueUrl("ornek"));
+    await page.getByRole("button", { name: "Koyu" }).click();
+    await expect(page.locator("html")).toHaveAttribute("data-renk", "koyu");
+    await page.reload();
+    await expect(page.locator("html")).toHaveAttribute("data-renk", "koyu");
+    await page.getByRole("button", { name: "Otomatik" }).click();
+    await expect(page.locator("html")).not.toHaveAttribute("data-renk", /.+/);
+  });
+
+  test("SCR-007: the style tile shows the tokens with their contrast and is never indexed", async ({
+    page,
+  }) => {
+    await page.goto(venueUrl("ornek", "/stil"));
+    await expect(page.getByRole("heading", { name: "Gündüz" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Koyu" })).toBeVisible();
+    // Foreground and focus share #18181b: the first is enough.
+    await expect(page.getByText(/#18181b · 17,7:1/).first()).toBeVisible();
+    await expect(page.locator('meta[name="robots"]')).toHaveAttribute("content", /noindex/);
+  });
 });

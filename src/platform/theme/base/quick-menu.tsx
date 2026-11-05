@@ -2,7 +2,6 @@
 
 import { useCallback, useMemo, useState, useSyncExternalStore } from "react";
 
-import { SiteCredit } from "../../../components/layout/site-credit";
 import { uiText } from "../../i18n/ui";
 import { availabilityStatus, businessDate, dailyEntries } from "../../menu/availability";
 import { activeFilterCount, matchFilters } from "../../menu/filters";
@@ -12,6 +11,7 @@ import type { ItemView, MenuView, SectionView, VenueView } from "../../menu/view
 import { itemIndex } from "../../menu/view";
 import type { ItemCardVariant, QuickLayout } from "../contract";
 import { Sheet } from "./sheet";
+import { SiteFooter } from "./site-footer";
 import { type QuickMenuSlots } from "./slots";
 import { DIMMED, T } from "./text";
 
@@ -44,6 +44,24 @@ function useOpenItemSlug(): string | null {
   );
 }
 
+/** SCR-004: Seçtiklerim has an address of its own (#sectiklerim): shareable on the table, back closes it. */
+const PICKS_HASH = "#sectiklerim";
+
+function usePicksOpen(): boolean {
+  return useSyncExternalStore(
+    subscribeHash,
+    () => window.location.hash === PICKS_HASH,
+    () => false,
+  );
+}
+
+function setHash(hash: string | null, mode: "push" | "replace") {
+  const url = hash ?? window.location.pathname + window.location.search;
+  if (mode === "push") window.history.pushState(window.history.state, "", url);
+  else window.history.replaceState(window.history.state, "", url);
+  window.dispatchEvent(new HashChangeEvent("hashchange"));
+}
+
 function useLayout(fallback: QuickLayout): QuickLayout {
   const param = useSyncExternalStore(
     () => () => undefined,
@@ -53,7 +71,7 @@ function useLayout(fallback: QuickLayout): QuickLayout {
   return param === "liste" || param === "kart" || param === "izgara" ? param : fallback;
 }
 
-type Panel = "search" | "filter" | "picks" | null;
+type Panel = "search" | "filter" | null;
 
 /** Line icons (1.5 px stroke, plan §11.6), drawn here: four icons are not worth a dependency. */
 const ICONS = {
@@ -97,6 +115,7 @@ export function QuickMenu({
   const picks = usePicks(venue.slug);
   const layout = useLayout(defaultLayout);
   const openSlug = useOpenItemSlug();
+  const picksOpen = usePicksOpen();
   const [panel, setPanel] = useState<Panel>(null);
   const items = useMemo(() => itemIndex(venue), [venue]);
   const bySlug = useMemo(() => new Map(venue.items.map((item) => [item.slug, item])), [venue]);
@@ -299,10 +318,7 @@ export function QuickMenu({
             <slots.EmptyState reason="filter" venue={venue} />
           )}
           <slots.LegalNote venue={venue} />
-          <footer className="mt-10 flex flex-col gap-2 border-t border-border pt-6 text-xs text-muted-foreground sm:flex-row sm:justify-between">
-            {venue.mode === "demo" ? <p>{ui.demoNote}</p> : <span />}
-            <SiteCredit className="shrink-0 text-xs text-muted-foreground" />
-          </footer>
+          <SiteFooter venue={venue} />
         </main>
       </div>
 
@@ -323,7 +339,8 @@ export function QuickMenu({
               key={key}
               type="button"
               onClick={() => {
-                setPanel(key);
+                if (key === "picks") setHash(PICKS_HASH, "push");
+                else setPanel(key);
               }}
               className="flex min-h-11 flex-col items-center justify-center gap-0.5 text-xs sm:flex-row sm:gap-1.5 sm:text-sm"
             >
@@ -401,12 +418,12 @@ export function QuickMenu({
           <slots.FilterPanel filters={filters} onChange={setFilters} venue={venue} />
         </Sheet>
       ) : null}
-      {panel === "picks" ? (
+      {picksOpen ? (
         <Sheet
           label={ui.picks}
           closeLabel={ui.close}
           onClose={() => {
-            setPanel(null);
+            if (window.location.hash === PICKS_HASH) setHash(null, "replace");
           }}
         >
           <slots.Picks venue={venue} />

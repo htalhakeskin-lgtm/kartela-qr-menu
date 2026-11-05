@@ -171,6 +171,12 @@ export function BaseLegalNote({ venue }: LegalNoteProps) {
 export function BaseEmptyState({ reason, venue }: EmptyStateProps) {
   const ui = uiText(venue.locale);
   const text =
-    reason === "search" ? ui.noResults : reason === "filter" ? ui.noFilterResults : ui.closedNow;
+    reason === "search"
+      ? ui.noResults
+      : reason === "filter"
+        ? ui.noFilterResults
+        : reason === "explore"
+          ? ui.stories
+          : ui.closedNow;
   return <p className="py-10 text-center text-muted-foreground">{text}</p>;
 }

@@ -5,7 +5,7 @@
  * Sade — the reference ready-made theme (plan §11.8). Loaded only by the tema-sade root layout
  * (ADR-0003). D-09: Inter and the base slots (src/platform/theme/base); D-10 the dark set; D-39 the
  * per-venue token configuration and type pairings.
- * Contrast: ink #18181b on #ffffff 17.7:1; muted #5b5b63 6.6:1; accent #1f5f4a 7.5:1.
+ * Contrast: ink #18181b on #ffffff 17.7:1; muted #5b5b63 6.7:1; accent #1f5f4a 7.5:1.
  */
 :root {
   --background: #ffffff;
@@ -20,6 +20,44 @@
   --accent-foreground: #ffffff;
   --sold-out: #5b5b63;
   --focus: #18181b;
+}
+
+/*
+ * Dark set (REQ-014): the guest's "Koyu" choice, or the system preference unless the guest chose
+ * "Açık". Contrast on #121214: ink 16.4:1, muted 8.0:1, accent 9.9:1; button text on accent 8.1:1.
+ */
+:root[data-renk="koyu"] {
+  --background: #121214;
+  --surface: #1b1b1f;
+  --surface-muted: #24242a;
+  --foreground: #ececee;
+  --muted-foreground: #a9a9b2;
+  --border: #2c2c33;
+  --primary: #7cc8a8;
+  --primary-foreground: #0f2a21;
+  --accent: #7cc8a8;
+  --accent-foreground: #0f2a21;
+  --sold-out: #a9a9b2;
+  --focus: #ececee;
+  color-scheme: dark;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-renk="acik"]) {
+    --background: #121214;
+    --surface: #1b1b1f;
+    --surface-muted: #24242a;
+    --foreground: #ececee;
+    --muted-foreground: #a9a9b2;
+    --border: #2c2c33;
+    --primary: #7cc8a8;
+    --primary-foreground: #0f2a21;
+    --accent: #7cc8a8;
+    --accent-foreground: #0f2a21;
+    --sold-out: #a9a9b2;
+    --focus: #ececee;
+    color-scheme: dark;
+  }
 }
 
 @theme inline {

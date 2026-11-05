@@ -15,9 +15,12 @@ import remarkGfm from "remark-gfm";
 export function StoryMarkdown({
   markdown,
   components,
+  linkClassName,
 }: {
   markdown: string;
   components?: Components;
+  /** A theme's link style; links stay distinguishable from text (WCAG 1.4.1: underline). */
+  linkClassName?: string;
 }) {
   return (
     <Markdown
@@ -29,7 +32,11 @@ export function StoryMarkdown({
         a: ({ href, children }) => {
           const external = href !== undefined && /^https?:\/\//.test(href);
           return (
-            <a href={href} rel={external ? "noopener noreferrer" : undefined}>
+            <a
+              href={href}
+              rel={external ? "noopener noreferrer" : undefined}
+              className={linkClassName}
+            >
               {children}
             </a>
           );

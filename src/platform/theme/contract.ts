@@ -114,10 +114,21 @@ export type OptionPickerProps = {
   configurator: ReturnType<typeof useConfigurator>;
 };
 export type PicksProps = { venue: VenueView };
-export type StoryProps = { story: StoryView; venue: VenueView };
+export type StoryProps = {
+  story: StoryView;
+  venue: VenueView;
+  layout: ExploreLayout;
+  /** 2 for a story of its own, 3 for a stop inside a collection. */
+  headingLevel: 2 | 3;
+  /** Position on the page (the magazine layout alternates sides). */
+  index: number;
+};
 export type MenuNoticeProps = { menu: MenuView; status: MenuStatus; venue: VenueView };
 export type LegalNoteProps = { venue: VenueView };
-export type EmptyStateProps = { reason: "search" | "filter" | "menu" | "daily"; venue: VenueView };
+export type EmptyStateProps = {
+  reason: "search" | "filter" | "menu" | "daily" | "explore";
+  venue: VenueView;
+};
 export type ImageFallbackProps = { item: ItemView; venue: VenueView };
 
 /** View slots: Sade provides the base implementation of each; a theme overrides some. */
