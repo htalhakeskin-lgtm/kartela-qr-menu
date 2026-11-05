@@ -71,9 +71,35 @@ export type UiText = {
   allergenNames: Record<Allergen, string>;
   dietNames: Record<Diet, string>;
   months: string[];
+  address: string;
+  openMap: string;
+  hours: string;
+  closedDay: string;
+  contact: string;
+  call: string;
+  wifiNetwork: string;
+  wifiPassword: string;
+  faq: string;
+  legalNotes: string;
+  notFoundTitle: string;
+  notFoundBody: string;
+  backToMenu: string;
 };
 
 const tr: UiText = {
+  address: "Adres",
+  openMap: "Haritada aç",
+  hours: "Çalışma saatleri",
+  closedDay: "Kapalı",
+  contact: "İletişim",
+  call: "Ara:",
+  wifiNetwork: "Ağ",
+  wifiPassword: "Parola",
+  faq: "Sık sorulanlar",
+  legalNotes: "Yasal bilgiler",
+  notFoundTitle: "Bu sayfa yok",
+  notFoundBody: "Aradığınız sayfa kaldırılmış ya da adres yanlış yazılmış olabilir.",
+  backToMenu: "Menüye dön",
   menu: "Menü",
   quick: "Hızlı",
   explore: "Keşfet",
@@ -178,6 +204,19 @@ const tr: UiText = {
 };
 
 const en: UiText = {
+  address: "Address",
+  openMap: "Open in map",
+  hours: "Opening hours",
+  closedDay: "Closed",
+  contact: "Contact",
+  call: "Call:",
+  wifiNetwork: "Network",
+  wifiPassword: "Password",
+  faq: "Questions",
+  legalNotes: "Legal information",
+  notFoundTitle: "This page does not exist",
+  notFoundBody: "The page may have been removed, or the address may be mistyped.",
+  backToMenu: "Back to the menu",
   menu: "Menu",
   quick: "Quick",
   explore: "Explore",
@@ -281,6 +320,19 @@ const en: UiText = {
 };
 
 const ar: UiText = {
+  address: "العنوان",
+  openMap: "افتح في الخريطة",
+  hours: "ساعات العمل",
+  closedDay: "مغلق",
+  contact: "اتصل بنا",
+  call: "اتصل:",
+  wifiNetwork: "الشبكة",
+  wifiPassword: "كلمة المرور",
+  faq: "أسئلة شائعة",
+  legalNotes: "معلومات قانونية",
+  notFoundTitle: "هذه الصفحة غير موجودة",
+  notFoundBody: "ربما أُزيلت الصفحة أو كُتب العنوان بشكل خاطئ.",
+  backToMenu: "العودة إلى القائمة",
   menu: "القائمة",
   quick: "سريع",
   explore: "اكتشف",

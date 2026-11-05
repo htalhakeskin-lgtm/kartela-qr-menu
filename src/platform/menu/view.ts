@@ -6,7 +6,15 @@ import { type InfoGap, infoGaps } from "./completeness";
 import type { ConfigGroup, ConfigRule } from "./configurator";
 import { priceText, type PriceUnit } from "./price";
 import type { MenuSchedule, OutsideWindow } from "./schedule";
-import type { MediaAsset, MenuItem, MenuSection, Story, VenueMenu } from "./types";
+import type {
+  MediaAsset,
+  MenuItem,
+  MenuSection,
+  OpeningHours,
+  Story,
+  VenueInfo,
+  VenueMenu,
+} from "./types";
 import type { Allergen, Diet, ItemKind, MenuKind, SpiceLevel, StoryKind } from "./vocabulary";
 
 /**
@@ -114,6 +122,20 @@ export type StoryView = {
   itemIds: string[];
 };
 
+/** The information page, localized (SCR-005). Phones stay E.164; the page formats them. */
+export type InfoView = {
+  description: Text | null;
+  address: string | null;
+  mapUrl: string | null;
+  phone: string | null;
+  whatsapp: string | null;
+  email: string | null;
+  hours: OpeningHours;
+  wifi: { network: string; password: string | null } | null;
+  faq: { q: Text; a: Text }[];
+  allergenStatement: Text | null;
+};
+
 export type VenueView = {
   slug: string;
   name: string;
@@ -128,6 +150,7 @@ export type VenueView = {
   /** Every published product once, menu order first. */
   items: ItemView[];
   stories: StoryView[];
+  info: InfoView | null;
 };
 
 export type VenueFacts = {
@@ -145,6 +168,7 @@ export type VenueViewInput = {
   menu: VenueMenu;
   stories: Story[];
   media: Record<string, MediaAsset>;
+  info?: VenueInfo | null;
 };
 
 /** Field translation for themes: t(item.name, locale) on raw { tr, en … } data (configurator). */
@@ -270,6 +294,20 @@ export function buildVenueView(
       daily: menu.daily,
     })),
     items,
+    info: input.info
+      ? {
+          description: optional(input.info.description),
+          address: input.info.address,
+          mapUrl: input.info.mapUrl,
+          phone: input.info.phone,
+          whatsapp: input.info.whatsapp,
+          email: input.info.email,
+          hours: input.info.hours,
+          wifi: input.info.wifi,
+          faq: input.info.faq.map((entry) => ({ q: text(entry.q), a: text(entry.a) })),
+          allergenStatement: optional(input.info.allergenStatement),
+        }
+      : null,
     stories: input.stories.map((story) => ({
       id: story.id,
       slug: story.slug,

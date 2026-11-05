@@ -1,4 +1,5 @@
-import type { MenuContentInput, StoryInput } from "../../src/platform/menu/content";
+import type { MenuContentInput, StoryInput, VenueInfoInput } from "../../src/platform/menu/content";
+import ornekInfo from "./_ornek/bilgi";
 import ornekStories from "./_ornek/hikayeler";
 import ornekMenu from "./_ornek/menu";
 
@@ -12,8 +13,9 @@ export type VenueContentEntry = {
   folder: string;
   menu: MenuContentInput;
   stories?: readonly StoryInput[];
+  info?: VenueInfoInput;
 };
 
 export const venueContents: Readonly<Record<string, VenueContentEntry>> = {
-  ornek: { folder: "_ornek", menu: ornekMenu, stories: ornekStories },
+  ornek: { folder: "_ornek", menu: ornekMenu, stories: ornekStories, info: ornekInfo },
 };

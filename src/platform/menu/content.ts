@@ -396,6 +396,46 @@ const storySchema = z
 
 export type StoryInput = Omit<z.input<typeof storySchema>, "body">;
 
+/** A Turkish phone in E.164 (VR-06: the venue line is the developer's, +905423115888). */
+const phone = z.string().regex(/^\+90\d{10}$/, "E.164 (+90…)");
+
+/**
+ * The venue's information page (SCR-005, D-11): content/mekanlar/{ad}/bilgi.ts. Hours per ISO
+ * weekday ("1" = Monday) in the venue's time zone; a missing day is closed; an end at or before
+ * the start crosses midnight.
+ */
+export const venueInfoSchema = z
+  .object({
+    /** One or two sentences: the meta description and the page's lead. */
+    description: translatedSchema,
+    address: z.string().trim().min(5),
+    mapUrl: z.url().optional(),
+    phone,
+    whatsapp: phone.optional(),
+    email: z.email().optional(),
+    hours: z.partialRecord(
+      z.enum(["1", "2", "3", "4", "5", "6", "7"]),
+      z.array(z.object({ open: clock, close: clock }).strict()).min(1),
+    ),
+    wifi: z
+      .object({ network: z.string().trim().min(1), password: z.string().nullable() })
+      .strict()
+      .optional(),
+    faq: z
+      .array(z.object({ q: translatedSchema, a: translatedSchema }).strict())
+      .max(8)
+      .default([]),
+    allergenStatement: translatedSchema.optional(),
+  })
+  .strict();
+
+export type VenueInfoInput = z.input<typeof venueInfoSchema>;
+
+/** Typed helper for content/mekanlar/{ad}/bilgi.ts. */
+export function defineVenueInfo(info: VenueInfoInput): VenueInfoInput {
+  return info;
+}
+
 export const menuContentSchema = z
   .object({
     images: z.record(slug, imageSchema).default({}),
@@ -404,6 +444,7 @@ export const menuContentSchema = z
     rules: z.array(ruleSchema).default([]),
     menus: z.array(menuSchema).min(1),
     stories: z.array(storySchema).default([]),
+    info: venueInfoSchema.optional(),
   })
   .strict()
   .superRefine((content, ctx) => {

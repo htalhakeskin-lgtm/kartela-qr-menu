@@ -24,7 +24,7 @@ export async function loadVenueContent(slug: string): Promise<MenuContent | null
       body: await readBodies(folder, story.slug),
     })),
   );
-  return parseMenuContent(slug, { ...entry.menu, stories });
+  return parseMenuContent(slug, { ...entry.menu, stories, info: entry.info });
 }
 
 async function readBodies(folder: string, slug: string): Promise<Record<string, string>> {

@@ -11,6 +11,7 @@ import type { ItemView, MenuView, SectionView, VenueView } from "../../menu/view
 import { itemIndex } from "../../menu/view";
 import type { ItemCardVariant, QuickLayout } from "../contract";
 import { Sheet } from "./sheet";
+import { localeHome, pageHref, useVenueBase } from "./shell";
 import { SiteFooter } from "./site-footer";
 import { type QuickMenuSlots } from "./slots";
 import { DIMMED, T } from "./text";
@@ -108,6 +109,7 @@ export function QuickMenu({
   layout?: QuickLayout;
 }) {
   const ui = uiText(venue.locale);
+  const base = useVenueBase(venue.slug);
   const now = useNow();
   const active = useActiveMenus(venue.menus, venue.timeZone);
   const { filters, setFilters } = useMenuFilters();
@@ -356,7 +358,7 @@ export function QuickMenu({
             </button>
           ))}
           <a
-            href="#bilgi"
+            href={pageHref(localeHome(base, venue.locale, venue.defaultLocale), "bilgi")}
             className="flex min-h-11 flex-col items-center justify-center gap-0.5 text-xs sm:flex-row sm:gap-1.5 sm:text-sm"
           >
             <Icon path={ICONS.info} />

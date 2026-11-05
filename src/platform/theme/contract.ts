@@ -61,7 +61,7 @@ export interface MotionPreset {
 
 export type QuickLayout = "liste" | "kart" | "izgara";
 export type ExploreLayout = "akis" | "dergi";
-export type ViewMode = "hizli" | "kesfet";
+export type ViewMode = "hizli" | "kesfet" | "bilgi";
 
 export type ShellProps = {
   venue: VenueView;

@@ -4,9 +4,9 @@
 
 ## Şu an
 
-- **Etkin dilim:** D-10 — Sade II · ✅
-- **Son yapılan:** D-10: Keşfet (sunucuda Markdown, akış / dergi, numaralı rehber durakları, hikâyeden ürün paneline), Hızlı ↔ Keşfet geçişi görünüm çereziyle, Seçtiklerim `#sectiklerim` + "Garsona göster" (mekânın dilinde, büyük yazı, ekran uyanık), Sade koyu takımı ve kalıcı Açık / Koyu / Otomatik seçimi, baskı CSS'i, `/stil` karosu (kontrast oranlarıyla), tema uygunluk takımı (BR-TMA-002), telefonda dil menüsü `popover` ile. D-09 canlıda.
-- **Sıradaki adım:** D-11 — mekân kabuğu: alan adı başına `metadataBase`, canonical, `hreflang`, JSON-LD, paylaşım görseli, favicon; kip (demo notu, `noindex`); yasal blok; `/bilgi`; mekânın 404'ü.
+- **Etkin dilim:** D-12 — Statik üretim, `updateTag`, günlük cron ve ölçüm matrisi · ⏳
+- **Son yapılan:** D-11: mekân kabuğu. Her mekân sayfasında `{Sayfa} · {Mekân}` başlığı, mekânın kendi açıklaması, alan adına göre `metadataBase` + canonical, her dil için `hreflang` + `x-default`, temanın token'larıyla çizilen paylaşım görseli ve simge (derlemede üretilir), demo kipte `noindex`; JSON-LD (hızlı menüde işletme + herkese açık menüler, `/bilgi`'de adres + saatler); `/bilgi` sayfası (adres, betiksiz harita bağlantısı, İstanbul saatine göre bugün işaretli saat tablosu, tıkla-ara ve WhatsApp, Wi-Fi, SSS, yasal notlar); alt çubuktaki "Bilgi" bu sayfaya gider, dil bağlantıları sayfada kalır; bilinmeyen yol mekânın düzeninde ve dilinde 404; site haritası her sayfayı her dilde alternatifleriyle listeler. `venue_settings`'e `faq` ve `wifi` (migration 0014). D-10 canlıda.
+- **Sıradaki adım:** D-12 — menü sayfalarının statik üretimi ve panel yazımında `updateTag`, 04:00 günlük cron (günün menüsü), mekân başına `olcum:js` ve Lighthouse CI matrisi.
 
 ## Gözetimsiz çalışma notları
 
@@ -61,7 +61,7 @@ Faz 1'in son dilimi (D-22) bitip Rakım yayına çıkınca durulur; teslim: yay�
 | D-08 | Tema sözleşmesi + görünümsüz çekirdek: `ThemeModule`, yuvalar, `useActiveMenus`, `useMenuSearch`, `useMenuFilters`, `useConfigurator`, `usePicks`, `useView`, `useVenueContext`, `formatPrice`, `t()`; ön boyama betiği | QR-11, QR-13 · REQ-011, REQ-013 | M | P0 | ✅ | — (arayüz iskeleti) | 41 birim (görünüm modeli, filtre, arama, Seçtiklerim, önbellek etiketi, görünüm çerezi, ön boyama, tema uygunluğu) + 3 entegrasyon (`getVenueView`) + 2 e2e |
 | D-09 | Sade I: kabuk, hızlı menü (liste / kart / ızgara), yapışkan kategori çubuğu, arama, filtre paneli, alttan ürün paneli, alt çubuk | QR-12, QR-14 · REQ-012, REQ-014 · SCR-001, SCR-003 | M | P0 | ✅ | ✅ 360 / 390 / 768 / 1280 (taşma, 44 px, axe) | 8 e2e × 2 proje (`sade.spec.ts`) + Sade sayfaları taşma / a11y / görsel takımında |
 | D-10 | Sade II: Keşfet (akış / dergi), Seçtiklerim + garsona göster, RTL, koyu mod, fotoğrafsız ürün (birinci sınıf, K-23), baskı yuvaları, `/stil`, tema konformans takımı | QR-06, QR-13, QR-14 · REQ-006, REQ-013, REQ-014 · SCR-002, SCR-004, SCR-007 | M | P0 | ✅ | ✅ 360 / 390 / 768 / 1280 (Keşfet, `/stil` dahil) | 16 uygunluk (2 tema × uç durum) + 6 kontrast + 5 e2e × 2 proje (Keşfet, görünüm çerezi, garson görünümü, koyu mod, `/stil`) |
-| D-11 | Mekân kabuğu: alan adı başına `metadataBase`, canonical, `hreflang`, JSON-LD, OG görseli, favicon; kip (demo notu, `noindex`); yasal blok; `/bilgi`; 404 | QR-15 · REQ-015 · SCR-005, SCR-008 | M | P0 | ⏳ | — | — |
+| D-11 | Mekân kabuğu: alan adı başına `metadataBase`, canonical, `hreflang`, JSON-LD, OG görseli, favicon; kip (demo notu, `noindex`); yasal blok; `/bilgi`; 404 | QR-15 · REQ-015 · SCR-005, SCR-008 | M | P0 | ✅ | ✅ 360 / 390 / 768 / 1280 (`/bilgi` TR + AR, mekân 404'ü dahil) | 8 birim (adres, başlık, metadata, JSON-LD) + 1 entegrasyon (bilgi yaz / oku) + 8 e2e (3 masaüstü + 5 × 2 proje) |
 | D-12 | Statik üretim + `updateTag` + günlük cron (04:00) + mekân başına `olcum:js` ve Lighthouse CI matrisi | QR-16 · REQ-016 | M | P0 | ⏳ | — | — |
 | D-13 | Çevrimdışı: mekân kapsamlı servis çalışanı, `/cevrimdisi`, "son güncelleme" notu | QR-17 · REQ-017 · SCR-009 | M | P0 | ⏳ | — | — |
 | D-14 | Rakım konsepti: görsel havuzu (3 kat aday + temas sayfası), `docs/gorsel-kaynaklari.md`, token'lar ve yazı tipleri (Türkçe alt küme, RSK-01 payı), `/stil`, içerik (menü + hikâyeler) | QR-18 · REQ-018 · SCR-007 | M | P0 | ⏳ | — | — |
@@ -153,14 +153,7 @@ Faz 1'in son dilimi (D-22) bitip Rakım yayına çıkınca durulur; teslim: yay�
 
 ## Etkin dilim planı
 
-**D-10 — Sade II: Keşfet, Seçtiklerim, koyu mod, `/stil`, uygunluk** (dal `feat/d10-sade-explore`)
-- Kabul kriterleri (REQ-010, REQ-013, REQ-014, BR-TMA-002, UC-04, SCR-002, SCR-004, SCR-007): Keşfet hikâyeleri akış / dergi yerleşiminde, Markdown sunucuda (istemci paketine girmez), rehber durakları numaralı, hikâyeden ürüne bağlantı ürün panelini açar; üst çubukta Hızlı ↔ Keşfet geçişi seçimi çereze yazar ve QR'ın bir sonraki açılışı aynı görünümü getirir; Seçtiklerim `#sectiklerim` adresiyle açılır, boşken yol gösterir; "Garsona göster" tam ekran, büyük yazı, mekânın varsayılan dilinde (AR sayfasında Türkçe ad), açıkken ekran uyanık; koyu mod sistem tercihine uyar, misafirin Açık / Koyu / Otomatik seçimi kalıcıdır ve ilk boyamadan önce uygulanır; baskıda çubuklar ve paneller gizlenir; `/stil` token'ları kontrast oranlarıyla, yazı ölçeğini ve bileşenleri gösterir (noindex); uygunluk takımı her temanın yuvalarını uç durum fikstürüyle çizer.
-- Tablolar / migration: yok.
-- Dosyalar: `src/platform/theme/base/{story,explore,explore-slots,picks,colour-choice,site-footer,style-tile,shell,quick-menu}.tsx`, `src/platform/theme/base/base.css`, `src/platform/menu/view.ts` (varsayılan dilde ad ve etiket), `src/platform/i18n/ui.ts`, `src/lib/contrast.ts`, `src/themes/sade/{sade.css,meta.ts}`, `src/app/tema-sade/[mekan]/[dil]/{kesfet,stil}/page.tsx`, `tests/tema/conformance.test.ts`, `tests/e2e/{sade.spec.ts,routes.ts}`.
-- Kurallar: K-34, BR-TMA-002, BR-SEC-001, BR-MNU-003.
-- Testler: birim — kontrast oranı, Keşfet blokları; uygunluk — her tema × uç durum fikstürü (fotoğrafsız, 80 karakterlik ad, tükendi, yarım, 100 g, kadeh / şişe, zorunlu seçenek, AR düşmesi); e2e — Keşfet, görünüm çerezi, garson görünümü, koyu mod, `/stil`; taşma / a11y takımına Keşfet ve `/stil`.
-- Görsel inceleme: Keşfet 390 / 1440, garson görünümü, koyu mod 390, `/stil`.
-- Notlar: mekân başına yerleşim / yazı çifti / token D-39; Rakım'ın Keşfet'i D-15.
+— D-12'nin planı dilimin başında buraya yazılır.
 
 ## Görsel inceleme
 
@@ -187,6 +180,11 @@ Faz 1'in son dilimi (D-22) bitip Rakım yayına çıkınca durulur; teslim: yay�
 | 2026-11-05 | D-10 / koyu mod 390 | GK-05, AA | Koyu takımda mürekkep 16,4:1, soluk 8:1, vurgu 9,9:1; tek vurgu (yeşil) korunuyor | ✅ |
 | 2026-11-05 | D-10 / garson görünümü (AR sayfasından) | REQ-013 | Türkçe adlar, 30 px yazı, toplam; geri düğmesi misafirin dilinde | ✅ |
 | 2026-11-05 | D-10 / `/stil` 1440 | SCR-007 | Gündüz / koyu token'ları kontrastla, yazı ölçeği (Türkçe karakterler), bileşenler mekânın ürünleriyle | ✅ |
+| 2026-11-05 | D-11 / `/bilgi` 390, 1440 | GK-08, GK-11, 07-mobil | 640 px sütun; bölümler çizgiyle ayrılıyor, kart yok; ana eylem (Ara) dolgulu, WhatsApp çerçeveli; bugün kalın; SSS `details` | ✅ |
+| 2026-11-05 | D-11 / `/ar/bilgi` 390 | RTL | Saat ve Wi-Fi hücrelerindeki `dir="ltr"` hizayı ters çeviriyordu (saatler satırın ortasında, değerler etiketten uzakta) → hücre sayfanın yönünde, yalnız değer `<bdi dir="ltr">` | ✅ düzeltildi |
+| 2026-11-05 | D-11 / bugünün satırı | GK-08 | Gün adı `th`'nin `font-normal`'ı yüzünden kalın değildi, yalnız saat kalındı → ikisi birlikte | ✅ düzeltildi |
+| 2026-11-05 | D-11 / mekân 404'ü 390, 1440 | SCR-008 | Mekânın yazı tipi ve rengi, sayfanın dili; tek ana eylem "Menüye dön" o dilin ana sayfasına | ✅ |
+| 2026-11-05 | D-11 / paylaşım görseli 1200 × 630 | SEO-06 | Sade token'ları: beyaz zemin, mürekkep ad, alt kenarda tek yeşil şerit; Arapça sayfalarda da yalnız Latin harfli ad ve alan adı (yerleşik yazı tipinde Arapça yok) | ✅ |
 
 ## Kalite kapısı raporu
 
@@ -195,7 +193,8 @@ Faz 1'in son dilimi (D-22) bitip Rakım yayına çıkınca durulur; teslim: yay�
 ## Bilinen sorunlar
 
 - `kepce-lokanta.vercel.app` projeye bağlı ama mekân kaydında yok (Kepçe D-39'da kaydedilir); o zamana kadar `*.vercel.app` kuralıyla platform ana sayfasını gösterir.
-- Mekâna özgü 404 sayfası yok: mekân alan adında bilinmeyen yol global 404'ü (Kartela) gösterir; D-11'de mekânın kendi 404'ü.
+- Mekânın 404'ü istemcide çiziliyor: Next.js 16.4 Cache Components'ta ön oluşturma sırasındaki `notFound()` için gövdesi boş bir "kurtarma kabuğu" üretir, 404 içeriği aynı HTML'deki Flight verisinden tarayıcıda çizilir (ek istek yok, durum kodu 404). JavaScript kapalıyken sayfa boş kalır. Next.js düzeltirse yeniden denenir.
+- Rakım'ın tema ağacında henüz `/bilgi` ve mekân 404'ü yok (ölçüm sayfası D-15'te gerçek sayfalarla değişir); paylaşım görseli D-11'den beri var.
 - Rakım ölçüm sayfasındaki "TR · EN" yalnızca metin (dil seçici değil); EN içerikle D-14, dil seçici D-15.
 - Önizleme veritabanı ayrımı (K-42 → K-43): 2026-11-05'te Neon önizleme dallanması açıldı. Önizleme derlemesi kendi dalında migration ve tohum çalıştırır; koşul `PREVIEW_DB_BRANCH=true` ve veritabanı parmak izinin üretiminkinden farklı olması. Neon ücretsiz planında en çok 10 dal var: birleştirilen PR'ların önizleme yayınları silinir (`vercel remove`), dalları da onlarla gider.
 - Neon sahip rolünün `BYPASSRLS` özelliği doğrulanmadı (üretim veritabanını okuma izni yok). Tasarım buna bağlı değil: kiracı erişimi her zaman `app_rw` ile (K-41); yalnızca ESLint dışı, sahip rolle kiracı tablosuna giden bir kod RLS'ye takılmayabilir.
@@ -220,3 +219,5 @@ Faz 1'in son dilimi (D-22) bitip Rakım yayına çıkınca durulur; teslim: yay�
 - 2026-11-04 · D-03 · Çevrilebilir alan kısıtı (`length(trim(name ->> 'tr')) > 0`) `tr` anahtarı hiç olmayan `{ "en": "…" }` değerini kabul etti: PostgreSQL'de NULL sonuç veren `check` ifadesi geçer. Entegrasyon testi yakaladı; çözüm `coalesce(…, 0) > 0`. Migration yalnız yerelde uygulanmıştı, yeniden üretildi. **Sisteme taşı:** 04-veri §6 (check kısıtında NULL üç değerli mantık: her ifade `coalesce` ya da `is not null` ile kapatılır; kısıt testi "alan hiç yok" durumunu da dener).
 - 2026-11-04 · D-06 · D-03'teki NULL tuzağı `item_availability` kısıtında tekrarlandı: `(daily_limit >= 1 and …)` dalı `daily_limit` NULL iken NULL döndü ve "limitsiz ama kalanı 3" satırı geçerdi. Bu kez migration SQL'i okunurken yakalandı (yalnız yerelde uygulanmıştı). Kural: her `check`'te nullable kolonla karşılaştırma `is not null` ya da `coalesce` ile kapatılır; kısıt testi her nullable kolon için "yalnız biri dolu" durumunu dener (`remaining: 3` limitsiz). **Sisteme taşı:** 04-veri §6 (D-03 dersine örnek olarak).
 - 2026-11-05 · D-09 · "Soluk" durumları (tükendi, saat dışı menü) `opacity` ile yapmak metnin kontrastını düşürür; axe bunu "color-contrast" olarak yakaladı (13 düğüm). Çözüm: metin soluk token renginde (≥ 4,5:1), saydamlık yalnız görsellerde. Ayrıca statik sayfada istemci bileşeni ön oluşturma sırasında `new Date()` çağırırsa Next.js 16 derlemeyi durdurur; tarayıcı durumu (saat, depolama, adres) `useSyncExternalStore` ile okunur, sunucu anlık görüntüsü null. **Sisteme taşı:** 08-erisilebilirlik (pasif / soluk durum kuralı), 06-arayuz, 12-performans (Cache Components + istemci saati).
+- 2026-11-05 · D-11 · Alt sayfanın `generateMetadata`'sındaki `openGraph` nesnesi üst bölümün dosya tabanlı `opengraph-image`'ını da siliyor (Next.js meta veriyi sığ birleştiriyor): kök sayfada görsel vardı, `/bilgi` ve `/kesfet`'te yoktu. Çözüm: her sayfa tema ağacındaki görselin adresini kendisi yazar (`venueShareImagePath`), e2e her sayfa türünde `og:image`'ın 200 döndüğünü denetler. Aynı dilimde: dinamik bölümdeki meta görsel rotaları (`icon.tsx`, `opengraph-image.tsx`) `generateStaticParams` dışa aktarılmadıkça her istekte fonksiyon olarak çalışıyor; dışa aktarınca derlemede dosya olarak üretiliyor (derleme çıktısında ƒ → ●). **Sisteme taşı:** 09-seo (alt sayfada OG görseli açıkça yazılır), 12-performans (meta görsel rotası statik olmalı; derleme çıktısında denetlenir).
+- 2026-11-05 · D-11 · Cache Components'ta `[...yol]` gibi yakala-hepsi rotası, listelenmemiş yol için Next.js 16.3+ boş "uygulama kabuğu"nu sunup sayfayı arka planda üretiyor; 404 sayfası ilk istekte boş geldi. `export const ensureStatic = "navigation"` ilk isteğin tam sonucu beklemesini sağladı. Ayrıca yerelde 3020'de önceki oturumdan kalmış bir `next start` yeni rotaları 404 gösterdi; ölçümden önce portu kimin tuttuğuna bakılır. **Sisteme taşı:** 12-performans / 02-mimari (Cache Components + yakala-hepsi rota: `ensureStatic`), 14-test (yerel sunucu süreci denetimi; `site.spec.ts` derleme kimliğini de doğrulasın).

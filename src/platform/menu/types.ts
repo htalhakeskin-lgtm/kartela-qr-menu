@@ -99,6 +99,25 @@ export type VenueMenu = {
   items: MenuItem[];
 };
 
+/** Opening windows per ISO weekday (1 = Monday), "HH:MM" in the venue's time zone. */
+export type OpeningHours = Partial<
+  Record<1 | 2 | 3 | 4 | 5 | 6 | 7, { open: string; close: string }[]>
+>;
+
+/** The venue's information (venue_settings, D-11), as stored. */
+export type VenueInfo = {
+  description: Translated | null;
+  address: string | null;
+  mapUrl: string | null;
+  phone: string | null;
+  whatsapp: string | null;
+  email: string | null;
+  hours: OpeningHours;
+  wifi: { network: string; password: string | null } | null;
+  faq: { q: Translated; a: Translated }[];
+  allergenStatement: Translated | null;
+};
+
 /** A registered image (20-gorsel-kalite §5.4): served from its CDN, never larger than it is. */
 export type MediaAsset = {
   id: string;

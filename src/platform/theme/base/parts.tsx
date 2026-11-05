@@ -155,14 +155,20 @@ export function BaseLegalNote({ venue }: LegalNoteProps) {
   const ui = uiText(venue.locale);
   return (
     <section
-      aria-label={ui.info}
-      id="bilgi"
+      aria-label={ui.legalNotes}
+      id="yasal"
       className="mt-16 border-t border-border pt-6 text-sm leading-relaxed text-muted-foreground"
     >
       <p>
         {ui.vatIncluded} {ui.noServiceCharge} {ui.printedList}
       </p>
-      <p className="mt-3">{ui.allergenStatement}</p>
+      <p className="mt-3">
+        {venue.info?.allergenStatement ? (
+          <T text={venue.info.allergenStatement} page={venue.locale} />
+        ) : (
+          ui.allergenStatement
+        )}
+      </p>
     </section>
   );
 }
