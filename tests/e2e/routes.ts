@@ -36,6 +36,7 @@ export function venueHost(slug: string): string {
  */
 export const venueRoutes = [
   venueUrl("rakim"),
+  venueUrl("rakim", "/stil"),
   venueUrl("ornek"),
   venueUrl("ornek", "/ar"),
   venueUrl("ornek", "/kesfet"),
@@ -54,6 +55,7 @@ export const notFoundRoute = "/bu-sayfa-yok";
 export const galleryRoutes: readonly string[] = [
   // The style tile shows one photo in each card variant on purpose (SCR-007, noindex).
   venueUrl("ornek", "/stil"),
+  venueUrl("rakim", "/stil"),
 ];
 
 /** Where tests/e2e/auth.setup.ts stores the demo session (panel specs, screenshots; from D-18). */

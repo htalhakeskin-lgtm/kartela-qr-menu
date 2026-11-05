@@ -2,6 +2,7 @@ import { z } from "zod";
 
 import { parseMoney } from "../../lib/money";
 import type { Locale } from "../tenant/registry-schema";
+import { BEAN_PROCESSES, BEAN_ROASTS, BREW_METHODS } from "./attributes";
 import type { IsoWeekday } from "./clock";
 import { PRICE_UNITS, priceProblems } from "./price";
 import { ALLERGENS, DIETS, ITEM_KINDS, ITEM_STATUSES, MENU_KINDS, STORY_KINDS } from "./vocabulary";
@@ -203,6 +204,35 @@ const availabilitySchema = z
     { message: "remainingToday için dailyLimit gerekir ve onu aşamaz", path: ["remainingToday"] },
   );
 
+/** Coffee sold by the bag (kind "bean", D-14): what the bean card shows. */
+const beanAttributesSchema = z
+  .object({
+    region: z.string().trim().min(2),
+    altitude: z
+      .object({ min: z.number().int().min(0).max(3000), max: z.number().int().min(0).max(3000) })
+      .strict()
+      .refine((range) => range.min <= range.max, "Rakım aralığında en az, en çoktan büyük olamaz"),
+    process: z.enum(BEAN_PROCESSES),
+    varieties: z.array(z.string().trim().min(1)).default([]),
+    producer: z.string().trim().min(1).optional(),
+    notes: z.array(translatedSchema).min(2).max(5),
+    roast: z.enum(BEAN_ROASTS),
+    weightG: z.number().int().positive(),
+  })
+  .strict();
+
+/** A drink's recipe (optional, D-14): the data line of the menu row. */
+const brewSchema = z
+  .object({
+    method: z.enum(BREW_METHODS),
+    doseG: z.number().positive().optional(),
+    waterMl: z.number().int().positive().optional(),
+    yieldG: z.number().positive().optional(),
+    tempC: z.number().int().min(0).max(100).optional(),
+    timeS: z.number().int().positive().optional(),
+  })
+  .strict();
+
 const itemSchema = z
   .object({
     slug,
@@ -219,7 +249,7 @@ const itemSchema = z
     portionG: z.number().int().positive().optional(),
     volumeMl: z.number().int().positive().optional(),
     origin: translatedSchema.optional(),
-    /** Kind-specific facts (bean: region, altitude, process, notes …); D-14 adds per-kind schemas. */
+    /** Kind-specific facts, validated per kind below (attributes.ts): bean facts, a drink's brew. */
     attributes: z.record(z.string(), z.unknown()).default({}),
     /** Strength in tenths of a percent: 45 = 4,5 % (BR-YSL-004). */
     alcohol: z
@@ -262,6 +292,11 @@ const itemSchema = z
       ...line,
       default: item.prices.some((other) => other.default) ? line.default : index === 0,
     })),
+    // Valid bean facts are stored with their defaults; invalid ones stay raw for the check below.
+    attributes:
+      item.kind === "bean"
+        ? (beanAttributesSchema.safeParse(item.attributes).data ?? item.attributes)
+        : item.attributes,
   }))
   .superRefine((item, ctx) => {
     const lines = item.prices.map((line) => ({
@@ -272,6 +307,20 @@ const itemSchema = z
     }));
     for (const problem of priceProblems(lines)) {
       ctx.addIssue({ code: "custom", path: ["prices"], message: `Fiyat satırları: ${problem}` });
+    }
+    // Per-kind attributes (D-14): a bean must describe itself; a drink may carry its recipe.
+    const attributes =
+      item.kind === "bean"
+        ? beanAttributesSchema.safeParse(item.attributes)
+        : z.object({ brew: brewSchema.optional() }).strict().safeParse(item.attributes);
+    if (!attributes.success) {
+      for (const issue of attributes.error.issues) {
+        ctx.addIssue({
+          code: "custom",
+          path: ["attributes", ...issue.path.map(String)],
+          message: issue.message,
+        });
+      }
     }
   });
 

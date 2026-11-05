@@ -1,4 +1,6 @@
 @import "tailwindcss";
+/* The base slots Rakım still uses until D-15 / D-16 redesign them (sheets, popovers, print). */
+@import "../../platform/theme/base/base.css";
 
 /*
  * Rakım — "Demleme Defteri" (plan §11). Loaded only by the tema-rakim root layout (ADR-0003).

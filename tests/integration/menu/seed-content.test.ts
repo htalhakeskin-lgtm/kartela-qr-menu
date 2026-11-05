@@ -90,12 +90,15 @@ describe("seedVenueContent: content file → database → read model", () => {
     const [image] = await withVenue(venue.id, (tx) =>
       tx.select().from(mediaAssets).where(eq(mediaAssets.id, cortado.imageId!)),
     );
+    // Read from the content file: the fixture's photos may change (D-14 swapped them).
+    const source = content.images["cortado-cam-bardak"]!;
     expect(image).toMatchObject({
       key: "cortado-cam-bardak",
       source: "unsplash",
-      width: 7170,
-      photographer: "Adi Goldstein",
-      focalY: 55,
+      url: source.url,
+      width: source.width,
+      photographer: source.photographer,
+      focalY: source.focal?.[1],
     });
     expect(menu.items.filter((item) => item.imageId !== null).map((item) => item.slug)).toEqual([
       "cortado",
@@ -216,10 +219,8 @@ describe("seedVenueContent: content file → database → read model", () => {
     ]);
     expect(stories[0]!.coverId).toBeNull(); // a story without an image is a first-class state
     const cover = media[stories[1]!.coverId!]!;
-    expect(cover).toMatchObject({
-      url: "https://images.unsplash.com/photo-1493606278519-11aa9f86e40a",
-      width: 2442,
-    });
+    const coverSource = content.images["fincan-sade-kahve"]!;
+    expect(cover).toMatchObject({ url: coverSource.url, width: coverSource.width });
     expect(Object.keys(media)).toHaveLength(2);
     expect(stories[0]!.body.tr).toContain("## Neden aynı köy?");
     expect(localize(stories[1]!.body, "ar")).toMatchObject({ lang: "tr", fallback: true });

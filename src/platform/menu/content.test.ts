@@ -315,3 +315,78 @@ describe("Keşfet stories in the content file (D-07)", () => {
     );
   });
 });
+
+describe("kind-specific attributes (D-14)", () => {
+  const bean = (attributes: Record<string, unknown>) => ({
+    ...minimal(),
+    items: [
+      ...minimal().items,
+      {
+        slug: "guji",
+        kind: "bean" as const,
+        name: { tr: "Etiyopya Guji" },
+        ingredients: { tr: "%100 arabica kahve çekirdeği" },
+        prices: [{ amount: "980" }],
+        attributes,
+      },
+    ],
+  });
+  const facts = {
+    region: "Guji, Oromia",
+    altitude: { min: 1950, max: 2200 },
+    process: "washed",
+    notes: [{ tr: "bergamot" }, { tr: "şeftali" }],
+    roast: "filter",
+    weightG: 250,
+  };
+
+  it("a bean describes itself: region, altitude, process, notes, roast, weight", () => {
+    expect(problems(bean(facts))).toEqual([]);
+    const parsed = menuContentSchema.parse(bean(facts));
+    expect(parsed.items[1]!.attributes).toMatchObject({ varieties: [], process: "washed" });
+  });
+
+  it("refuses a bean without its facts, a reversed altitude range or an unknown process", () => {
+    expect(problems(bean({})).some((p) => p.startsWith("items.1.attributes.region"))).toBe(true);
+    expect(problems(bean({ ...facts, altitude: { min: 2200, max: 1950 } }))).toEqual([
+      "items.1.attributes.altitude: Rakım aralığında en az, en çoktan büyük olamaz",
+    ]);
+    expect(problems(bean({ ...facts, process: "sun-dried" }))[0]).toMatch(
+      /^items\.1\.attributes\.process/,
+    );
+    expect(problems(bean({ ...facts, notes: [{ tr: "bal" }] }))[0]).toMatch(
+      /^items\.1\.attributes\.notes/,
+    );
+  });
+
+  it("a drink may carry its recipe; other keys are refused", () => {
+    const drink = (attributes: Record<string, unknown>) => ({
+      ...minimal(),
+      items: [{ ...minimal().items[0]!, attributes }],
+    });
+    expect(
+      problems(drink({ brew: { method: "v60", doseG: 15, waterMl: 250, tempC: 93, timeS: 195 } })),
+    ).toEqual([]);
+    expect(problems(drink({ brew: { method: "siphon" } }))[0]).toMatch(
+      /^items\.0\.attributes\.brew\.method/,
+    );
+    expect(problems(drink({ origin: "Guji" }))[0]).toMatch(/^items\.0\.attributes/);
+  });
+});
+
+describe("GK-03: one photo, one role", () => {
+  it.each(venuesWithContent())("%s: every registered photo is used exactly once", async (slug) => {
+    const content = (await loadVenueContent(slug))!;
+    const uses = [
+      ...content.items.flatMap((item) => (item.image ? [item.image] : [])),
+      ...content.stories.flatMap((story) => [
+        ...(story.cover ? [story.cover] : []),
+        ...story.gallery,
+      ]),
+    ];
+    const counts = new Map<string, number>();
+    for (const key of uses) counts.set(key, (counts.get(key) ?? 0) + 1);
+    const wrong = Object.keys(content.images).filter((key) => counts.get(key) !== 1);
+    expect(wrong).toEqual([]);
+  });
+});

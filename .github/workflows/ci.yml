@@ -33,6 +33,15 @@ jobs:
   static:
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    # Venue pages read the database at build time (D-14: Rakım's /stil; D-15: its menu), like the
+    # Vercel build, which migrates and seeds before building (scripts/vercel-build.mjs).
+    services:
+      postgres:
+        image: postgres:18-alpine
+        env: { POSTGRES_USER: app, POSTGRES_PASSWORD: app, POSTGRES_DB: app_test }
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U app" --health-interval 5s --health-timeout 3s --health-retries 10
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
@@ -45,7 +54,7 @@ jobs:
       # The production build leaves test fixtures out of the venue map (VERCEL_ENV=production);
       # a theme used only by fixtures must still build (D-01: Sade broke the first deploy).
       - name: Production-like build (fixtures excluded)
-        run: pnpm build
+        run: pnpm db:migrate && pnpm db:seed && pnpm build
         env: { VERCEL_ENV: production }
 
   test:

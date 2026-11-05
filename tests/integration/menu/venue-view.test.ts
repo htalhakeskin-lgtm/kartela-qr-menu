@@ -39,9 +39,10 @@ describe("getVenueView: database → view model", () => {
     expect(soup.description).toMatchObject({ lang: "tr", fallback: true });
   });
 
-  it("carries photos, stories, the daily menu and the configurator data", () => {
+  it("carries photos, stories, the daily menu and the configurator data", async () => {
     const cortado = ar.items.find((item) => item.slug === "cortado")!;
-    expect(cortado.image?.src).toBe("https://images.unsplash.com/photo-1610889556528-9a770e32642f");
+    const content = (await loadVenueContent("ornek"))!;
+    expect(cortado.image?.src).toBe(content.images["cortado-cam-bardak"]!.url);
     expect(cortado.optionGroups.map((g) => g.key)).toEqual(["sut", "ekstra"]);
     expect(ar.stories).toHaveLength(4);
     expect(ar.menus[1]!.daily.length).toBeGreaterThan(0);
