@@ -14,7 +14,7 @@ import { venueHost } from "./routes";
 /** NFR-05: framework base 177 KB gzip + a venue route's share of 50 KB. */
 const BUDGET_KB = 227;
 /** Pages a theme tree may have; a page the theme does not have yet answers 404 and is skipped. */
-const PAGES = ["/", "/kesfet", "/bilgi"] as const;
+const PAGES = ["/", "/kesfet", "/bilgi", "/cevrimdisi"] as const;
 
 async function firstLoadJs(request: APIRequestContext, html: string) {
   const srcs = [...new Set([...html.matchAll(/<script[^>]+src="([^"]+)"/g)].map((m) => m[1]!))];

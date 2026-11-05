@@ -84,9 +84,18 @@ export type UiText = {
   notFoundTitle: string;
   notFoundBody: string;
   backToMenu: string;
+  offline: string;
+  lastUpdate: string;
+  offlineTitle: string;
+  offlineBody: string;
 };
 
 const tr: UiText = {
+  offline: "Çevrimdışı",
+  lastUpdate: "son güncelleme",
+  offlineTitle: "Şu an çevrimdışısınız",
+  offlineBody:
+    "Bu sayfa daha önce açılmadığı için gösterilemiyor. Daha önce açtığınız menü bağlantı olmadan da açılır.",
   address: "Adres",
   openMap: "Haritada aç",
   hours: "Çalışma saatleri",
@@ -204,6 +213,11 @@ const tr: UiText = {
 };
 
 const en: UiText = {
+  offline: "Offline",
+  lastUpdate: "last updated",
+  offlineTitle: "You are offline",
+  offlineBody:
+    "This page has not been opened before, so it cannot be shown. The menu you opened earlier works without a connection.",
   address: "Address",
   openMap: "Open in map",
   hours: "Opening hours",
@@ -320,6 +334,11 @@ const en: UiText = {
 };
 
 const ar: UiText = {
+  offline: "غير متصل",
+  lastUpdate: "آخر تحديث",
+  offlineTitle: "أنت غير متصل الآن",
+  offlineBody:
+    "لا يمكن عرض هذه الصفحة لأنها لم تُفتح من قبل. القائمة التي فتحتها سابقًا تعمل دون اتصال.",
   address: "العنوان",
   openMap: "افتح في الخريطة",
   hours: "ساعات العمل",

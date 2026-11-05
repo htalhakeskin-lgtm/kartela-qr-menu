@@ -55,6 +55,8 @@ const VENUE_FILES = {
   "robots.txt": "robots.txt",
   "sitemap.xml": "site-haritasi",
   "manifest.webmanifest": "manifest.webmanifest",
+  // The venue's service worker (D-13): at the root of its own domain, so its scope is the venue.
+  "sw.js": "servis-calisani",
 } as const;
 
 const escapeRegex = (value: string) => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");

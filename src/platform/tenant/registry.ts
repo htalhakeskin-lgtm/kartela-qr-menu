@@ -75,6 +75,11 @@ export function localHost(venue: VenueRecord): string {
   return `${venue.slug}.localhost`;
 }
 
+/** Every host name a venue answers on: its domains and its local host (service worker scope). */
+export function venueHostNames(venue: VenueRecord): string[] {
+  return [...venue.domains, localHost(venue)];
+}
+
 /**
  * Canonical origin of a venue: its first production domain. Fixtures have none and use their
  * local host on the project's dev port (plan K-30).

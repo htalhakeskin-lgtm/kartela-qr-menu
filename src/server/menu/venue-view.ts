@@ -6,7 +6,7 @@ import { cacheLife, cacheTag } from "next/cache";
 import { businessDate } from "@/platform/menu/availability";
 import { buildVenueView, type VenueView } from "@/platform/menu/view";
 import { venueTag } from "@/platform/tenant/cache-tags";
-import { isRtl } from "@/platform/tenant/registry";
+import { getVenue, isRtl, venueHostNames } from "@/platform/tenant/registry";
 import type { Locale, VenueKind } from "@/platform/tenant/registry-schema";
 import { db } from "@/server/db/client";
 import { venues } from "@/server/db/schema";
@@ -35,6 +35,7 @@ export async function getVenueView(slug: string, locale: Locale): Promise<VenueV
   const [venue] = await db.select().from(venues).where(eq(venues.slug, slug)).limit(1);
   if (!venue || venue.status !== "active") return null;
 
+  const record = getVenue(slug);
   const now = new Date();
   const dailyFrom = businessDate(new Date(now.getTime() - 86_400_000), venue.timezone);
   const data = await withVenue(venue.id, async (tx) => ({
@@ -54,6 +55,7 @@ export async function getVenueView(slug: string, locale: Locale): Promise<VenueV
         defaultLocale: venue.defaultLocale as Locale,
         locales: venue.locales as Locale[],
         timeZone: venue.timezone,
+        hosts: record ? venueHostNames(record) : [],
       },
       ...data,
     },
