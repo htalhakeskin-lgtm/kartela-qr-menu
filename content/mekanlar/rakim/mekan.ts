@@ -2,7 +2,7 @@ import { defineVenue } from "../../../src/platform/tenant/registry-schema";
 
 /**
  * Rakım Kahve Kavurma — üçüncü dalga kahveci, Moda / Kadıköy (plan VR-02). Kurgusal.
- * EN (plan: TR + EN) içerik çevirileriyle birlikte D-14'te eklenir.
+ * İçerik TR + EN hazır (D-14); `en` dili, gerçek tema sayfası geldiğinde D-15'te açılır (K-46).
  */
 export default defineVenue({
   slug: "rakim",
