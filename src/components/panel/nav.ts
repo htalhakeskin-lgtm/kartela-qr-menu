@@ -49,3 +49,16 @@ export function venueNav(slug: string, role: VenueRole | "platform"): PanelNavGr
     }))
     .filter((group) => group.items.length > 0);
 }
+
+/** The platform admin's pages (SCR-130…132), beside any venue's (D-19). */
+export function platformNav(): PanelNavGroup[] {
+  return [
+    {
+      label: "Platform",
+      items: [
+        { label: "Mekân yönetimi", path: "/panel/platform/mekanlar", icon: "mekanlar" },
+        { label: "Kullanıcılar", path: "/panel/platform/kullanicilar", icon: "ekip" },
+      ],
+    },
+  ];
+}

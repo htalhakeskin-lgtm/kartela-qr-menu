@@ -1,5 +1,7 @@
 import "server-only";
 
+import { sql } from "drizzle-orm";
+
 import type { VenueRecord } from "@/platform/tenant/registry-schema";
 
 import { db } from "../client";
@@ -27,7 +29,12 @@ export async function seedVenues(records: readonly VenueRecord[]): Promise<Map<s
     const [row] = await db
       .insert(venues)
       .values({ slug: record.slug, ...facts })
-      .onConflictDoUpdate({ target: venues.slug, set: { ...facts, updatedAt: new Date() } })
+      // The mode is the venue's own after the first seed: the platform admin changes it in the
+      // panel and the build carries it (K-50); a deploy must not reset a live venue to demo.
+      .onConflictDoUpdate({
+        target: venues.slug,
+        set: { ...facts, mode: sql`${venues.mode}`, updatedAt: new Date() },
+      })
       .returning({ id: venues.id });
     if (!row) throw new Error(`Mekân yazılamadı: ${record.slug}`);
     ids.set(record.slug, row.id);

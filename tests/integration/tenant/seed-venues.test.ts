@@ -76,4 +76,17 @@ describe("seedVenues: registry → venues, settings, domains", () => {
     ]);
     expect(settings).toHaveLength(2);
   });
+
+  it("K-50: a mode changed in the panel survives the next seed (first seed writes it)", async () => {
+    const ids = await seedVenues(records);
+    const idB = ids.get(slugs[1]!)!;
+    expect(
+      (await db.select({ mode: venues.mode }).from(venues).where(eq(venues.id, idB)))[0]?.mode,
+    ).toBe("live");
+    await db.update(venues).set({ mode: "demo" }).where(eq(venues.id, idB));
+    await seedVenues(records);
+    expect(
+      (await db.select({ mode: venues.mode }).from(venues).where(eq(venues.id, idB)))[0]?.mode,
+    ).toBe("demo");
+  });
 });

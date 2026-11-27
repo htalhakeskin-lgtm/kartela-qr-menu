@@ -31,6 +31,8 @@ const refusal = migrationRefusal({
 if (refusal === null) {
   execSync("pnpm db:migrate", { stdio: "inherit" });
   execSync("pnpm db:seed", { stdio: "inherit" });
+  // The panel's mode and domain changes go into this build's host map (K-50).
+  execSync("pnpm venues:export", { stdio: "inherit" });
 } else {
   console.log(`Migration and seed skipped (${target}): ${refusal}.`);
 }

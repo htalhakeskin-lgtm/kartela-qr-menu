@@ -101,6 +101,26 @@ export function defineVenue(record: VenueRecordInput): VenueRecordInput {
  * Validates the whole registry: each record, unique slugs, and each host bound to one venue only.
  * Throws with every problem listed, so a broken record stops the build instead of mis-routing.
  */
+/**
+ * Panel changes laid over the venue files at build time (D-19, K-50): a venue's mode, and the
+ * domains bound and verified in the panel (added after the file's own; the first domain stays the
+ * canonical one). A slug the files do not know is ignored — new venues come from `pnpm mekan:yeni`.
+ */
+export type RegistryOverlay = Record<string, { mode?: "demo" | "live"; domains?: string[] }>;
+
+export function applyOverlay(
+  input: readonly VenueRecordInput[],
+  overlay: RegistryOverlay,
+): VenueRecordInput[] {
+  return input.map((record) => {
+    const change = overlay[record.slug];
+    if (!change) return record;
+    const domains = [...record.domains];
+    for (const host of change.domains ?? []) if (!domains.includes(host)) domains.push(host);
+    return { ...record, mode: change.mode ?? record.mode, domains };
+  });
+}
+
 export function parseRegistry(input: readonly VenueRecordInput[]): VenueRecord[] {
   const problems: string[] = [];
   const venues: VenueRecord[] = [];

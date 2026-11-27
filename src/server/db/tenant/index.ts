@@ -5,6 +5,18 @@ export { clearExpiredSoldOut } from "./day-end";
 export { addMember, type PanelVenue, panelVenue, panelVenues } from "./members";
 export { loadVenueMenu } from "./menu";
 export {
+  allMemberships,
+  deleteDomain,
+  type DomainRow,
+  type DomainStatus,
+  findDomain,
+  hostTaken,
+  insertDomain,
+  type PlatformVenueRow,
+  platformVenueRows,
+  setDomainStatus,
+} from "./platform";
+export {
   type AuditEntry,
   type DemoOutboxEntry,
   recordAudit,

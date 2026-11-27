@@ -1,5 +1,7 @@
 import { venueRecords } from "../../../content/mekanlar";
+import { registryOverlay } from "../../../content/mekanlar/yayin";
 import {
+  applyOverlay,
   type Locale,
   parseRegistry,
   RTL_LOCALES,
@@ -16,9 +18,9 @@ import {
 // eslint-disable-next-line no-restricted-properties -- build-time constant set by Vercel; env.ts cannot load in next.config
 const isProductionBuild = process.env.VERCEL_ENV === "production";
 
-export const venues: readonly VenueRecord[] = parseRegistry(venueRecords).filter(
-  (venue) => !(isProductionBuild && venue.fixture),
-);
+export const venues: readonly VenueRecord[] = parseRegistry(
+  applyOverlay(venueRecords, registryOverlay),
+).filter((venue) => !(isProductionBuild && venue.fixture));
 
 export function getVenue(slug: string): VenueRecord | undefined {
   return venues.find((venue) => venue.slug === slug);
