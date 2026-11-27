@@ -26,7 +26,22 @@ export function venueNav(slug: string, role: VenueRole | "platform"): PanelNavGr
   const groups: PanelNavGroup[] = [
     {
       label: "Bugün",
-      items: [{ label: "Pano", path: base, icon: "pano", exact: true, tab: true }],
+      items: [
+        { label: "Pano", path: base, icon: "pano", exact: true, tab: true },
+        {
+          label: "Müsaitlik",
+          path: `${base}/musaitlik`,
+          icon: "musaitlik",
+          permission: "availability.edit",
+          tab: true,
+        },
+        {
+          label: "Günün menüsü",
+          path: `${base}/gunun-menusu`,
+          icon: "gunun",
+          permission: "availability.edit",
+        },
+      ],
     },
     {
       label: "Mekân",

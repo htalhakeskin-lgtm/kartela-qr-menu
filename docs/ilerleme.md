@@ -4,9 +4,9 @@
 
 ## Şu an
 
-- **Etkin dilim:** D-20 — Panel müsaitlik · ⏳
-- **Son yapılan:** D-19: platform yöneticisi. Mekân yönetimi (kip, alan adları, durumları, yeniden yayın), kullanıcılar (üyelikler, iki adım durumu, platform yöneticisi rolü). Panel değişiklikleri derleme anında kayda katman olarak girer (`pnpm venues:export` → `content/mekanlar/yayin.ts`, K-50); tohum canlı mekânın kipini ezmez. Vercel API anahtarı ve Deploy Hook isteğe bağlı; yoksa elle adımlar. Demo yöneticisi yalnız görüntüler. Next.js 16.4.6. D-18b canlıda.
-- **Sıradaki adım:** D-20 — müsaitlik (tek dokunuş tükendi, günlük adet ±, fırından çıkış), günün menüsü; telefon öncelikli, `venueAction({ refresh: ["menu"] })`.
+- **Etkin dilim:** D-21 — `pnpm mekan:yeni` · ⏳
+- **Son yapılan:** D-20: müsaitlik telefondan. Tek dokunuş tükendi (gün sonuna, 04:00), 5 sn "Geri al", süresiz tükendi, günlük adet ± (0 ile sınır arasında), fırından çıkış saatleri, ürün arama; günün menüsü (tarih seçimi, ürün işaretleme, önceki günü kopyala). Her yazma yalnız mekânın menü sayfalarını yeniler; ziyaretçi menüsü bir sonraki istekte günceldir (e2e'de doğrulandı). Telefonda sekme çubuğu Pano · Müsaitlik · Hesabım · Daha fazla; panodan müsaitliğe bağlantı. D-19 canlıda (yayın katmanı adımı üretim derleme günlüğünde).
+- **Sıradaki adım:** D-21 — `pnpm mekan:yeni` (+ `tema:yeni`): soru-cevapla `content/mekanlar/{ad}/` (mekan.ts, menu.ts, bilgi.ts, hikayeler) ve kayıt satırı, hazır tema Sade; `docs/yeni-mekan.md`.
 
 ## Gözetimsiz çalışma notları
 
@@ -71,7 +71,7 @@ Faz 1'in son dilimi (D-22) bitip Rakım yayına çıkınca durulur; teslim: yay�
 | D-18a | Panel temeli I: kendi kök düzeni, Better Auth girişi, 2FA, roller ve izinler, mekân seçici, pano iskeleti, Hesabım; önizleme ortamında oturum (K-48) | QR-21 · REQ-021 · SCR-100…102, SCR-121 | M | P0 | ✅ | ✅ 390 / 1440 (giriş, pano, mekânlar, Hesabım, Daha fazla) | 2 birim dosyası (rol matrisi, BR-YTK-002, dönüş yolu) + 4 entegrasyon (BR-YTK-002 sunucuda, üyelik sorguları) + 13 e2e × 2 proje (hatalı giriş, demo girişi, BR-KRC-003, dönüş yolu ve açık yönlendirme, çıkış, 2FA akışı, mekân alan adında panel yok, taşma / dokunma / axe) |
 | D-18b | Panel temeli II: mekân ayarları, ekip ve davet, parola sıfırlama, işlem geçmişi (K-49) | QR-21 · REQ-021 · SCR-117…119 | M | P0 | ✅ | ✅ 390 / 1440 (ayarlar, ekip, işlem geçmişi, parola sıfırlama) | 8 entegrasyon (yetki: yanlış rol ve başka mekân; davet karmayla, tek kullanım, süre ve geri alma; BR-YTK-003; rol değişince oturumlar düşer; ayarların gidiş-dönüşü, sürüm çakışması, işlem geçmişi) + 5 e2e (davet → kabul → panel, ayar hatasında girilen kalır, personel ayar / ekip / geçmiş görmez, parola sıfırlama, bilinmeyen adrese aynı cevap) + belirteçli sayfalarda `no-referrer` |
 | D-19 | Platform yöneticisi: kip, alan adı bağla (Vercel API + Deploy Hook), yeniden yayın, kullanıcılar; mekân oluşturma ve tema `pnpm mekan:yeni` ile (K-50) | QR-21 · REQ-021 · SCR-130…132 | M | P0 | ✅ | ✅ 390 / 1440 (mekân yönetimi, mekân, kullanıcılar) | 3 birim (katman) + 6 entegrasyon (yetki, kip, BR-KRC-004, birincil alan adı, platform rolü, tohum kipi korur) + 3 e2e (alan adı ekle / doğrula / kaldır, demo yönetici salt okunur, sahip 404) |
-| D-20 | Panel müsaitlik: tek dokunuş tükendi, günlük adet ±, fırından çıkış, günün menüsü (telefon öncelikli) | QR-08, QR-22 · REQ-008, REQ-022 · SCR-108, SCR-109 | M | P0 | ⏳ | — | — |
+| D-20 | Panel müsaitlik: tek dokunuş tükendi, günlük adet ±, fırından çıkış, günün menüsü (telefon öncelikli) | QR-08, QR-22 · REQ-008, REQ-022 · SCR-108, SCR-109 | M | P0 | ✅ | ✅ 390 / 1440 (müsaitlik, günün menüsü) | 5 entegrasyon (BR-MST-001 gün sonu, BR-KRC-003, adet sınırları, çıkış saatleri, BR-MST-005 günün menüsü ve kopyalama) + 1 e2e @mobile (personel tükendi işaretler, ziyaretçi menüsünde görünür, geri al) |
 | D-21 | `pnpm mekan:yeni` (+ `tema:yeni`) ve `docs/yeni-mekan.md` (Vercel alan adı adımları dahil) | QR-23 · REQ-023 | M | P0 | ⏳ | — | — |
 | D-22 | Mekân test matrisi: duman, ekran görüntüsü karşılaştırması (CI temel görüntüleri), Lighthouse, görsel kalite, paket ve yazı tipi yalıtımı; ortak kod değişince bütün mekânlar | QR-23 · REQ-023 | M | P0 | ⏳ | — | — |
 
@@ -154,13 +154,12 @@ Faz 1'in son dilimi (D-22) bitip Rakım yayına çıkınca durulur; teslim: yay�
 
 ## Etkin dilim planı
 
-**D-20 — Panel müsaitlik (telefon öncelikli)**
+**D-21 — `pnpm mekan:yeni`**
 
-1. `/panel/{mekan}/musaitlik` (SCR-108, personel): ürün listesi, arama; tek dokunuş tükendi (gün sonuna kadar / süresiz), 5 sn geri al; günlük adet ±; fırından çıkış saatleri.
-2. `/panel/{mekan}/gunun-menusu` (SCR-109): tarih, ürün seçimi, sıralama, "dünü kopyala".
-3. Her yazma `venueAction({ permission: "availability.edit", refresh: ["menu"] })`, işlem geçmişine.
-4. Pano: tükenenler listesinden müsaitliğe bağlantı; telefonda sekme çubuğu: Pano · Müsaitlik.
-5. Testler: yetki (başka mekân, rolü olmayan), gün sonu ile birlikte; e2e: personel telefonda tükendi işaretler, ziyaretçi menüsünde ürün soluk ve sonda.
+1. `scripts/mekan-yeni.mts`: ad, slug, tür, diller, alan adı (yoksa `{ad}-kartela.vercel.app`, K-26), tema (Sade ya da yeni tema) sorulur; `content/mekanlar/{ad}/` (mekan.ts, menu.ts iskeleti, bilgi.ts, hikayeler.ts) yazılır ve `content/mekanlar/index.ts`'e satır eklenir; tohum ve içerik doğrulaması koşturulur.
+2. `pnpm tema:yeni`: Sade'den başlayan tema klasörü, rota ağacı ve ESLint tema sınırı satırı.
+3. `docs/yeni-mekan.md`: komut, içerik dosyaları, görseller, alan adı (panel D-19), yayın.
+4. Testler: üretilen dosyalar kayıt ve içerik şemasından geçer; e2e'de yeni mekân kendi alan adında açılır.
 
 ## Görsel inceleme
 
@@ -206,6 +205,7 @@ Faz 1'in son dilimi (D-22) bitip Rakım yayına çıkınca durulur; teslim: yay�
 | 2026-11-05 | D-18a / giriş, pano, mekânlar, Hesabım 1440, 390 | plan §11.8, 13-yonetim-paneli §3 | Kırık beyaz zemin, tek vurgu derin yeşil (birincil düğme, etkin sekme); yan menü gruplu, telefonda alt sekme çubuğu başparmak bölgesinde. Bulgular: mekân dışı sayfalarda masaüstü üst çubuğu boş şerit kalıyordu → gizlendi; telefonda üç özet kartı alt alta fazla yer kaplıyordu → iki sütun, açık menü kartı tam genişlik; "Gün boyu · Gün boyu açık" tekrarı → "Saat sınırı yok"; telefonda "Siteyi görüntüle" simgesi 44 px'in altındaydı → düzeltildi | ✅ düzeltildi |
 | 2026-11-05 | D-18b / ayarlar, ekip, işlem geçmişi, parola sıfırlama 1440, 390 | plan §11.8, 13-yonetim-paneli §5, §8, §10 | Ayarlar bölümlü tek form, telefonda Kaydet alt çubukta; ekip telefonda kart listesi; işlem geçmişi süzgeç çipleriyle. Bulgular: telefonlar formda E.164 görünüyordu → `0542 311 58 88`; silinmiş kullanıcının işlemi "Sistem" görünüyordu → "Silinmiş kullanıcı"; ilk atama "— → Personel" → "Personel"; tanıtım alanı telefonda metni kesiyordu → 4 satır. Davet testi Rakım'ın demo verisine yazıyordu → fikstür mekâna taşındı | ✅ düzeltildi |
 | 2026-11-27 | D-19 / mekân yönetimi, mekân, kullanıcılar 1440, 390 | 13-yonetim-paneli §3, §5 | Kart listesi telefonda; alan adı durumları metinle (renk kodu yok); demo yöneticide salt okunur notu. Bulgu: yarıda kalan test koşuları fikstür mekâna alan adı bırakıyordu → test kendi alan adını temizler | ✅ düzeltildi |
+| 2026-11-27 | D-20 / müsaitlik, günün menüsü 1440, 390 | plan §12 en sık üç iş, 07-mobil | Tükendi düğmesi satırın sağında başparmak erişiminde, adet ± 44 px, arama yapışkan; az kullanılan ayarlar "Ayrıntılar" altında. Telefonda satırlar uzun ama tek dokunuş görünür | ✅ |
 | 2026-11-05 | D-15 / 768 px dokunma hedefi (CI) | 07-mobil | "Hızlı" bağlantısı CI'ın yazı tipleriyle 44 px'in biraz altında ölçüldü → en az 44 px genişlik | ✅ düzeltildi |
 
 ## Kalite kapısı raporu
@@ -253,3 +253,4 @@ Faz 1'in son dilimi (D-22) bitip Rakım yayına çıkınca durulur; teslim: yay�
 - 2026-11-05 · D-18a · (1) Next.js 16.4'te Cache Components açıkken nonce'lu CSP'li bir rota önceden üretilmiş kabuk taşımamalı: kabuğun betiklerine nonce eklenemez. Kök düzende `await connection()` + `export const instant = false` boş kabuk üretir (derleme çıktısında `.html` 0 bayt) ve bütün betikler nonce'u alır; bunu `curl` ile betik sayısı = nonce'lu betik sayısı diye doğrulamak birkaç saniye sürer. (2) Better Auth'un hız sınırı yalnız `/api/auth` HTTP isteklerinde çalışır; `auth.api.*` doğrudan çağrılarında ne köken denetimi ne hız sınırı vardır (köken denetimini Next.js sunucu eylemi yapar, hız sınırı uygulamada yazılmalı). (3) Yerelde ve CI'da bütün istekler aynı IP'den gelir: IP başına giriş sınırı e2e paketini boğar; her test kendi `x-real-ip`'siyle girer (Vercel'de platformun başlığı önce gelir). (4) `sr-only` bir ek metin erişilebilir ada boşlukla eklenir ("Paneli aç : Rakım"); testte ad eşleşmesi buna göre yazılmalı.
 - 2026-11-05 · D-18b · (1) Better Auth'un `requestPasswordReset`'i e-postayı yanıttan sonra gönderebiliyor; e2e testi demo kutusunu `expect.poll` ile bekler. (2) Birden çok yerde geçen bir ad (görünen metin, ekran okuyucu ekleri, etiket) Playwright'ın katı modunda üç eşleşme verir; bulucu bölgeyle (`region` adı) daraltılır. (3) Davet ya da ayar yazan e2e testi gerçek demo mekânında değil fikstür mekânında koşmalı; yoksa yerel demo verisi test kayıtlarıyla dolar. (4) `useActionState` formu başarısız gönderimden sonra da sıfırlar; girilenin kalması için eylem gönderilen değerleri geri döndürür ve alanlar `defaultValue`'yu oradan alır.
 - 2026-11-27 · D-19 · (1) Next.js bilinen açığı olan sürümde derlemeyi `SecurityFatalError` ile reddediyor; aradan geçen haftalarda 16.4.3 bu duruma düştü, yamaya (16.4.6) geçmek gerekti. Dependabot PR'ları açık bekletilmemeli. (2) Bilgisayar yeniden başlayınca yerel PostgreSQL konteyneri kapanıyor; bütün panel testleri ECONNREFUSED ile düşerse önce `docker compose up -d`. (3) Vercel CLI'nin yeni sürümü, dal takma adı olan önizlemeyi `--yes` ile silmiyor; `--confirm-name <url>` istiyor. (4) Şablon dizgisindeki `\s` kaçış kaybeder; `new RegExp(`...`)` yerine ekran okuyucu ekinin getirdiği boşluğu içeren tam ad kullanıldı.
+- 2026-11-27 · D-20 · PostgreSQL, `INSERT … ON CONFLICT DO UPDATE`'te eklenecek satırın CHECK kısıtını çakışmaya bakmadan önce denetler: yalnız `remaining`'i değiştiren bir upsert, günlük adeti olan üründe `ck_item_availability_count`'a takıldı. Kısmi değişiklik önce UPDATE, satır yoksa INSERT ile yazılır. `time[]` sütunu saniyeli (`08:00:00`) döner.

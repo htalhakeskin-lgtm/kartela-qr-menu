@@ -1,6 +1,15 @@
 // Public surface of the tenant data layer (ADR-0004). Tenant tables themselves stay inside this
 // folder; ESLint blocks importing ./tables from anywhere else.
 export { type VenueAccess, venueAccess } from "./access";
+export {
+  type AvailabilityPatch,
+  type AvailabilityRow,
+  dailyItemIds,
+  dailyMenus,
+  itemWithAvailability,
+  replaceDailyItems,
+  saveAvailability,
+} from "./availability-panel";
 export { clearExpiredSoldOut } from "./day-end";
 export { addMember, type PanelVenue, panelVenue, panelVenues } from "./members";
 export { loadVenueMenu } from "./menu";
