@@ -18,7 +18,8 @@ test("a public page carries the security headers and a CSP without eval", async 
   const headers = (await request.get("/")).headers();
   expect(headers["strict-transport-security"]).toContain("max-age=");
   expect(headers["x-content-type-options"]).toBe("nosniff");
-  expect(headers["x-frame-options"]).toBe("DENY");
+  // Framing is governed by CSP frame-ancestors alone (portfolio preview).
+  expect(headers["x-frame-options"]).toBeUndefined();
   expect(headers["referrer-policy"]).toBe("strict-origin-when-cross-origin");
   expect(headers["permissions-policy"]).toContain("camera=()");
   expect(headers["x-powered-by"]).toBeUndefined();
