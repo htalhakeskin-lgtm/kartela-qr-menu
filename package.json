@@ -27,7 +27,9 @@
     "db:seed": "tsx --conditions=react-server scripts/seed.ts",
     "db:reset": "tsx --conditions=react-server scripts/reset.ts",
     "prepare": "lefthook install || exit 0",
-    "venues:export": "tsx --conditions=react-server scripts/venues-export.mts"
+    "venues:export": "tsx --conditions=react-server scripts/venues-export.mts",
+    "mekan:yeni": "tsx scripts/mekan-yeni.mts",
+    "tema:yeni": "tsx scripts/tema-yeni.mts"
   },
   "dependencies": {
     "better-auth": "1.7.14",
