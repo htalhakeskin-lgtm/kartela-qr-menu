@@ -19,6 +19,7 @@ import { venueHostNames, venues } from "@/platform/tenant/registry";
  */
 const LOGIN_PATH = "/panel/giris";
 const VENUE_HOSTS = new Set(venues.flatMap(venueHostNames));
+const TOKEN_PAGES = ["/panel/giris/davet/", "/panel/giris/sifre/yeni"];
 
 export function proxy(request: NextRequest) {
   const { pathname, search } = request.nextUrl;
@@ -56,6 +57,10 @@ export function proxy(request: NextRequest) {
   response.headers.set("Content-Security-Policy", csp);
   response.headers.set("X-Robots-Tag", "noindex, nofollow");
   response.headers.set("Cache-Control", "private, no-store"); // REQ-017: the panel is never cached
+  // Pages whose address carries a token (invitation, password reset) leak it to no one (SEO-08).
+  if (TOKEN_PAGES.some((prefix) => pathname.startsWith(prefix))) {
+    response.headers.set("Referrer-Policy", "no-referrer");
+  }
   return response;
 }
 

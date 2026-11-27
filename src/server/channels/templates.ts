@@ -26,8 +26,10 @@ Bu isteği siz yapmadıysanız bu iletiyi yok sayabilirsiniz.`,
 } satisfies Record<string, { subject: (data: never) => string; text: (data: never) => string }>;
 
 export type TemplateName = keyof typeof templates;
-export type TemplateData<N extends TemplateName> = Parameters<(typeof templates)[N]["text"]>[0] &
-  Parameters<(typeof templates)[N]["subject"]>[0];
+/** A template part's data; a part without data (`() => …`) adds nothing. */
+type DataOf<F> = F extends (data: infer D) => string ? D : never;
+export type TemplateData<N extends TemplateName> = DataOf<(typeof templates)[N]["text"]> &
+  DataOf<(typeof templates)[N]["subject"]>;
 
 export function renderTemplate<N extends TemplateName>(
   name: N,

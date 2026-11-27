@@ -3,11 +3,18 @@ import "server-only";
 import { notFound, redirect } from "next/navigation";
 import { cache } from "react";
 
-import { DEMO_VENUE_ACCOUNTS } from "@/config/demo-accounts";
-import { isPlatformAdmin, secondStepRequired } from "@/config/permissions";
+import {
+  can,
+  isPlatformAdmin,
+  secondStepRequired,
+  type VenuePermission,
+} from "@/config/permissions";
 import { env } from "@/lib/env";
 import { getSession } from "@/server/auth";
 import { type PanelVenue, panelVenue, panelVenues } from "@/server/db/tenant";
+import { isDemoAccount } from "@/server/demo-accounts";
+
+export { isDemoAccount };
 
 /**
  * The panel's data access layer for the signed-in user (Next.js authentication guide: DAL).
@@ -26,15 +33,6 @@ export type PanelUser = {
   /** A shared demo account (config/demo-accounts.ts): no password or second-step changes. */
   demo: boolean;
 };
-
-export function isDemoAccount(email: string): boolean {
-  if (!env.PLATFORM_DEMO) return false;
-  const address = email.toLowerCase();
-  return (
-    address === env.DEMO_ADMIN_EMAIL?.toLowerCase() ||
-    DEMO_VENUE_ACCOUNTS.some((account) => account.email === address)
-  );
-}
 
 type SessionUser = { platformRole?: string | null; twoFactorEnabled?: boolean | null };
 
@@ -79,6 +77,18 @@ export async function requirePanelUser(
     redirect(`${ACCOUNT_PATH}?iki-adim=gerekli`);
   }
   return user;
+}
+
+/**
+ * A venue page that needs a permission: the venue and user, and whether the role may use the
+ * page. The page then shows "no permission" instead of its content (the menu already hides it).
+ */
+export async function requireVenuePage(
+  slug: string,
+  permission: VenuePermission,
+): Promise<{ user: PanelUser; venue: PanelVenue; allowed: boolean }> {
+  const { user, venue } = await requirePanelVenue(slug);
+  return { user, venue, allowed: can(venue.role, permission) };
 }
 
 /** One venue lookup per request: the venue layout and its page both ask. */

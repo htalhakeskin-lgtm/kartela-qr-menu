@@ -1,4 +1,4 @@
-import type { InputHTMLAttributes, ReactNode } from "react";
+import type { InputHTMLAttributes, ReactNode, TextareaHTMLAttributes } from "react";
 
 /**
  * The panel's small form kit (06-arayuz, 13-yonetim-paneli; plan §11.8): native elements styled
@@ -42,6 +42,45 @@ export function Field({ label, name, error, hint, ...input }: FieldProps) {
         aria-invalid={error?.length ? true : undefined}
         aria-describedby={describedBy || undefined}
         className="min-h-11 w-full rounded-md border border-control-border bg-surface px-3 text-base text-foreground placeholder:text-muted-foreground aria-invalid:border-danger"
+        {...input}
+      />
+      {hint ? (
+        <p id={`${id}-ipucu`} className="text-sm text-muted-foreground">
+          {hint}
+        </p>
+      ) : null}
+      {error?.length ? (
+        <p id={`${id}-hata`} className="text-sm text-danger">
+          {error[0]}
+        </p>
+      ) : null}
+    </div>
+  );
+}
+
+type TextAreaProps = {
+  label: string;
+  name: string;
+  error?: string[] | undefined;
+  hint?: ReactNode;
+} & Omit<TextareaHTMLAttributes<HTMLTextAreaElement>, "name" | "id" | "className">;
+
+export function TextArea({ label, name, error, hint, ...input }: TextAreaProps) {
+  const id = `alan-${name}`;
+  const describedBy = [hint ? `${id}-ipucu` : null, error?.length ? `${id}-hata` : null]
+    .filter(Boolean)
+    .join(" ");
+  return (
+    <div className="flex flex-col gap-1.5">
+      <label htmlFor={id} className="text-sm font-medium">
+        {label}
+      </label>
+      <textarea
+        id={id}
+        name={name}
+        aria-invalid={error?.length ? true : undefined}
+        aria-describedby={describedBy || undefined}
+        className="min-h-24 w-full rounded-md border border-control-border bg-surface px-3 py-2.5 text-base text-foreground aria-invalid:border-danger"
         {...input}
       />
       {hint ? (

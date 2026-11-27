@@ -5,7 +5,10 @@ import { expect, test } from "@playwright/test";
  * nonce CSP, no referrer from token and signed pages (09 SEO-08), and the demo's noindex.
  * Runs once. TOKEN_PATHS: the project's token / signed routes (e.g. "/takip/yok").
  */
-const TOKEN_PATHS: readonly string[] = [];
+const TOKEN_PATHS: readonly string[] = [
+  "/panel/giris/davet/yok-boyle-bir-davet-belirteci",
+  "/panel/giris/sifre/yeni?belirtec=yok-boyle-bir-belirtec",
+];
 
 test.beforeEach(() => {
   test.skip(test.info().project.name !== "desktop", "runs once");

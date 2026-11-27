@@ -68,6 +68,47 @@ export async function removePanelUser(user: TestUser | undefined): Promise<void>
   }
 }
 
+/** The newest message the demo outbox holds for an address (PLATFORM_DEMO=true: nothing is sent). */
+export async function latestOutbox(
+  to: string,
+  template: "panelInvitation" | "passwordReset",
+): Promise<Record<string, string>> {
+  const db = client();
+  await db.connect();
+  try {
+    await db.query("begin");
+    await db.query("select set_config('app.platform', 'on', true)");
+    const result = await db.query<{ data: Record<string, string> }>(
+      'select data from demo_outbox where "to" = $1 and template = $2 order by created_at desc limit 1',
+      [to, template],
+    );
+    await db.query("commit");
+    const row = result.rows[0];
+    if (!row) throw new Error(`no ${template} for ${to} in the demo outbox`);
+    return row.data;
+  } finally {
+    await db.end();
+  }
+}
+
+/** Removes a user by address and its invitations (an invitation made during a test). */
+export async function removeUserByEmail(email: string): Promise<void> {
+  const db = client();
+  await db.connect();
+  try {
+    await db.query("begin");
+    await db.query("select set_config('app.platform', 'on', true)");
+    await db.query("delete from venue_invitations where email = $1", [email]);
+    await db.query("commit");
+    const result = await db.query<{ id: string }>("select id from users where email = $1", [email]);
+    await db.end();
+    for (const row of result.rows) await removePanelUser({ id: row.id, email, password: "" });
+  } catch (error) {
+    await db.end().catch(() => undefined);
+    throw error;
+  }
+}
+
 /** RFC 6238 TOTP (SHA-1, 30 s, 6 digits) from the base32 key the setup page shows. */
 export function totp(base32Key: string, now = Date.now()): string {
   const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";

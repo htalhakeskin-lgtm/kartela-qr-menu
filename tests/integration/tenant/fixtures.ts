@@ -163,6 +163,13 @@ export const tenantFixtures: Record<string, Fixture> = {
     role: "staff",
   })),
   venue_settings: fixture(tables.venueSettings, (venueId) => ({ venueId })),
+  venue_invitations: fixture(tables.venueInvitations, (venueId) => ({
+    venueId,
+    email: `${newId()}@test.example.com`,
+    role: "staff",
+    tokenHash: newId(),
+    expiresAt: new Date(Date.now() + 86_400_000),
+  })),
   audit_logs: fixture(tables.auditLogs, (venueId) => ({ venueId, action: "test.fixture" })),
   menus: fixture(tables.menus, (venueId) => ({
     venueId,
