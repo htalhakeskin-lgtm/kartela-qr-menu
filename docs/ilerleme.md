@@ -4,9 +4,9 @@
 
 ## Şu an
 
-- **Etkin dilim:** D-21 — `pnpm mekan:yeni` · ⏳
-- **Son yapılan:** D-20: müsaitlik telefondan. Tek dokunuş tükendi (gün sonuna, 04:00), 5 sn "Geri al", süresiz tükendi, günlük adet ± (0 ile sınır arasında), fırından çıkış saatleri, ürün arama; günün menüsü (tarih seçimi, ürün işaretleme, önceki günü kopyala). Her yazma yalnız mekânın menü sayfalarını yeniler; ziyaretçi menüsü bir sonraki istekte günceldir (e2e'de doğrulandı). Telefonda sekme çubuğu Pano · Müsaitlik · Hesabım · Daha fazla; panodan müsaitliğe bağlantı. D-19 canlıda (yayın katmanı adımı üretim derleme günlüğünde).
-- **Sıradaki adım:** D-21 — `pnpm mekan:yeni` (+ `tema:yeni`): soru-cevapla `content/mekanlar/{ad}/` (mekan.ts, menu.ts, bilgi.ts, hikayeler) ve kayıt satırı, hazır tema Sade; `docs/yeni-mekan.md`.
+- **Etkin dilim:** D-22 — Mekân test matrisi · ⏳
+- **Son yapılan:** D-21: `pnpm mekan:yeni` (kayıt + içerik iskeleti + kayıt listeleri; yazmadan önce bütün kayıt şemadan geçer) ve `pnpm tema:yeni` (Sade'den kopya; ad dönüşümü Türkçe kelimelere dokunmaz; THEMES, ESLint sınırı, tema haritası). Deneme: yeni tema + yeni mekân tohumlandı, derlendi ve `deneme.localhost`'ta açıldı, sonra geri alındı. Rehber: `docs/yeni-mekan.md`. D-20 canlıda.
+- **Sıradaki adım:** D-22 — mekân test matrisi (her mekân × sayfa: duman testi, ekran görüntüsü tabanı, Lighthouse, görsel kalitesi, paket ve yazı tipi yalıtımı); ardından Faz 1 teslimi.
 
 ## Gözetimsiz çalışma notları
 
@@ -72,7 +72,7 @@ Faz 1'in son dilimi (D-22) bitip Rakım yayına çıkınca durulur; teslim: yay�
 | D-18b | Panel temeli II: mekân ayarları, ekip ve davet, parola sıfırlama, işlem geçmişi (K-49) | QR-21 · REQ-021 · SCR-117…119 | M | P0 | ✅ | ✅ 390 / 1440 (ayarlar, ekip, işlem geçmişi, parola sıfırlama) | 8 entegrasyon (yetki: yanlış rol ve başka mekân; davet karmayla, tek kullanım, süre ve geri alma; BR-YTK-003; rol değişince oturumlar düşer; ayarların gidiş-dönüşü, sürüm çakışması, işlem geçmişi) + 5 e2e (davet → kabul → panel, ayar hatasında girilen kalır, personel ayar / ekip / geçmiş görmez, parola sıfırlama, bilinmeyen adrese aynı cevap) + belirteçli sayfalarda `no-referrer` |
 | D-19 | Platform yöneticisi: kip, alan adı bağla (Vercel API + Deploy Hook), yeniden yayın, kullanıcılar; mekân oluşturma ve tema `pnpm mekan:yeni` ile (K-50) | QR-21 · REQ-021 · SCR-130…132 | M | P0 | ✅ | ✅ 390 / 1440 (mekân yönetimi, mekân, kullanıcılar) | 3 birim (katman) + 6 entegrasyon (yetki, kip, BR-KRC-004, birincil alan adı, platform rolü, tohum kipi korur) + 3 e2e (alan adı ekle / doğrula / kaldır, demo yönetici salt okunur, sahip 404) |
 | D-20 | Panel müsaitlik: tek dokunuş tükendi, günlük adet ±, fırından çıkış, günün menüsü (telefon öncelikli) | QR-08, QR-22 · REQ-008, REQ-022 · SCR-108, SCR-109 | M | P0 | ✅ | ✅ 390 / 1440 (müsaitlik, günün menüsü) | 5 entegrasyon (BR-MST-001 gün sonu, BR-KRC-003, adet sınırları, çıkış saatleri, BR-MST-005 günün menüsü ve kopyalama) + 1 e2e @mobile (personel tükendi işaretler, ziyaretçi menüsünde görünür, geri al) |
-| D-21 | `pnpm mekan:yeni` (+ `tema:yeni`) ve `docs/yeni-mekan.md` (Vercel alan adı adımları dahil) | QR-23 · REQ-023 | M | P0 | ⏳ | — | — |
+| D-21 | `pnpm mekan:yeni` (+ `tema:yeni`) ve `docs/yeni-mekan.md` (Vercel alan adı adımları dahil) | QR-23 · REQ-023 | M | P0 | ✅ | — (arayüz yok; komut çıktısı) | 4 birim (kayıt şeması, kayıt ve içerik listeleri, THEMES / ESLint / tema haritası, ad dönüşümü) + elle uçtan uca deneme (tema + mekân → tohum → derleme → açılış) |
 | D-22 | Mekân test matrisi: duman, ekran görüntüsü karşılaştırması (CI temel görüntüleri), Lighthouse, görsel kalite, paket ve yazı tipi yalıtımı; ortak kod değişince bütün mekânlar | QR-23 · REQ-023 | M | P0 | ⏳ | — | — |
 
 ### Faz 2 — Panel derinliği ve kanıt (57 puan)
@@ -154,12 +154,13 @@ Faz 1'in son dilimi (D-22) bitip Rakım yayına çıkınca durulur; teslim: yay�
 
 ## Etkin dilim planı
 
-**D-21 — `pnpm mekan:yeni`**
+**D-22 — Mekân test matrisi**
 
-1. `scripts/mekan-yeni.mts`: ad, slug, tür, diller, alan adı (yoksa `{ad}-kartela.vercel.app`, K-26), tema (Sade ya da yeni tema) sorulur; `content/mekanlar/{ad}/` (mekan.ts, menu.ts iskeleti, bilgi.ts, hikayeler.ts) yazılır ve `content/mekanlar/index.ts`'e satır eklenir; tohum ve içerik doğrulaması koşturulur.
-2. `pnpm tema:yeni`: Sade'den başlayan tema klasörü, rota ağacı ve ESLint tema sınırı satırı.
-3. `docs/yeni-mekan.md`: komut, içerik dosyaları, görseller, alan adı (panel D-19), yayın.
-4. Testler: üretilen dosyalar kayıt ve içerik şemasından geçer; e2e'de yeni mekân kendi alan adında açılır.
+1. `tests/e2e/routes.ts`'teki mekân listesi kayıttan türetilir: her mekân × hızlı menü, Keşfet, ürün, bilgi, 404, çevrimdışı.
+2. Duman testi, taşma / dokunma / axe, görsel kalitesi, SEO ve başlıklar bu matrisle koşar; paket bütçesi ve yazı tipi yalıtımı (başka temanın yazı tipi ve modülü 0 bayt) her mekân için.
+3. Lighthouse CI matrisi kayıttaki bütün mekânları ölçer.
+4. Ekran görüntüsü tabanı: her mekânın 390 / 1440 görüntüsü (portfolyo betiği).
+5. Ardından Faz 1 teslimi: canlı adres, 1440 / 390 ekran görüntüleri, 30 sn telefon kaydı, kısa rapor.
 
 ## Görsel inceleme
 
@@ -254,3 +255,4 @@ Faz 1'in son dilimi (D-22) bitip Rakım yayına çıkınca durulur; teslim: yay�
 - 2026-11-05 · D-18b · (1) Better Auth'un `requestPasswordReset`'i e-postayı yanıttan sonra gönderebiliyor; e2e testi demo kutusunu `expect.poll` ile bekler. (2) Birden çok yerde geçen bir ad (görünen metin, ekran okuyucu ekleri, etiket) Playwright'ın katı modunda üç eşleşme verir; bulucu bölgeyle (`region` adı) daraltılır. (3) Davet ya da ayar yazan e2e testi gerçek demo mekânında değil fikstür mekânında koşmalı; yoksa yerel demo verisi test kayıtlarıyla dolar. (4) `useActionState` formu başarısız gönderimden sonra da sıfırlar; girilenin kalması için eylem gönderilen değerleri geri döndürür ve alanlar `defaultValue`'yu oradan alır.
 - 2026-11-27 · D-19 · (1) Next.js bilinen açığı olan sürümde derlemeyi `SecurityFatalError` ile reddediyor; aradan geçen haftalarda 16.4.3 bu duruma düştü, yamaya (16.4.6) geçmek gerekti. Dependabot PR'ları açık bekletilmemeli. (2) Bilgisayar yeniden başlayınca yerel PostgreSQL konteyneri kapanıyor; bütün panel testleri ECONNREFUSED ile düşerse önce `docker compose up -d`. (3) Vercel CLI'nin yeni sürümü, dal takma adı olan önizlemeyi `--yes` ile silmiyor; `--confirm-name <url>` istiyor. (4) Şablon dizgisindeki `\s` kaçış kaybeder; `new RegExp(`...`)` yerine ekran okuyucu ekinin getirdiği boşluğu içeren tam ad kullanıldı.
 - 2026-11-27 · D-20 · PostgreSQL, `INSERT … ON CONFLICT DO UPDATE`'te eklenecek satırın CHECK kısıtını çakışmaya bakmadan önce denetler: yalnız `remaining`'i değiştiren bir upsert, günlük adeti olan üründe `ck_item_availability_count`'a takıldı. Kısmi değişiklik önce UPDATE, satır yoksa INSERT ile yazılır. `time[]` sütunu saniyeli (`08:00:00`) döner.
+- 2026-11-28 · D-21 · Tema kopyalanırken `sade` → yeni ad dönüşümü kelime içinde yapılmamalı ("sadece"); büyük harften önce yapılmalı (`sadeFontClassName`). Komutlar yazdıkları dosyaya ESLint `--fix` ve Prettier uygular; yoksa içe aktarma sırası ilk `pnpm lint`'te kırılır.
