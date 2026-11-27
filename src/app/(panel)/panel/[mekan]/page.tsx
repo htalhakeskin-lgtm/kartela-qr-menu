@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { buttonClass, PanelCard } from "@/components/panel/ui";
+import { can } from "@/config/permissions";
 import { formatDate, formatTime } from "@/lib/format";
 import { type Dashboard, venueDashboard } from "@/server/panel/dashboard";
 import { requirePanelVenue } from "@/server/panel/session";
@@ -109,6 +111,14 @@ export default async function VenueDashboardPage({
           title="Tükenenler"
           description="Ziyaretçi menüsünde soluk görünür ve sona dizilir."
         >
+          {can(venue.role, "availability.edit") ? (
+            <Link
+              href={`/panel/${venue.slug}/musaitlik` as never}
+              className={buttonClass("secondary", "mb-3")}
+            >
+              Müsaitliği aç
+            </Link>
+          ) : null}
           {dashboard.soldOut.length === 0 ? (
             <p className="text-sm text-muted-foreground">Bugün tükenen ürün yok.</p>
           ) : (
