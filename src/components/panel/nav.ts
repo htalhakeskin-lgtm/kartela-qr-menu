@@ -1,4 +1,4 @@
-import { hasVenuePermission, type VenuePermission, type VenueRole } from "@/config/permissions";
+import { can, type VenuePermission, type VenueRole } from "@/config/permissions";
 
 import type { PanelIconName } from "./icons";
 
@@ -28,14 +28,24 @@ export function venueNav(slug: string, role: VenueRole | "platform"): PanelNavGr
       label: "Bugün",
       items: [{ label: "Pano", path: base, icon: "pano", exact: true, tab: true }],
     },
+    {
+      label: "Mekân",
+      items: [
+        { label: "Ayarlar", path: `${base}/ayarlar`, icon: "ayarlar", permission: "settings.edit" },
+        { label: "Ekip", path: `${base}/ekip`, icon: "ekip", permission: "members.manage" },
+        {
+          label: "İşlem geçmişi",
+          path: `${base}/gecmis`,
+          icon: "gecmis",
+          permission: "audit.view",
+        },
+      ],
+    },
   ];
   return groups
     .map((group) => ({
       ...group,
-      items: group.items.filter(
-        (item) =>
-          !item.permission || role === "platform" || hasVenuePermission(role, item.permission),
-      ),
+      items: group.items.filter((item) => !item.permission || can(role, item.permission)),
     }))
     .filter((group) => group.items.length > 0);
 }

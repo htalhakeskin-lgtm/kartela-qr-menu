@@ -20,6 +20,10 @@ export const rateLimits = {
   signInAccount: { key: "sign-in-account", limit: 8, windowSeconds: 900 },
   /** P-09 Second step (TOTP / backup code), per IP; Better Auth also caps tries per challenge */
   twoFactor: { key: "two-factor", limit: 10, windowSeconds: 900 },
+  /** P-10 Password reset requests, per IP and per address; invitation acceptance, per IP */
+  passwordResetIp: { key: "password-reset-ip", limit: 10, windowSeconds: 900 },
+  passwordResetAccount: { key: "password-reset-account", limit: 3, windowSeconds: 900 },
+  invitationAccept: { key: "invitation-accept", limit: 10, windowSeconds: 900 },
 } as const satisfies Record<string, RateLimitRule>;
 
 /** P-03 How long the "Seçtiklerim" list is kept in the browser (BR-SEC-001). */
@@ -37,3 +41,7 @@ export const SEARCH_MIN_CHARS = 2;
 /** P-08 Upload limits. */
 export const MAX_UPLOAD_BYTES = 10 * 1024 * 1024;
 export const MAX_IMAGE_EDGE_PX = 2560;
+
+/** P-10 Panel links sent by e-mail: password reset 30 minutes, invitation 7 days. */
+export const PASSWORD_RESET_MINUTES = 30;
+export const INVITATION_DAYS = 7;

@@ -46,6 +46,11 @@ export function hasVenuePermission(
   return matrix[role as VenueRole].includes(permission);
 }
 
+/** A panel role in a venue ("platform": an admin without a membership holds everything). */
+export function can(role: VenueRole | "platform", permission: VenuePermission): boolean {
+  return role === "platform" || hasVenuePermission(role, permission);
+}
+
 export function isPlatformAdmin(platformRole: string | null | undefined): boolean {
   return platformRole === "admin";
 }

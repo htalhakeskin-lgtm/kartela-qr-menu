@@ -10,6 +10,9 @@ const PATHS = {
   cikis: "M15 4h4v16h-4M10 8l-4 4 4 4M6 12h10",
   dis: "M14 4h6v6M20 4l-9 9M18 14v6H4V6h6",
   kapat: "M6 6l12 12M18 6 6 18",
+  ayarlar: "M4 7h9M17 7h3M4 17h3M11 17h9M15 5v4M9 15v4",
+  ekip: "M9 11a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Zm-6 9a6 6 0 0 1 12 0M16 4.5a3.5 3.5 0 0 1 0 6.5M21 20a6 6 0 0 0-4-5.6",
+  gecmis: "M12 7v5l3 2M3.5 12a8.5 8.5 0 1 0 2.5-6M3 4v4h4",
 } as const;
 
 export type PanelIconName = keyof typeof PATHS;

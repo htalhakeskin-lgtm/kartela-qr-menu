@@ -69,6 +69,36 @@ export const venueMembers = pgTable(
   ],
 );
 
+/**
+ * Panel invitations (plan §8 "Davet", D-18b). The link carries a random token; only its SHA-256
+ * is stored. One open invitation per address and venue: a new one replaces the old.
+ */
+export const venueInvitations = pgTable(
+  "venue_invitations",
+  {
+    id: id(),
+    venueId: uuid()
+      .notNull()
+      .references(() => venues.id, { onDelete: "cascade" }),
+    email: text().notNull(),
+    role: text().notNull(), // VENUE_ROLES
+    tokenHash: text().notNull(),
+    invitedBy: text().references(() => users.id, { onDelete: "set null" }),
+    expiresAt: instant().notNull(),
+    acceptedAt: instant(),
+    revokedAt: instant(),
+    ...timestamps,
+  },
+  (table) => [
+    uniqueIndex("ux_venue_invitations_token").on(table.tokenHash),
+    uniqueIndex("ux_venue_invitations_open")
+      .on(table.venueId, table.email)
+      .where(sql`${table.acceptedAt} is null and ${table.revokedAt} is null`),
+    check("ck_venue_invitations_role", sql`${table.role} in ('owner', 'manager', 'staff')`),
+    tenantPolicy("venue_invitations", table.venueId),
+  ],
+);
+
 export type VenueCompany = { legalName?: string; address?: string; taxOffice?: string };
 /** Phones in E.164 (+905423115888); the address as written on the door, one language. */
 export type VenueContact = {
