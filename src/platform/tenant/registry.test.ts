@@ -9,7 +9,7 @@ import {
   venueParamsOf,
   venues,
 } from "./registry";
-import { parseRegistry, THEMES, type VenueRecordInput } from "./registry-schema";
+import { applyOverlay, parseRegistry, THEMES, type VenueRecordInput } from "./registry-schema";
 
 const base: VenueRecordInput = {
   slug: "deneme",
@@ -72,5 +72,29 @@ describe("venue registry (ADR-0002 v2)", () => {
   it("rejects duplicate slugs and malformed domains", () => {
     expect(() => parseRegistry([base, { ...base, domains: [] }])).toThrow(/slug tekrarlandı/);
     expect(() => parseRegistry([{ ...base, domains: ["https://deneme.app"] }])).toThrow();
+  });
+});
+
+describe("K-50: panel changes laid over the venue files at build time", () => {
+  const record: VenueRecordInput = { ...base, domains: ["deneme.example.com"], mode: "demo" };
+
+  it("changes the mode and adds bound domains after the canonical one", () => {
+    const [merged] = applyOverlay([record], {
+      deneme: { mode: "live", domains: ["deneme.example.com", "menu.deneme.com.tr"] },
+    });
+    expect(merged?.mode).toBe("live");
+    expect(merged?.domains).toEqual(["deneme.example.com", "menu.deneme.com.tr"]);
+  });
+
+  it("leaves other venues alone and ignores unknown slugs", () => {
+    const merged = applyOverlay([record], { baska: { mode: "live" } });
+    expect(merged).toEqual([record]);
+  });
+
+  it("a host bound to two venues still fails validation (BR-KRC-004)", () => {
+    const other: VenueRecordInput = { ...record, slug: "ikinci", domains: ["ikinci.example.com"] };
+    expect(() =>
+      parseRegistry(applyOverlay([record, other], { ikinci: { domains: ["deneme.example.com"] } })),
+    ).toThrow();
   });
 });

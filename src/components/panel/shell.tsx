@@ -8,7 +8,7 @@ import type { PanelUser } from "@/server/panel/session";
 
 import { PanelIcon, type PanelIconName } from "./icons";
 import { MORE_SHEET_ID, MoreSheet } from "./more-sheet";
-import { type PanelNavGroup, venueNav } from "./nav";
+import { type PanelNavGroup, platformNav, venueNav } from "./nav";
 import { NavLink } from "./nav-link";
 
 /**
@@ -150,7 +150,10 @@ function TabLink({
 }
 
 export function PanelShell({ user, venue, venues, children }: ShellProps) {
-  const groups = venue ? venueNav(venue.slug, venue.role) : [];
+  const groups = [
+    ...(venue ? venueNav(venue.slug, venue.role) : []),
+    ...(user.platformAdmin ? platformNav() : []),
+  ];
   const tabs = groups
     .flatMap((group) => group.items)
     .filter((item) => item.tab)

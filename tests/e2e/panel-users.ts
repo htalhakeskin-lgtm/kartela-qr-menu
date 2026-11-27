@@ -109,6 +109,20 @@ export async function removeUserByEmail(email: string): Promise<void> {
   }
 }
 
+/** Removes a domain a test bound (the panel removes it too; this covers a failed run). */
+export async function removeDomain(host: string): Promise<void> {
+  const db = client();
+  await db.connect();
+  try {
+    await db.query("begin");
+    await db.query("select set_config('app.platform', 'on', true)");
+    await db.query("delete from venue_domains where host = $1", [host]);
+    await db.query("commit");
+  } finally {
+    await db.end();
+  }
+}
+
 /** RFC 6238 TOTP (SHA-1, 30 s, 6 digits) from the base32 key the setup page shows. */
 export function totp(base32Key: string, now = Date.now()): string {
   const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";

@@ -32,6 +32,12 @@ const schema = z
     VERCEL_BRANCH_URL: z.string().optional(),
     // Set by Vercel at build time: the deployed commit (service worker version, D-13).
     VERCEL_GIT_COMMIT_SHA: z.string().optional(),
+    // Platform admin (D-19, K-50). Optional: without them the panel shows the manual steps.
+    // VERCEL_PROJECT_ID is set by Vercel; the token needs the project's domain scope.
+    VERCEL_PROJECT_ID: z.string().optional(),
+    VERCEL_TEAM_ID: z.string().optional(),
+    VERCEL_API_TOKEN: z.string().min(1).optional(),
+    DEPLOY_HOOK_URL: z.url().optional(),
   })
   .superRefine((value, ctx) => {
     if (value.PLATFORM_DEMO) return;
