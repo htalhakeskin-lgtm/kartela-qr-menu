@@ -1,3 +1,5 @@
+import { venues } from "../../src/platform/tenant/registry";
+
 /**
  * Every route the responsive, accessibility, image and SEO checks visit (07-mobil §10).
  * Adding a page = adding it here (quality gate B).
@@ -31,35 +33,32 @@ export function venueHost(slug: string): string {
 }
 
 /**
- * Venue pages on their own hosts. D-22 turns this list into the venue matrix (every venue × quick
- * menu, Keşfet, item, info).
+ * The venue matrix (D-22): every venue in the registry × every language × quick menu, Keşfet and
+ * information, plus its style tile, its own 404 and its offline page. A new venue joins the
+ * responsive, accessibility, image and SEO checks without editing this file.
  */
-export const venueRoutes = [
-  venueUrl("rakim"),
-  venueUrl("rakim", "/en"),
-  venueUrl("rakim", "/kesfet"),
-  venueUrl("rakim", "/bilgi"),
-  venueUrl("rakim", "/stil"),
-  venueUrl("ornek"),
-  venueUrl("ornek", "/ar"),
-  venueUrl("ornek", "/kesfet"),
-  venueUrl("ornek", "/ar/kesfet"),
-  venueUrl("ornek", "/bilgi"),
-  venueUrl("ornek", "/ar/bilgi"),
-  venueUrl("ornek", "/stil"),
-  venueUrl("ornek", "/en/yok-boyle"), // the venue's own 404 (D-11)
-  venueUrl("ornek", "/cevrimdisi"), // the offline page (D-13)
-] as const;
+export const venueRoutes: readonly string[] = venues.flatMap((venue) => [
+  ...venue.locales.flatMap((locale) => {
+    const home = locale === venue.defaultLocale ? "" : `/${locale}`;
+    return [
+      venueUrl(venue.slug, home || "/"),
+      venueUrl(venue.slug, `${home}/kesfet`),
+      venueUrl(venue.slug, `${home}/bilgi`),
+    ];
+  }),
+  venueUrl(venue.slug, "/stil"),
+  venueUrl(venue.slug, "/yok-boyle"), // the venue's own 404 (D-11)
+  venueUrl(venue.slug, "/cevrimdisi"), // the offline page (D-13)
+]);
 
 /** The 404 check route: excluded from SEO and image checks. */
 export const notFoundRoute = "/bu-sayfa-yok";
 
 /** Routes whose job is to show many images; the same file may appear twice (thumbnail + large). */
-export const galleryRoutes: readonly string[] = [
+export const galleryRoutes: readonly string[] = venues.map(
   // The style tile shows one photo in each card variant on purpose (SCR-007, noindex).
-  venueUrl("ornek", "/stil"),
-  venueUrl("rakim", "/stil"),
-];
+  (venue) => venueUrl(venue.slug, "/stil"),
+);
 
 /** Where tests/e2e/auth.setup.ts stores the demo session (panel specs, screenshots; from D-18). */
 export const PANEL_STATE = "playwright/.auth/admin.json";

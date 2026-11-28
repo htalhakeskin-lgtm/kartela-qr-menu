@@ -4,9 +4,9 @@
 
 ## Şu an
 
-- **Etkin dilim:** D-22 — Mekân test matrisi · ⏳
-- **Son yapılan:** D-21: `pnpm mekan:yeni` (kayıt + içerik iskeleti + kayıt listeleri; yazmadan önce bütün kayıt şemadan geçer) ve `pnpm tema:yeni` (Sade'den kopya; ad dönüşümü Türkçe kelimelere dokunmaz; THEMES, ESLint sınırı, tema haritası). Deneme: yeni tema + yeni mekân tohumlandı, derlendi ve `deneme.localhost`'ta açıldı, sonra geri alındı. Rehber: `docs/yeni-mekan.md`. D-20 canlıda.
-- **Sıradaki adım:** D-22 — mekân test matrisi (her mekân × sayfa: duman testi, ekran görüntüsü tabanı, Lighthouse, görsel kalitesi, paket ve yazı tipi yalıtımı); ardından Faz 1 teslimi.
+- **Etkin dilim:** Faz 1 teslimi · onay bekliyor (Faz 2 kullanıcı onayıyla başlar)
+- **Son yapılan:** D-22: mekân test matrisi. Taşma, dokunma, axe, görsel kalitesi rotaları kayıttan türetilir (her mekân × her dil × hızlı menü, Keşfet, bilgi + stil karosu, 404, çevrimdışı); paket ve yazı tipi yalıtımı testi (başka temanın yazı tipi ve modülü 0 bayt, platform yazı tipi mekâna inmez; izler kendi temasında var); Lighthouse matrisi her mekânın hızlı menüsü + Keşfet'i (kayıtla eşitliği birim testinde). Tam e2e 461 test. D-21 canlıda.
+- **Sıradaki adım:** Faz 2 (panel derinliği ve kanıt) kullanıcı onayından sonra; ilk iş Keşfet LCP'si (bilinen sorun).
 
 ## Gözetimsiz çalışma notları
 
@@ -73,7 +73,7 @@ Faz 1'in son dilimi (D-22) bitip Rakım yayına çıkınca durulur; teslim: yay�
 | D-19 | Platform yöneticisi: kip, alan adı bağla (Vercel API + Deploy Hook), yeniden yayın, kullanıcılar; mekân oluşturma ve tema `pnpm mekan:yeni` ile (K-50) | QR-21 · REQ-021 · SCR-130…132 | M | P0 | ✅ | ✅ 390 / 1440 (mekân yönetimi, mekân, kullanıcılar) | 3 birim (katman) + 6 entegrasyon (yetki, kip, BR-KRC-004, birincil alan adı, platform rolü, tohum kipi korur) + 3 e2e (alan adı ekle / doğrula / kaldır, demo yönetici salt okunur, sahip 404) |
 | D-20 | Panel müsaitlik: tek dokunuş tükendi, günlük adet ±, fırından çıkış, günün menüsü (telefon öncelikli) | QR-08, QR-22 · REQ-008, REQ-022 · SCR-108, SCR-109 | M | P0 | ✅ | ✅ 390 / 1440 (müsaitlik, günün menüsü) | 5 entegrasyon (BR-MST-001 gün sonu, BR-KRC-003, adet sınırları, çıkış saatleri, BR-MST-005 günün menüsü ve kopyalama) + 1 e2e @mobile (personel tükendi işaretler, ziyaretçi menüsünde görünür, geri al) |
 | D-21 | `pnpm mekan:yeni` (+ `tema:yeni`) ve `docs/yeni-mekan.md` (Vercel alan adı adımları dahil) | QR-23 · REQ-023 | M | P0 | ✅ | — (arayüz yok; komut çıktısı) | 4 birim (kayıt şeması, kayıt ve içerik listeleri, THEMES / ESLint / tema haritası, ad dönüşümü) + elle uçtan uca deneme (tema + mekân → tohum → derleme → açılış) |
-| D-22 | Mekân test matrisi: duman, ekran görüntüsü karşılaştırması (CI temel görüntüleri), Lighthouse, görsel kalite, paket ve yazı tipi yalıtımı; ortak kod değişince bütün mekânlar | QR-23 · REQ-023 | M | P0 | ⏳ | — | — |
+| D-22 | Mekân test matrisi: duman, ekran görüntüsü karşılaştırması (CI temel görüntüleri), Lighthouse, görsel kalite, paket ve yazı tipi yalıtımı; ortak kod değişince bütün mekânlar | QR-23 · REQ-023 | M | P0 | ✅ | — (test altyapısı) | yalıtım e2e (2) + Lighthouse matrisi birim testi + kayıttan türetilen rota matrisi (461 e2e) |
 
 ### Faz 2 — Panel derinliği ve kanıt (57 puan)
 
@@ -219,6 +219,7 @@ Faz 1'in son dilimi (D-22) bitip Rakım yayına çıkınca durulur; teslim: yay�
 - Mekânın 404'ü istemcide çiziliyor: Next.js 16.4 Cache Components'ta ön oluşturma sırasındaki `notFound()` için gövdesi boş bir "kurtarma kabuğu" üretir, 404 içeriği aynı HTML'deki Flight verisinden tarayıcıda çizilir (ek istek yok, durum kodu 404). JavaScript kapalıyken sayfa boş kalır. Next.js düzeltirse yeniden denenir.
 - Önizlemede panel oturumu otomasyonla doğrulanamadı: Vercel önizlemeleri SSO korumasının arkasında. Kod yolu üretimdekiyle aynı (izinli host listesi `VERCEL_URL` / `VERCEL_BRANCH_URL`); üretimde demo girişi doğrulandı. Önizlemeyi otomasyonla açmak için korumayı atlatma anahtarı (Protection Bypass for Automation) gerekir.
 - Ayarlar SSS ve ek ücretleri düzenlemiyor (K-49): SSS içerik yönetiminde (D-23…), ek ücretler (BR-YSL-001) yasal blokta gösterildiği dilimde.
+- Keşfet sayfalarının Lighthouse performansı yerelde 0,81–0,87 (LCP ≈ 3,3 sn simüle; açılış görseli). FCP 0,9–1,1 sn (sert eşik 1,5 sn tutuyor). Matriste performans uyarı, FCP hata (D-22). Faz 2'nin ilk işi: açılış görselinin boyutu / kalitesi ve öncelik sırası.
 - Panelin 404'ü 200 durumuyla çizilir (K-48): panel her istekte üretildiği için mekân düzeninin `notFound()`'u durum satırından sonra gelir. Sayfa oturumlu ve `noindex`; içerik aynı (BR-KRC-003: olmayan ve erişilemeyen mekân aynı görünür).
 - Saate göre menü sırası sunucuda (K-47): bir pencere sınırından sonraki ilk ziyaretçi sayfanın eski sırasını görür ve tarayıcı sırayı düzeltir (o ziyarette bir kayma), sayfa arkada yenilenir.
 - Rakım ölçüm sayfasındaki "TR · EN" yalnızca metin (dil seçici değil); EN içerikle D-14, dil seçici D-15.
