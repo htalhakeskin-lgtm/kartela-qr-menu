@@ -4,6 +4,16 @@ import { venues } from "./src/platform/tenant/registry";
 import { buildTenantHeaders, buildTenantRewrites } from "./src/platform/tenant/rewrites";
 
 /**
+ * Live preview in the portfolio (talha-keskin-site → docs/onizleme-izinleri.md): public pages may
+ * be framed only by the origins in PORTFOLIO_ORIGINS (space separated, plain https origins).
+ * Empty or unset → 'none', exactly as before. Changing the list needs a redeploy, not a code change.
+ */
+const portfolioOrigins = (process.env.PORTFOLIO_ORIGINS ?? "")
+  .split(/\s+/)
+  .filter((origin) => /^https:\/\/[a-z0-9.-]+$/i.test(origin));
+const frameAncestors = portfolioOrigins.length > 0 ? portfolioOrigins.join(" ") : "'none'";
+
+/**
  * Tenant routing (ADR-0002 v2, K-39): host-based beforeFiles rewrites built from the venue
  * registry at build time. The platform's own host comes from NEXT_PUBLIC_PLATFORM_URL.
  */
@@ -37,7 +47,7 @@ const publicCsp = [
   "object-src 'none'",
   "base-uri 'self'",
   "form-action 'self'",
-  "frame-ancestors 'none'",
+  `frame-ancestors ${frameAncestors}`,
   "upgrade-insecure-requests",
 ].join("; ");
 
@@ -50,7 +60,6 @@ const securityHeaders = [
   { key: "Strict-Transport-Security", value: "max-age=63072000; includeSubDomains" },
   { key: "X-Content-Type-Options", value: "nosniff" },
   { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
-  { key: "X-Frame-Options", value: "DENY" },
   { key: "Cross-Origin-Opener-Policy", value: "same-origin" },
   { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=(), payment=()" },
 ];
